@@ -85,6 +85,20 @@ export async function startSupportAction(form: FormData): Promise<void> {
     storeId: store.id,
     details: { actorEmail: admin.email, storeName: store.name, storeSlug: store.slug },
   });
-  await startImpersonation(ownerId);
+  let started = true;
+  try {
+    await startImpersonation(ownerId);
+  } catch {
+    started = false;
+  }
+  if (!started) {
+    await recordAudit({
+      actorUserId: admin.id,
+      action: "support_session_ended",
+      storeId: store.id,
+      details: { actorEmail: admin.email, storeName: store.name, storeSlug: store.slug, reason: "falha ao iniciar" },
+    });
+    redirect("/admin");
+  }
   redirect("/painel");
 }

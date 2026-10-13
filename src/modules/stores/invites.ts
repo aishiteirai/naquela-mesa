@@ -4,7 +4,7 @@ import { z } from "zod";
 import { deleteUserByEmail, ensureUser, findUserByEmail, setUserPassword } from "@/modules/auth";
 import { db } from "@/shared/db/client";
 import { DomainError } from "@/shared/errors";
-import { addStoreMember } from "./members";
+import { addStoreMember, getMembershipStoreId, OWNS_OTHER_STORE } from "./members";
 import { storeInvites, stores } from "./schema";
 
 export const INVITE_TTL_DAYS = 7;
@@ -39,6 +39,12 @@ export async function createStoreInvite(
   const parsed = emailSchema.safeParse(email.trim().toLowerCase());
   if (!parsed.success) throw validation("ownerEmail", "email inválido");
 
+  const owner = await findUserByEmail(parsed.data);
+  if (owner) {
+    const ownedStoreId = await getMembershipStoreId(owner.id);
+    if (ownedStoreId && ownedStoreId !== storeId) throw validation("ownerEmail", OWNS_OTHER_STORE);
+  }
+
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(now.getTime() + INVITE_TTL_DAYS * DAY_MS);
   await db.transaction(async (tx) => {
@@ -65,6 +71,16 @@ async function findValidInvite(token: string, now: Date) {
   return row ?? null;
 }
 
+/** Há convite pendente e válido para este email em alguma loja? */
+export async function hasPendingInviteElsewhere(email: string, now: Date = new Date()): Promise<boolean> {
+  const [row] = await db
+    .select({ id: storeInvites.id })
+    .from(storeInvites)
+    .where(and(eq(storeInvites.email, email.trim().toLowerCase()), isNull(storeInvites.acceptedAt), gt(storeInvites.expiresAt, now)))
+    .limit(1);
+  return row !== undefined;
+}
+
 export async function getInvite(token: string, now: Date = new Date()): Promise<InviteView | null> {
   const invite = await findValidInvite(token, now);
   if (!invite) return null;
@@ -88,6 +104,10 @@ export async function acceptStoreInvite(
   if (!invite) throw new DomainError("NOT_FOUND");
 
   const existing = await findUserByEmail(invite.email);
+  if (existing) {
+    const ownedStoreId = await getMembershipStoreId(existing.id);
+    if (ownedStoreId && ownedStoreId !== invite.storeId) throw validation("email", OWNS_OTHER_STORE);
+  }
   let name = "";
   if (!existing) {
     const parsedName = nameSchema.safeParse(input.name ?? "");

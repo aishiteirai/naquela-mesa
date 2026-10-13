@@ -59,8 +59,8 @@ test("acesso de suporte entra no painel da loja e fica registrado", async ({ pag
 
   await expect(page).toHaveURL(/\/admin$/);
   const log = page.getByRole("region", { name: "Registro de suporte" });
-  await expect(log).toContainText("Acesso de suporte iniciado · Hamburgueria E2E");
-  await expect(log).toContainText("Acesso de suporte encerrado · Hamburgueria E2E");
+  await expect(log.getByRole("listitem").nth(0)).toContainText("Acesso de suporte encerrado · Hamburgueria E2E");
+  await expect(log.getByRole("listitem").nth(1)).toContainText("Acesso de suporte iniciado · Hamburgueria E2E");
 });
 
 test("link de convite inválido mostra a página de erro", async ({ page }) => {

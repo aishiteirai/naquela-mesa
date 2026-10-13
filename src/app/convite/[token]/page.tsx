@@ -4,6 +4,8 @@ import { getInvite } from "@/modules/stores";
 import { acceptInviteAction } from "./actions";
 import { AcceptForm } from "./_components/accept-form";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 async function Invite({ params }: { params: Promise<{ token: string }> }) {
   await connection();
   const { token } = await params;

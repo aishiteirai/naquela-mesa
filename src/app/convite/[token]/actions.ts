@@ -20,6 +20,12 @@ export async function acceptInviteAction(token: string, _prev: ActionState, form
     }
     return actionError(error);
   }
-  await signInWithPassword(email, password);
-  redirect("/painel");
+  let signedIn = true;
+  try {
+    await signInWithPassword(email, password);
+  } catch {
+    signedIn = false;
+  }
+  // Conta já criada: se o login falhar, manda para o login em vez de deixar a pessoa presa num link usado.
+  redirect(signedIn ? "/painel" : "/login");
 }

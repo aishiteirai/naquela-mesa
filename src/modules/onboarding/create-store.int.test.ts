@@ -69,4 +69,14 @@ describe("criar loja a partir de template", () => {
     await expect(attempt({ name: "  " })).rejects.toMatchObject({ details: { issues: [{ path: "name" }] } });
     expect(await getStoreBySlug("tpl-pizzaria")).toBeNull();
   });
+
+  it("recusa email com convite pendente de outra loja", async () => {
+    await createStoreFromTemplate({ ...base, slug: "tpl-pizzaria", template: "pizzaria" }, adminId);
+
+    await expect(createStoreFromTemplate({ ...base, slug: "tpl-outra", template: "pizzaria" }, adminId)).rejects.toMatchObject({
+      code: "VALIDATION",
+      details: { issues: [{ path: "ownerEmail", message: "este email já é dono de outra loja" }] },
+    });
+    expect(await getStoreBySlug("tpl-outra")).toBeNull();
+  });
 });

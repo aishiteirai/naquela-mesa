@@ -22,5 +22,5 @@ export async function recordAudit(entry: {
 }
 
 export async function listAuditLogs(limit = 20): Promise<AuditEntry[]> {
-  return db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(limit);
+  return db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt), desc(auditLogs.id)).limit(limit);
 }

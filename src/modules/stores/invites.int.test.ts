@@ -3,7 +3,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { auth, deleteUserByEmail, ensureUser, findUserByEmail } from "@/modules/auth";
 import { db, pool } from "@/shared/db/client";
 import { acceptStoreInvite, createStoreInvite, getInvite } from "./invites";
-import { getMembershipStoreId } from "./members";
+import { addStoreMember, getMembershipStoreId } from "./members";
 import { storeInvites } from "./schema";
 import { createStore, deleteStoreBySlug } from "./service";
 
@@ -107,5 +107,44 @@ describe("convites de loja", () => {
 
     expect(await getInvite("curto")).toBeNull();
     await expect(acceptStoreInvite("curto", { name: "X", password: "senha-forte-123" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  describe("um dono, uma loja", () => {
+    const OTHER = "convite-loja-b";
+
+    beforeEach(async () => {
+      await deleteStoreBySlug(OTHER);
+    });
+
+    it("dois convites diretos para o mesmo email: o segundo aceite é recusado sem mexer na conta", async () => {
+      const { id: storeB } = await createStore({ slug: OTHER, name: "Loja B", whatsappPhone: "+5511999990001" });
+      const a = await createStoreInvite(storeId, NEW_OWNER, null);
+      const b = await createStoreInvite(storeB, NEW_OWNER, null);
+
+      await acceptStoreInvite(a.token, { name: "Dono", password: "senha-forte-123" });
+      await expect(acceptStoreInvite(b.token, { name: null, password: "senha-forte-999" })).rejects.toMatchObject({
+        code: "VALIDATION",
+        details: { issues: [{ path: "email", message: "este email já é dono de outra loja" }] },
+      });
+
+      const user = await findUserByEmail(NEW_OWNER);
+      expect(await getMembershipStoreId(user!.id)).toBe(storeId);
+      expect(await passwordWorks(NEW_OWNER, "senha-forte-123")).toBe(true);
+      expect(await passwordWorks(NEW_OWNER, "senha-forte-999")).toBe(false);
+      expect(await getInvite(b.token)).not.toBeNull();
+    });
+
+    it("createStoreInvite recusa email que já é dono de outra loja", async () => {
+      const { id: storeB } = await createStore({ slug: OTHER, name: "Loja B", whatsappPhone: "+5511999990001" });
+      const owner = await ensureUser({ email: NEW_OWNER, password: "senha-forte-123", name: "Dono" });
+      await addStoreMember(storeId, owner.id);
+
+      await expect(createStoreInvite(storeB, NEW_OWNER, null)).rejects.toMatchObject({
+        code: "VALIDATION",
+        details: { issues: [{ path: "ownerEmail", message: "este email já é dono de outra loja" }] },
+      });
+      // mesma loja continua podendo gerar link novo
+      await expect(createStoreInvite(storeId, NEW_OWNER, null)).resolves.toBeDefined();
+    });
   });
 });

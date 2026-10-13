@@ -2,7 +2,7 @@ import { z } from "zod";
 import { findUserByEmail } from "@/modules/auth";
 import { importCatalog } from "@/modules/catalog";
 import { normalizeBrazilPhone } from "@/modules/orders";
-import { addStoreMember, createStore, createStoreInvite, deleteStoreBySlug, getMembershipStoreId } from "@/modules/stores";
+import { addStoreMember, createStore, createStoreInvite, deleteStoreBySlug, getMembershipStoreId, hasPendingInviteElsewhere } from "@/modules/stores";
 import { DomainError } from "@/shared/errors";
 import { zodIssuesToDomainError } from "@/shared/validation";
 import { STORE_TEMPLATES, TEMPLATE_FEATURES, templateCatalog } from "./templates";
@@ -35,6 +35,8 @@ export async function createStoreFromTemplate(
 
   const existing = await findUserByEmail(ownerEmail);
   if (existing && (await getMembershipStoreId(existing.id))) throw validation("ownerEmail", "este email já é dono de outra loja");
+  // Sem loja ainda (a loja nova nem existe): qualquer convite pendente é de outra loja.
+  if (await hasPendingInviteElsewhere(ownerEmail)) throw validation("ownerEmail", "este email já é dono de outra loja");
 
   const { id: storeId } = await createStore({ slug, name, whatsappPhone, features: TEMPLATE_FEATURES[template] });
   try {

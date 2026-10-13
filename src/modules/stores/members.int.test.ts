@@ -29,6 +29,19 @@ describe("store members", () => {
     expect(await getMembershipStoreId(owner.id)).toBe(storeId);
   });
 
+  it("dono de uma loja não vira dono de uma segunda", async () => {
+    const a = await newStore("loja-a");
+    const b = await newStore("loja-b");
+    const owner = await ensureUser({ email: "dono-dois@exemplo.com", password: "senha-forte-123", name: "Dono" });
+    await addStoreMember(a, owner.id);
+
+    await expect(addStoreMember(b, owner.id)).rejects.toMatchObject({
+      code: "VALIDATION",
+      details: { issues: [{ path: "ownerEmail", message: "este email já é dono de outra loja" }] },
+    });
+    expect(await getMembershipStoreId(owner.id)).toBe(a);
+  });
+
   it("usuário sem vínculo não tem loja", async () => {
     const stranger = await ensureUser({ email: "sem-loja@exemplo.com", password: "senha-forte-123", name: "Sem loja" });
     expect(await getMembershipStoreId(stranger.id)).toBeNull();

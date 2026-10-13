@@ -53,7 +53,7 @@ export const storeMembers = pgTable(
     role: text("role", { enum: ["owner"] }).notNull().default("owner"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.storeId, t.userId] }), index("store_members_user_id_idx").on(t.userId)],
+  (t) => [primaryKey({ columns: [t.storeId, t.userId] }), uniqueIndex("store_members_user_id_unique").on(t.userId)],
 );
 
 export const deliveryZones = pgTable(

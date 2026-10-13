@@ -33,12 +33,17 @@ export async function listStoresForAdmin(now: Date = new Date()): Promise<AdminS
   ]);
   const emails = await getUserEmails([...new Set(members.map((member) => member.userId))]);
 
+  const ownerByStore = new Map<string, string>();
+  for (const member of members) if (!ownerByStore.has(member.storeId)) ownerByStore.set(member.storeId, member.userId);
+  const inviteByStore = new Map<string, (typeof invites)[number]>();
+  for (const invite of invites) if (!inviteByStore.has(invite.storeId)) inviteByStore.set(invite.storeId, invite);
+
   return rows.map((row) => {
-    const owner = members.find((member) => member.storeId === row.id);
-    const invite = invites.find((candidate) => candidate.storeId === row.id);
+    const ownerId = ownerByStore.get(row.id);
+    const invite = inviteByStore.get(row.id);
     return {
       ...row,
-      ownerEmail: owner ? (emails.get(owner.userId) ?? null) : null,
+      ownerEmail: ownerId ? (emails.get(ownerId) ?? null) : null,
       pendingInvite: invite ? { email: invite.email, expiresAt: invite.expiresAt } : null,
     };
   });

@@ -18,6 +18,7 @@ export function AcceptForm({ action, email, hasAccount }: Props) {
       <label className="flex flex-col gap-1 text-sm">
         Email
         <input value={email} readOnly className={inputClass} />
+        <FieldError state={state} name="email" />
       </label>
       {!hasAccount && (
         <label className="flex flex-col gap-1 text-sm">
