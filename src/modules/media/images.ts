@@ -24,7 +24,7 @@ export function detectImageType(bytes: Uint8Array): ImageType | null {
 }
 
 function uploadDir(): string {
-  return process.env.UPLOAD_DIR ?? path.join(process.cwd(), ".data", "uploads");
+  return process.env.UPLOAD_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), ".data", "uploads");
 }
 
 function invalidImage(message: string): DomainError {

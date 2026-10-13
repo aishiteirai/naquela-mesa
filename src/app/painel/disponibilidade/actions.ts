@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { z } from "zod";
 import { setOptionAvailability, setProductAvailability } from "@/modules/catalog";
 import { storeMenuTag } from "@/modules/stores";
 import { isDomainError } from "@/shared/errors";
@@ -19,9 +20,17 @@ async function toggle(work: (storeId: string) => Promise<void>): Promise<void> {
 }
 
 export async function toggleProductAvailabilityAction(form: FormData): Promise<void> {
-  await toggle((storeId) => setProductAvailability(storeId, String(form.get("productId")), form.get("available") === "true"));
+  await toggle(async (storeId) => {
+    const id = z.uuid().safeParse(String(form.get("productId")));
+    if (!id.success) return;
+    await setProductAvailability(storeId, id.data, form.get("available") === "true");
+  });
 }
 
 export async function toggleOptionAvailabilityAction(form: FormData): Promise<void> {
-  await toggle((storeId) => setOptionAvailability(storeId, String(form.get("optionId")), form.get("available") === "true"));
+  await toggle(async (storeId) => {
+    const id = z.uuid().safeParse(String(form.get("optionId")));
+    if (!id.success) return;
+    await setOptionAvailability(storeId, id.data, form.get("available") === "true");
+  });
 }
