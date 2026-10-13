@@ -214,6 +214,31 @@ export async function loadPlacedOrder(orderId: string): Promise<PlacedOrder> {
     store: { slug: store.slug, name: store.name, whatsappPhone: store.whatsappPhone },
   };
 }
+export type OrderTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Grava itens (com cópia de nome e preço) e adicionais de um pedido, na ordem das linhas. */
+export async function insertOrderLines(tx: OrderTx, orderId: string, lines: PricedLine[]): Promise<void> {
+  for (const [position, line] of lines.entries()) {
+    const [item] = await tx
+      .insert(orderItems)
+      .values({
+        orderId,
+        productName: line.productName,
+        sizeName: line.sizeName,
+        flavors: line.flavors,
+        quantity: line.quantity,
+        unitPriceCents: line.unitPriceCents,
+        totalCents: line.totalCents,
+        notes: line.notes,
+        position,
+      })
+      .returning({ id: orderItems.id });
+    if (line.options.length > 0) {
+      await tx.insert(orderItemOptions).values(line.options.map((option) => ({ orderItemId: item!.id, ...option })));
+    }
+  }
+}
+
 
 export async function createOrder(
   slug: string,
@@ -265,25 +290,7 @@ export async function createOrder(
         })
         .returning({ id: orders.id });
 
-      for (const [position, line] of quote.lines.entries()) {
-        const [item] = await tx
-          .insert(orderItems)
-          .values({
-            orderId: order!.id,
-            productName: line.productName,
-            sizeName: line.sizeName,
-            flavors: line.flavors,
-            quantity: line.quantity,
-            unitPriceCents: line.unitPriceCents,
-            totalCents: line.totalCents,
-            notes: line.notes,
-            position,
-          })
-          .returning({ id: orderItems.id });
-        if (line.options.length > 0) {
-          await tx.insert(orderItemOptions).values(line.options.map((option) => ({ orderItemId: item!.id, ...option })));
-        }
-      }
+      await insertOrderLines(tx, order!.id, quote.lines);
 
       await tx.insert(orderStatusEvents).values({ orderId: order!.id, status: "received" });
       return order!.id;

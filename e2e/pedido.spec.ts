@@ -52,13 +52,15 @@ test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompan
   await expect(page.getByTestId("quote-total")).toHaveText(/R\$\s84,90/);
 
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
-  await expect(page.getByRole("heading", { name: "Pedido #0001 recebido!" })).toBeVisible();
+  const heading = page.getByRole("heading", { name: /^Pedido #\d{4} recebido!$/ });
+  await expect(heading).toBeVisible();
+  const orderLabel = /#\d+/.exec((await heading.textContent()) ?? "")![0];
 
   const whatsapp = page.getByRole("link", { name: "Enviar pedido no WhatsApp" });
   const href = (await whatsapp.getAttribute("href")) ?? "";
   expect(href.startsWith("https://wa.me/5511999999999?text=")).toBe(true);
   const message = decodeURIComponent(href.split("?text=")[1] ?? "");
-  expect(message).toContain("*Pedido #0001* — Pizzaria Demo");
+  expect(message).toContain(`*Pedido ${orderLabel}* — Pizzaria Demo`);
   expect(message).toContain("Grande — ½ Calabresa + ½ Mussarela");
   expect(message).toContain("+ Borda recheada: Catupiry");
   expect(message).toContain("Endereço: Rua das Acácias, 45 — Centro");
@@ -66,7 +68,7 @@ test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompan
   expect(message).toMatch(/troco para R\$\s100,00/);
 
   await page.getByRole("link", { name: "Acompanhar pedido" }).click();
-  await expect(page.getByRole("heading", { name: "Pedido #0001" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: `Pedido ${orderLabel}`, exact: true })).toBeVisible();
   await expect(page.getByTestId("order-status")).toHaveText("Recebido — aguardando a loja");
   await expect(page.getByText("Olá, Maria!")).toBeVisible();
   // Reload: o roteador mantém a tela anterior (com o link do WhatsApp) oculta no DOM após navegação client-side.

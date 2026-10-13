@@ -3,7 +3,7 @@ import { DEMO_STORE_SLUG } from "./demo/pizzaria-demo";
 import { seedDemoStore } from "./demo/seed";
 
 seedDemoStore()
-  .then(() => console.log(`Loja demo pronta: /${DEMO_STORE_SLUG}`))
+  .then(({ historyCount }) => console.log(`Loja demo pronta: /${DEMO_STORE_SLUG} (${historyCount} pedidos fictícios)`))
   .catch((error: unknown) => {
     console.error(error);
     process.exitCode = 1;
