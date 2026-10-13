@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "naquela-mesa",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run --project unit",
     "test:int": "vitest run --project integration",
+    "test:e2e": "playwright test",
     "db:up": "docker compose up -d db",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -26,6 +27,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@testcontainers/postgresql": "^12.2.0",
     "@types/node": "^24.19.2",
