@@ -88,3 +88,12 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 - `/painel/metricas`: faturamento, pedidos, ticket médio e cancelamentos, top 10 produtos (pizza conta por sabor; meio a meio vale ½), pedidos por hora, por tipo e por canal.
 - Datas e horas seguem o fuso da loja. Faturamento e gráficos ignoram pedidos cancelados.
 - `npm run seed:demo` (ou `make setup`/`make update`) gera ~30 dias de pedidos fictícios na Pizzaria Demo, todos com mais de 24 h, para a demonstração das métricas.
+
+## Super-admin (`/admin`)
+
+- Crie o primeiro super-admin com `make admin EMAIL=voce@exemplo.com SENHA=...`.
+- **Nova loja:** nome, endereço (slug), WhatsApp, email do dono e modelo de cardápio (Pizzaria, Hamburgueria ou Lanchonete). O cardápio do modelo já vem cadastrado; o dono ajusta preços e itens.
+- **Link de acesso:** aparece na tela depois de criar a loja. Copie e envie ao dono pelo WhatsApp. Vale por 7 dias e uma vez só. O dono define a senha e cai direto no painel. Se o email já tem conta, a loja é vinculada a ela sem link.
+- **Esqueceu a senha:** em "Lojas", "Gerar link de acesso" cria um link novo (o anterior deixa de valer); o dono define uma nova senha por ele.
+- **Acessar como loja:** abre o painel da loja como se fosse o dono, com a faixa "Modo suporte". Entrada e saída ficam em "Registro de suporte".
+- **Primeiros passos:** o painel da loja mostra o que falta configurar (logo, horários, entrega, Pix, cardápio) até tudo estar feito.

@@ -19,6 +19,7 @@ export default defineConfig({
     // Os projetos abaixo alteram a Pizzaria Demo: rodam depois do "publico", sem retry (estado já mudou).
     { name: "pedido", testMatch: ["**/pedido*.spec.ts"], dependencies: ["publico"], retries: 0, use: { ...devices["Desktop Chrome"] } },
     { name: "painel", testMatch: ["**/painel*.spec.ts"], dependencies: ["pedido"], retries: 0, use: { ...devices["Desktop Chrome"] } },
+    { name: "admin", testMatch: ["**/admin.spec.ts"], dependencies: ["painel"], retries: 0, use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
     command: isCI ? "npm run start" : "npm run dev",
