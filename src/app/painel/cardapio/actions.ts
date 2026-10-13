@@ -120,6 +120,7 @@ function readProductForm(form: FormData): { input: ProductInput } | { error: Act
 }
 
 export async function saveProductAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  await requireStoreAccess();
   const parsed = readProductForm(form);
   if ("error" in parsed) return parsed.error;
 
