@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { ensureUser, findUserByEmail, setUserPassword } from "@/modules/auth";
+import { deleteUserByEmail, ensureUser, findUserByEmail, setUserPassword } from "@/modules/auth";
 import { db } from "@/shared/db/client";
 import { DomainError } from "@/shared/errors";
 import { addStoreMember } from "./members";
@@ -88,7 +88,7 @@ export async function acceptStoreInvite(
   if (!invite) throw new DomainError("NOT_FOUND");
 
   const existing = await findUserByEmail(invite.email);
-  let name: string | null = null;
+  let name = "";
   if (!existing) {
     const parsedName = nameSchema.safeParse(input.name ?? "");
     if (!parsedName.success) throw validation("name", parsedName.error.issues[0]?.message ?? "nome inválido");
@@ -103,18 +103,25 @@ export async function acceptStoreInvite(
     .returning({ id: storeInvites.id });
   if (!claimed) throw new DomainError("NOT_FOUND");
 
+  let createdUser = false;
   try {
-    let userId: string;
     if (existing) {
+      // Vínculo primeiro: falha aqui não deixa senha trocada.
+      await addStoreMember(invite.storeId, existing.id);
       await setUserPassword(existing.id, password.data);
-      userId = existing.id;
     } else {
-      userId = (await ensureUser({ email: invite.email, password: password.data, name: name! })).id;
+      const created = await ensureUser({ email: invite.email, password: password.data, name });
+      createdUser = created.created;
+      await addStoreMember(invite.storeId, created.id);
     }
-    await addStoreMember(invite.storeId, userId);
   } catch (error) {
-    // Falhou depois de reservar: devolve o link para o dono tentar de novo.
-    await db.update(storeInvites).set({ acceptedAt: null }).where(eq(storeInvites.id, claimed.id));
+    // Desfaz o que este aceite criou e devolve o link; falha na limpeza nunca esconde o erro original.
+    try {
+      if (createdUser) await deleteUserByEmail(invite.email);
+      await db.update(storeInvites).set({ acceptedAt: null }).where(eq(storeInvites.id, claimed.id));
+    } catch {
+      // ignorado de propósito
+    }
     throw error;
   }
   return { email: invite.email, storeId: invite.storeId };

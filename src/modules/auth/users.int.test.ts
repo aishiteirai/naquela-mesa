@@ -91,7 +91,12 @@ describe("usuários", () => {
     expect(await findUserByEmail("  TROCA-SENHA@exemplo.com ")).toEqual({ id: created.id, name: "Teste" });
     expect(await findUserByEmail("ninguem@exemplo.com")).toBeNull();
 
+    const ctx = await auth.$context;
+    await ctx.internalAdapter.createSession(created.id);
+    expect(await ctx.internalAdapter.listSessions(created.id)).toHaveLength(1);
+
     await setUserPassword(created.id, "senha-nova-123");
+    expect(await ctx.internalAdapter.listSessions(created.id)).toHaveLength(0);
     expect(await passwordWorks("troca-senha@exemplo.com", "senha-nova-123")).toBe(true);
     expect(await passwordWorks("troca-senha@exemplo.com", "senha-antiga-1")).toBe(false);
 

@@ -22,10 +22,11 @@ export async function getUserEmails(ids: string[]): Promise<Map<string, string>>
   return new Map(rows.map((row) => [row.id, row.email]));
 }
 
-/** Troca a senha da conta de email/senha com o mesmo hash que o Better Auth usa no login. */
+/** Troca a senha (mesmo hash do login do Better Auth) e encerra as sessões abertas da conta. */
 export async function setUserPassword(userId: string, password: string): Promise<void> {
   const ctx = await auth.$context;
   await ctx.internalAdapter.updatePassword(userId, await ctx.password.hash(password));
+  await ctx.internalAdapter.deleteUserSessions(userId);
 }
 
 export async function deleteUserByEmail(email: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { auth, deleteUserByEmail, ensureUser, findUserByEmail } from "@/modules/auth";
 import { db, pool } from "@/shared/db/client";
@@ -59,7 +59,14 @@ describe("convites de loja", () => {
       acceptStoreInvite(token, { name: "Dono B", password: "senha-forte-456" }),
     ]);
     expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
-    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    const rejected = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]?.reason).toMatchObject({ code: "NOT_FOUND" });
+
+    const count = await db.execute(sql`select count(*)::int as n from "user" where email = ${NEW_OWNER}`);
+    expect(count.rows[0]).toMatchObject({ n: 1 });
+    const owner = await findUserByEmail(NEW_OWNER);
+    expect(await getMembershipStoreId(owner!.id)).toBe(storeId);
   });
 
   it("email que já tem conta: troca a senha e não pede nome", async () => {
