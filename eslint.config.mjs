@@ -6,6 +6,10 @@ const moduleInternals = {
   group: ["@/modules/*/*", "!@/modules/*/client"],
   message: "Importe outro módulo só pela API pública: '@/modules/<nome>' ou '@/modules/<nome>/client'.",
 };
+const clientInternals = {
+  group: ["@/modules/*/client/**"],
+  message: "Só '@/modules/<nome>/client' é público; subcaminhos de client são internos.",
+};
 const parentRelative = {
   group: ["../*", "../**"],
   message: "Use './' dentro do módulo ou '@/...' para o resto. Imports '../' são proibidos.",
@@ -22,16 +26,16 @@ const modulesLayer = {
 const boundaries = [
   {
     files: ["src/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { patterns: [moduleInternals, parentRelative] }] },
+    rules: { "no-restricted-imports": ["error", { patterns: [moduleInternals, clientInternals, parentRelative] }] },
   },
   {
     files: ["src/modules/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { patterns: [moduleInternals, parentRelative, appLayer] }] },
+    rules: { "no-restricted-imports": ["error", { patterns: [moduleInternals, clientInternals, parentRelative, appLayer] }] },
   },
   {
     files: ["src/shared/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: [moduleInternals, parentRelative, appLayer, modulesLayer] }],
+      "no-restricted-imports": ["error", { patterns: [moduleInternals, clientInternals, parentRelative, appLayer, modulesLayer] }],
     },
   },
 ];

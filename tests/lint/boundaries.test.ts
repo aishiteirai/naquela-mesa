@@ -30,6 +30,9 @@ describe("fronteiras de módulo", { timeout: 30_000 }, () => {
     ["src/modules/catalog/service.ts", "@/app/page"],
     ["src/shared/env.ts", "@/modules/orders"],
     ["src/shared/env.ts", "@/app/layout"],
+    ["src/app/page.tsx", "@/modules/orders/client/sub"],
+    ["src/shared/env.ts", "@/modules/orders/client"],
+    ["src/app/page.tsx", "../x"],
   ])("%s NÃO pode importar %s", async (file, source) => {
     expect(await restrictedImportCount(source, file)).toBeGreaterThan(0);
   });
