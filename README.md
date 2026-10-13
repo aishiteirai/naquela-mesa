@@ -81,3 +81,10 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 - Clique em **Iniciar atendimento** para ligar o alerta sonoro (exigência dos navegadores) e manter a tela acesa.
 - Cada pedido: avançar status, cancelar (com motivo), **Avisar cliente** (WhatsApp com o status) e **Imprimir comanda** (80 mm). Em Loja → "Imprimir comanda ao aceitar" abre a comanda automaticamente ao aceitar.
 - Dica para impressão sem diálogo: abra o Chrome com `--kiosk-printing` e defina a térmica como impressora padrão.
+
+## Histórico e métricas (painel)
+
+- `/painel/pedidos`: histórico com período (hoje, 7 dias, 30 dias ou personalizado), status e busca por número, nome ou telefone; 50 por página. Cada pedido abre o detalhe e o link da comanda.
+- `/painel/metricas`: faturamento, pedidos, ticket médio e cancelamentos, top 10 produtos (pizza conta por sabor; meio a meio vale ½), pedidos por hora, por tipo e por canal.
+- Datas e horas seguem o fuso da loja. Faturamento e gráficos ignoram pedidos cancelados.
+- `npm run seed:demo` (ou `make setup`/`make update`) gera ~30 dias de pedidos fictícios na Pizzaria Demo, todos com mais de 24 h, para a demonstração das métricas.
