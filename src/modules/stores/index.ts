@@ -25,3 +25,4 @@ export {
   type StoreProfileInput,
 } from "./settings-service";
 export { acceptStoreInvite, createStoreInvite, getInvite, INVITE_TTL_DAYS, type InviteView } from "./invites";
+export { getStoreOwnerUserId, listStoresForAdmin, type AdminStoreRow } from "./admin";
