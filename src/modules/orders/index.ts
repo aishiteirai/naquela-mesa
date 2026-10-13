@@ -16,3 +16,4 @@ export {
 export * from "./status";
 export { getQueueVersion, getStoreOrder, listQueue, transitionOrder, type QueueOrder } from "./queue";
 export { getStoreMetrics, type StoreMetrics } from "./metrics";
+export { HISTORY_PAGE_SIZE, listOrderHistory, type OrderHistoryFilter, type OrderHistoryPage } from "./history";

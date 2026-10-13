@@ -42,7 +42,13 @@ export async function listQueue(storeId: string, now: Date = new Date(), limit: 
     .where(and(eq(orders.storeId, storeId), or(notInArray(orders.status, FINAL), gte(orders.createdAt, since))))
     .orderBy(desc(orders.createdAt))
     .limit(limit);
-  const rows = newestFirst.reverse();
+  return hydrateOrders(newestFirst.reverse());
+}
+
+type OrderRow = typeof orders.$inferSelect;
+
+/** Carrega itens/opções e monta o formato do painel (fila e histórico), preservando a ordem de `rows`. */
+export async function hydrateOrders(rows: OrderRow[]): Promise<QueueOrder[]> {
   if (rows.length === 0) return [];
 
   const orderIds = rows.map((row) => row.id);
