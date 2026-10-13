@@ -53,3 +53,10 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 - `/painel` — dono da loja (login em `/login`). Demo: `dono@pizzariademo.test` / `demo-senha-123`.
 - Cardápio, adicionais, disponibilidade e configurações; cada alteração atualiza o cardápio público na hora.
 - Imagens enviadas ficam em `.data/uploads` (local); servidas em `/uploads/<arquivo>`.
+
+## Pedido do cliente
+
+- Cardápio: `/<slug>` → botão "Adicionar" em cada produto (tamanho, meio a meio, adicionais).
+- Sacola e checkout: `/<slug>/sacola` (delivery, retirada ou mesa; dinheiro, cartão na entrega ou Pix).
+- Depois de confirmar: botão "Enviar pedido no WhatsApp" (mensagem completa para a loja) e link de acompanhamento `/<slug>/pedido/<token>`.
+- O preço é sempre recalculado no servidor; o total do navegador é só estimativa.
