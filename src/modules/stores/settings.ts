@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { imageUrlSchema } from "@/shared/validation";
+import { findHourConflict } from "./hours";
 
 export const RESERVED_SLUGS = ["admin", "api", "login", "painel", "pedido", "sem-loja", "uploads", "_next", "favicon.ico"] as const;
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -79,7 +80,13 @@ export const storeHourInputSchema = z
     path: ["closesAt"],
   });
 
-export const storeHoursInputSchema = z.array(storeHourInputSchema).max(21);
+export const storeHoursInputSchema = z
+  .array(storeHourInputSchema)
+  .max(21)
+  .superRefine((hours, ctx) => {
+    const conflict = findHourConflict(hours);
+    if (conflict) ctx.addIssue({ code: "custom", message: "há turnos sobrepostos", path: [conflict[1]] });
+  });
 
 export type StoreTheme = z.infer<typeof storeThemeSchema>;
 export type StoreFeatures = z.infer<typeof storeFeaturesSchema>;

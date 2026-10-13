@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, doublePrecision, index, integer, jsonb, pgTable, primaryKey, smallint, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, doublePrecision, index, integer, jsonb, pgTable, primaryKey, smallint, text, time, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { user } from "../auth/schema";
 import type { StoreFeatures, StorePaymentMethods, StoreRules, StoreTheme } from "./settings";
 
@@ -54,4 +54,22 @@ export const storeMembers = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.storeId, t.userId] }), index("store_members_user_id_idx").on(t.userId)],
+);
+
+export const deliveryZones = pgTable(
+  "delivery_zones",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    neighborhood: text("neighborhood").notNull(),
+    feeCents: integer("fee_cents").notNull(),
+    position: integer("position").notNull().default(0),
+  },
+  (t) => [
+    index("delivery_zones_store_id_idx").on(t.storeId),
+    uniqueIndex("delivery_zones_store_neighborhood_idx").on(t.storeId, sql`lower(${t.neighborhood})`),
+    check("delivery_zones_fee_cents_check", sql`${t.feeCents} >= 0`),
+  ],
 );

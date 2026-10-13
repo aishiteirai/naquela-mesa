@@ -36,6 +36,13 @@
       "when": 1791871613773,
       "tag": "0004_absent_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791872798329,
+      "tag": "0005_wooden_dagger",
+      "breakpoints": true
     }
   ]
 }

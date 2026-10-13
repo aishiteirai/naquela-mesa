@@ -13,6 +13,32 @@ function toMinutes(hourMinute: string): number {
   return hour * MINUTES_PER_HOUR + minute;
 }
 
+const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+const MINUTES_PER_WEEK = DAYS_PER_WEEK * MINUTES_PER_DAY;
+
+function shiftInterval(shift: StoreHour): [number, number] {
+  const opens = toMinutes(shift.opensAt);
+  const closes = toMinutes(shift.closesAt);
+  const duration = closes > opens ? closes - opens : MINUTES_PER_DAY - opens + closes;
+  const start = shift.weekday * MINUTES_PER_DAY + opens;
+  return [start, start + duration];
+}
+
+/** Primeiro par de turnos que se sobrepõe na semana (circular), ou null. */
+export function findHourConflict(hours: StoreHour[]): [number, number] | null {
+  const intervals = hours.map(shiftInterval);
+  for (let i = 0; i < intervals.length; i++) {
+    for (let j = i + 1; j < intervals.length; j++) {
+      const [startA, endA] = intervals[i]!;
+      const [startB, endB] = intervals[j]!;
+      for (const offset of [-MINUTES_PER_WEEK, 0, MINUTES_PER_WEEK]) {
+        if (startA < endB + offset && startB + offset < endA) return [i, j];
+      }
+    }
+  }
+  return null;
+}
+
 function formatMinutes(minutes: number): string {
   const hour = String(Math.floor(minutes / MINUTES_PER_HOUR)).padStart(2, "0");
   const minute = String(minutes % MINUTES_PER_HOUR).padStart(2, "0");

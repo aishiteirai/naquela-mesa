@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatOpenStatus, getOpenStatus, localClock } from "./hours";
+import { findHourConflict, formatOpenStatus, getOpenStatus, localClock } from "./hours";
 import type { StoreHour } from "./types";
 
 const timeZone = "America/Sao_Paulo";
@@ -90,5 +90,27 @@ describe("formatOpenStatus", () => {
     [{ isOpen: false, nextOpening: { dayOffset: 7, weekday: 0, time: "11:00" } }, "Abre domingo às 11:00"],
   ])("%o → %s", (status, text) => {
     expect(formatOpenStatus(status)).toBe(text);
+  });
+});
+
+describe("findHourConflict", () => {
+  const shift = (weekday: number, opensAt: string, closesAt: string): StoreHour => ({ weekday, opensAt, closesAt });
+
+  it.each([
+    ["mesmo dia sobreposto", [shift(2, "18:00", "23:00"), shift(2, "22:00", "23:30")]],
+    ["turno duplicado", [shift(1, "18:00", "23:00"), shift(1, "18:00", "23:00")]],
+    ["madrugada de sexta para sábado", [shift(5, "18:00", "02:00"), shift(6, "01:00", "03:00")]],
+    ["sábado para domingo (virada da semana)", [shift(6, "23:00", "02:00"), shift(0, "01:00", "03:00")]],
+  ])("conflito: %s", (_label, hours) => {
+    expect(findHourConflict(hours)).toEqual([0, 1]);
+  });
+
+  it.each([
+    ["turnos que só se encostam", [shift(6, "18:00", "00:30"), shift(0, "00:30", "02:00")]],
+    ["almoço e jantar", [shift(2, "11:00", "14:00"), shift(2, "18:00", "23:00")]],
+    ["dias diferentes", [shift(1, "18:00", "23:00"), shift(3, "18:00", "23:00")]],
+    ["vazio", []],
+  ])("sem conflito: %s", (_label, hours) => {
+    expect(findHourConflict(hours)).toBeNull();
   });
 });
