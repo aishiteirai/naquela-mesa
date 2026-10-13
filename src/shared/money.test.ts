@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertCents, formatBRL } from "./money";
+import { assertCents, formatBRL, formatCentsForInput, parseBRLToCents } from "./money";
 
 // Intl usa espaço não separável (U+00A0) entre "R$" e o número.
 const NBSP = "\u00A0";
@@ -31,4 +31,38 @@ describe("assertCents", () => {
   it("formatBRL rejeita valor fracionado", () => {
     expect(() => formatBRL(12.5)).toThrow(RangeError);
   });
+});
+
+describe("parseBRLToCents", () => {
+  it.each([
+    ["34,90", 3490],
+    ["34,9", 3490],
+    ["34", 3400],
+    ["0", 0],
+    ["1.234,56", 123456],
+    ["R$ 12", 1200],
+    ["R$12,50", 1250],
+    ["  7,05 ", 705],
+  ])("%s → %d", (input, cents) => {
+    expect(parseBRLToCents(input)).toBe(cents);
+  });
+
+  it.each(["", "abc", "-1", "12.50", "12,505", "1.23,00", "12,", ",50", "1 000"])("recusa %s", (input) => {
+    expect(parseBRLToCents(input)).toBeNull();
+  });
+});
+
+describe("formatCentsForInput", () => {
+  it.each([
+    [3490, "34,90"],
+    [705, "7,05"],
+    [0, "0,00"],
+    [123456, "1234,56"],
+  ])("%d → %s", (cents, text) => {
+    expect(formatCentsForInput(cents)).toBe(text);
+  });
+});
+
+it("formatBRL(-0) não mostra sinal", () => {
+  expect(formatBRL(-0)).toBe(`R$${NBSP}0,00`);
 });

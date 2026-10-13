@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageUrlSchema } from "@/shared/validation";
 
 export const RESERVED_SLUGS = ["admin", "api", "login", "painel", "pedido", "sem-loja", "uploads", "_next", "favicon.ico"] as const;
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -63,8 +64,8 @@ export const createStoreInputSchema = z.object({
   whatsappPhone: z.string().regex(/^\+[1-9]\d{7,14}$/, "telefone deve estar no formato E.164 (+5511999999999)"),
   address: z.string().trim().min(1).max(300).nullable().default(null),
   timezone: z.string().refine(isValidTimeZone, "fuso horário inválido").default("America/Sao_Paulo"),
-  logoUrl: z.url({ protocol: /^https$/ }).nullable().default(null),
-  bannerUrl: z.url({ protocol: /^https$/ }).nullable().default(null),
+  logoUrl: imageUrlSchema.nullable().default(null),
+  bannerUrl: imageUrlSchema.nullable().default(null),
   theme: storeThemeSchema.prefault({}),
   features: storeFeaturesSchema.prefault({}),
   rules: storeRulesSchema.prefault({}),

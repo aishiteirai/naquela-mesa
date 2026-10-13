@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageUrlSchema } from "@/shared/validation";
 
 const cents = z.number().int().nonnegative();
 const key = z.string().regex(/^[a-z0-9_-]+$/, "chave deve ter só letras minúsculas, números, '_' e '-'");
@@ -20,7 +21,7 @@ const optionGroupSchema = z
 const productSchema = z.object({
   name,
   description: name.optional(),
-  imageUrl: z.url({ protocol: /^https$/ }).optional(),
+  imageUrl: imageUrlSchema.optional(),
   priceCents: cents.optional(),
   sizePrices: z.record(key, cents).optional(),
   allowsHalf: z.boolean().default(false),
