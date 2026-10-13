@@ -34,9 +34,13 @@ export function ImageUploadField({ name, label, defaultUrl }: { name: string; la
     startTransition(async () => {
       const form = new FormData();
       form.set("file", await resizeForUpload(file), "imagem");
-      const result = await uploadImageAction(form);
-      if ("error" in result) setError(result.error);
-      else setUrl(result.url);
+      try {
+        const result = await uploadImageAction(form);
+        if ("error" in result) setError(result.error);
+        else setUrl(result.url);
+      } catch {
+        setError("Não foi possível enviar a imagem.");
+      }
     });
   }
 
