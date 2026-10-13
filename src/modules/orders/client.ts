@@ -3,3 +3,4 @@ export * from "./types";
 export * from "./pricing";
 export * from "./labels";
 export { normalizeBrazilPhone } from "./phone";
+export * from "./status";
