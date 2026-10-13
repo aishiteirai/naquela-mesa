@@ -1,11 +1,12 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { recordAudit } from "@/modules/audit";
-import { requireSuperAdmin } from "@/modules/auth";
+import { requireSuperAdmin, startImpersonation } from "@/modules/auth";
 import { createStoreFromTemplate } from "@/modules/onboarding";
-import { createStoreInvite, getStoreById, storeMenuTag } from "@/modules/stores";
+import { createStoreInvite, getStoreById, getStoreOwnerUserId, storeMenuTag } from "@/modules/stores";
 import { getEnv } from "@/shared/env";
 import { actionError, type ActionState } from "@/app/_lib/action-state";
 
@@ -69,7 +70,21 @@ export async function newInviteLinkAction(_prev: AdminLinkState, form: FormData)
   }
 }
 
-export async function startSupportAction(_form: FormData): Promise<void> {
-  await requireSuperAdmin();
-  // Task 5 completa.
+export async function startSupportAction(form: FormData): Promise<void> {
+  const admin = await requireSuperAdmin();
+  const storeId = z.uuid().safeParse(text(form, "storeId"));
+  if (!storeId.success) return;
+  const store = await getStoreById(storeId.data);
+  const ownerId = store ? await getStoreOwnerUserId(store.id) : null;
+  if (!store || !ownerId) return;
+
+  // Registra antes de trocar a sessão: o acesso fica auditado mesmo se a troca falhar depois.
+  await recordAudit({
+    actorUserId: admin.id,
+    action: "support_session_started",
+    storeId: store.id,
+    details: { actorEmail: admin.email, storeName: store.name, storeSlug: store.slug },
+  });
+  await startImpersonation(ownerId);
+  redirect("/painel");
 }

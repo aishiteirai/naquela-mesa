@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignOutButton } from "@/app/_components/sign-out-button";
+import { SupportBanner } from "./_components/support-banner";
 import { requireStoreAccess } from "./_lib/access";
 
 const links = [
@@ -14,25 +15,28 @@ const links = [
 ];
 
 async function PainelHeader() {
-  const { store } = await requireStoreAccess();
+  const { store, user } = await requireStoreAccess();
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-      <span className="font-semibold">{store.name}</span>
-      <nav aria-label="Painel" className="flex flex-wrap gap-3 text-sm">
-        {links.map((link) => (
-          <Link key={link.href} href={link.href} className="underline-offset-4 hover:underline">
-            {link.label}
-          </Link>
-        ))}
-        <a href={`/${store.slug}`} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
-          Ver cardápio
-        </a>
-      </nav>
-      <div className="ml-auto">
-        <SignOutButton />
+    <>
+      {user.impersonatedBy && <SupportBanner storeName={store.name} />}
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+        <span className="font-semibold">{store.name}</span>
+        <nav aria-label="Painel" className="flex flex-wrap gap-3 text-sm">
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="underline-offset-4 hover:underline">
+              {link.label}
+            </Link>
+          ))}
+          <a href={`/${store.slug}`} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
+            Ver cardápio
+          </a>
+        </nav>
+        <div className="ml-auto">
+          <SignOutButton />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

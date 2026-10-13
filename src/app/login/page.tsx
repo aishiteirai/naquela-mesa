@@ -8,6 +8,7 @@ export default function LoginPage() {
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
+      <p className="text-sm text-neutral-700 dark:text-neutral-300">Esqueceu a senha? Peça ao suporte um novo link de acesso.</p>
     </main>
   );
 }
