@@ -73,3 +73,20 @@ export const deliveryZones = pgTable(
     check("delivery_zones_fee_cents_check", sql`${t.feeCents} >= 0`),
   ],
 );
+
+export const storeInvites = pgTable(
+  "store_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("store_invites_store_id_idx").on(t.storeId)],
+);

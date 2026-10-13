@@ -57,6 +57,13 @@
       "when": 1791913304567,
       "tag": "0007_clumsy_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791917236806,
+      "tag": "0008_slimy_avengers",
+      "breakpoints": true
     }
   ]
 }

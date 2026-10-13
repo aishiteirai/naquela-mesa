@@ -3,7 +3,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db, pool } from "@/shared/db/client";
 import { auth } from "./auth";
 import { user } from "./schema";
-import { ensureSuperAdmin, ensureUser } from "./users";
+import { deleteUserByEmail, ensureSuperAdmin, ensureUser, findUserByEmail, getUserEmails, setUserPassword } from "./users";
 
 const input = { email: "  Admin@Exemplo.com ", password: "senha-forte-123", name: "Admin" };
 
@@ -73,5 +73,32 @@ describe("ensureUser", () => {
 
     const signIn = await auth.api.signInEmail({ body: { email: "dono@loja.com", password: "senha-forte-123" } });
     expect(signIn.user.id).toBe(first.id);
+  });
+});
+
+async function passwordWorks(email: string, password: string): Promise<boolean> {
+  const ctx = await auth.$context;
+  const found = await ctx.internalAdapter.findUserByEmail(email, { includeAccounts: true });
+  const hash = found?.accounts.find((account) => account.providerId === "credential")?.password;
+  return hash ? ctx.password.verify({ hash, password }) : false;
+}
+
+describe("usuários", () => {
+  it("acha por email normalizado, troca senha, lista emails e apaga", async () => {
+    await deleteUserByEmail("troca-senha@exemplo.com");
+    const created = await ensureUser({ email: "troca-senha@exemplo.com", password: "senha-antiga-1", name: "Teste" });
+
+    expect(await findUserByEmail("  TROCA-SENHA@exemplo.com ")).toEqual({ id: created.id, name: "Teste" });
+    expect(await findUserByEmail("ninguem@exemplo.com")).toBeNull();
+
+    await setUserPassword(created.id, "senha-nova-123");
+    expect(await passwordWorks("troca-senha@exemplo.com", "senha-nova-123")).toBe(true);
+    expect(await passwordWorks("troca-senha@exemplo.com", "senha-antiga-1")).toBe(false);
+
+    expect(await getUserEmails([created.id])).toEqual(new Map([[created.id, "troca-senha@exemplo.com"]]));
+    expect(await getUserEmails([])).toEqual(new Map());
+
+    expect(await deleteUserByEmail("troca-senha@exemplo.com")).toBe(true);
+    expect(await findUserByEmail("troca-senha@exemplo.com")).toBeNull();
   });
 });
