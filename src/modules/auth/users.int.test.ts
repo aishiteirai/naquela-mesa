@@ -106,4 +106,15 @@ describe("usuários", () => {
     expect(await deleteUserByEmail("troca-senha@exemplo.com")).toBe(true);
     expect(await findUserByEmail("troca-senha@exemplo.com")).toBeNull();
   });
+
+  it("ensureSuperAdmin promove e troca a senha de conta existente", async () => {
+    await deleteUserByEmail("vira-admin@exemplo.com");
+    await ensureUser({ email: "vira-admin@exemplo.com", password: "senha-antiga-1", name: "Futuro Admin" });
+
+    const result = await ensureSuperAdmin({ email: "vira-admin@exemplo.com", password: "senha-nova-123", name: "Ignorado" });
+    expect(result.created).toBe(false);
+    expect(await passwordWorks("vira-admin@exemplo.com", "senha-nova-123")).toBe(true);
+    expect(await passwordWorks("vira-admin@exemplo.com", "senha-antiga-1")).toBe(false);
+    await deleteUserByEmail("vira-admin@exemplo.com");
+  });
 });

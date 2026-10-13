@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/shared/db/client";
 import { auth } from "./auth";
 import { SUPER_ADMIN_ROLE } from "./roles";
@@ -48,6 +48,8 @@ export async function ensureUser(input: EnsureUserInput): Promise<{ id: string; 
 
 export async function ensureSuperAdmin(input: EnsureSuperAdminInput): Promise<{ id: string; created: boolean }> {
   const result = await ensureUser(input);
-  await db.update(user).set({ role: SUPER_ADMIN_ROLE, updatedAt: new Date() }).where(eq(user.id, result.id));
+  // Conta existente: a senha informada passa a valer (antes era ignorada sem aviso).
+  if (!result.created) await setUserPassword(result.id, input.password);
+  await db.update(user).set({ role: SUPER_ADMIN_ROLE, updatedAt: sql`now()` }).where(eq(user.id, result.id));
   return result;
 }

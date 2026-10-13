@@ -34,7 +34,7 @@ test: ## Lint, tipos, testes unitários e de integração
 	npm run test:int
 
 e2e: db-up db-migrate build ## Testes E2E (Playwright)
-	npm run admin:ensure -- e2e-admin@naquelamesa.test e2e-senha-123 "E2E Admin"
+	ADMIN_PASSWORD=e2e-senha-123 npm run admin:ensure -- e2e-admin@naquelamesa.test "E2E Admin"
 	CI=1 npm run test:e2e
 
 check: test e2e ## Tudo o que o CI roda
@@ -63,7 +63,7 @@ db-studio: ## Abre o Drizzle Studio
 
 admin: ## Cria/promove super-admin: make admin EMAIL=voce@exemplo.com SENHA=... [NOME="Seu Nome"]
 	@test -n "$(EMAIL)" -a -n "$(SENHA)" || (echo "Uso: make admin EMAIL=... SENHA=... [NOME=...]"; exit 1)
-	npm run admin:ensure -- "$(EMAIL)" "$(SENHA)" "$(or $(NOME),Super Admin)"
+	ADMIN_PASSWORD="$(SENHA)" npm run admin:ensure -- "$(EMAIL)" "$(or $(NOME),Super Admin)"
 
 owner: ## Vincula dono a uma loja: make owner SLUG=pizzaria-demo EMAIL=... SENHA=... [NOME=...]
 	@test -n "$(SLUG)" -a -n "$(EMAIL)" -a -n "$(SENHA)" || (echo "Uso: make owner SLUG=... EMAIL=... SENHA=... [NOME=...]"; exit 1)

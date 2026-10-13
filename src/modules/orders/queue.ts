@@ -146,7 +146,7 @@ export async function transitionOrder(
     // Só atualiza se ninguém mudou o status desde a leitura (outro aparelho).
     const updated = await tx
       .update(orders)
-      .set({ status: to, updatedAt: new Date(), ...(to === "cancelled" ? { cancelReason } : {}) })
+      .set({ status: to, updatedAt: sql`now()`, ...(to === "cancelled" ? { cancelReason } : {}) })
       .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId), eq(orders.status, current.status)))
       .returning({ id: orders.id });
     if (updated.length === 0) throw new DomainError("INVALID_TRANSITION", { from: current.status, to });

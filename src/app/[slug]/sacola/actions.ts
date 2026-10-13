@@ -2,7 +2,7 @@
 
 import { createOrder, formatOrderNumber, quoteOrder, type OrderQuote } from "@/modules/orders";
 import { buildOrderMessage, waMeLink } from "@/modules/whatsapp";
-import { getEnv } from "@/shared/env";
+import { appUrl } from "@/shared/env";
 import { isDomainError } from "@/shared/errors";
 import { toCheckoutError, type CheckoutError } from "./messages";
 
@@ -34,7 +34,7 @@ export async function placeOrderAction(slug: string, payload: unknown): Promise<
   try {
     const order = await createOrder(slug, payload, "web");
     const trackingPath = `/${order.store.slug}/pedido/${order.publicToken}`;
-    const trackingUrl = new URL(trackingPath, getEnv().BETTER_AUTH_URL).toString();
+    const trackingUrl = new URL(trackingPath, appUrl()).toString();
     return {
       ok: true,
       placed: {

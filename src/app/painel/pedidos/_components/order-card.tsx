@@ -10,7 +10,7 @@ import {
   type QueueOrder,
 } from "@/modules/orders";
 import { buildStatusMessage, waMeLink } from "@/modules/whatsapp";
-import { getEnv } from "@/shared/env";
+import { appUrl } from "@/shared/env";
 import { formatBRL } from "@/shared/money";
 import { AdvanceButton } from "./advance-button";
 import { CancelForm } from "./cancel-form";
@@ -22,7 +22,7 @@ export function OrderCard({ order, storeName, storeSlug, timezone, autoPrintOnAc
   const time = new Intl.DateTimeFormat("pt-BR", { timeZone: timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(order.createdAt));
   const next = nextStatus(order.fulfillment, order.status);
   const label = advanceLabel(order.fulfillment, order.status);
-  const trackingUrl = new URL(`/${storeSlug}/pedido/${order.publicToken}`, getEnv().BETTER_AUTH_URL).toString();
+  const trackingUrl = new URL(`/${storeSlug}/pedido/${order.publicToken}`, appUrl()).toString();
   const notifyUrl = waMeLink(
     order.customerPhone,
     buildStatusMessage({

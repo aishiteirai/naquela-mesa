@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { FULFILLMENT_LABELS, formatOrderNumber, getOrderTracking, PAYMENT_LABELS, statusLabel } from "@/modules/orders";
 import { buildContactMessage, waMeLink } from "@/modules/whatsapp";
-import { getEnv } from "@/shared/env";
+import { appUrl } from "@/shared/env";
 import { formatBRL } from "@/shared/money";
 import { AutoRefresh } from "./_components/auto-refresh";
 
@@ -17,7 +17,7 @@ async function Tracking({ params }: { params: Promise<{ slug: string; token: str
   if (!order || order.store.slug !== slug) notFound();
 
   const path = `/${slug}/pedido/${token}`;
-  const contactUrl = waMeLink(order.store.whatsappPhone, buildContactMessage(order.number, new URL(path, getEnv().BETTER_AUTH_URL).toString()));
+  const contactUrl = waMeLink(order.store.whatsappPhone, buildContactMessage(order.number, new URL(path, appUrl()).toString()));
   const createdAt = new Intl.DateTimeFormat("pt-BR", { timeZone: order.store.timezone, dateStyle: "short", timeStyle: "short" }).format(
     new Date(order.createdAt),
   );

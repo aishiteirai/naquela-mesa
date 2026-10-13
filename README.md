@@ -32,7 +32,7 @@ cp .env.example .env.local        # gere BETTER_AUTH_SECRET com: openssl rand -b
 npm run db:up
 npm run db:migrate
 npm run seed:demo
-npm run admin:ensure -- voce@exemplo.com uma-senha-forte "Seu Nome"
+ADMIN_PASSWORD=uma-senha-forte npm run admin:ensure -- voce@exemplo.com "Seu Nome"
 npm run dev
 ```
 
@@ -53,7 +53,7 @@ O seed cria o dono demo `dono@pizzariademo.test` / `demo-senha-123` (painel em `
 | `npm run db:generate` | gera migration a partir dos schemas |
 | `npm run db:migrate` | aplica migrations |
 | `npm run seed:demo` | cria/recria a loja "Pizzaria Demo" em `/pizzaria-demo` |
-| `npm run admin:ensure -- <email> <senha> [nome]` | cria ou promove super-admin |
+| `ADMIN_PASSWORD=<senha> npm run admin:ensure -- <email> [nome]` | cria ou promove super-admin (e troca a senha se já existir) |
 | `npm run owner:ensure -- <slug> <email> <senha> [nome]` | cria usuário (se preciso) e o vincula como dono da loja |
 
 ## Arquitetura

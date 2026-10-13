@@ -25,7 +25,7 @@ export default defineConfig({
     command: isCI ? "npm run start" : "npm run dev",
     url: `http://localhost:${port}`,
     env: Object.fromEntries(
-      Object.entries({ ...process.env, E2E_DISABLE_AUTH_RATE_LIMIT: "1" }).filter(
+      Object.entries({ ...process.env, E2E_DISABLE_RATE_LIMIT: "1" }).filter(
         (entry): entry is [string, string] => entry[1] !== undefined,
       ),
     ),

@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/shared/db/client";
 import { DomainError } from "@/shared/errors";
@@ -59,7 +59,7 @@ export type DeliveryZone = { id: string; neighborhood: string; feeCents: number 
 async function updateStore(storeId: string, values: Partial<typeof stores.$inferInsert>): Promise<void> {
   const updated = await db
     .update(stores)
-    .set({ ...values, updatedAt: new Date() })
+    .set({ ...values, updatedAt: sql`now()` })
     .where(eq(stores.id, storeId))
     .returning({ id: stores.id });
   if (updated.length === 0) throw new DomainError("NOT_FOUND");

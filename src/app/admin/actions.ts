@@ -7,13 +7,13 @@ import { recordAudit } from "@/modules/audit";
 import { requireSuperAdmin, startImpersonation } from "@/modules/auth";
 import { createStoreFromTemplate } from "@/modules/onboarding";
 import { createStoreInvite, getStoreById, getStoreOwnerUserId, storeMenuTag } from "@/modules/stores";
-import { getEnv } from "@/shared/env";
+import { appUrl } from "@/shared/env";
 import { actionError, type ActionState } from "@/app/_lib/action-state";
 
 export type AdminLinkState = ActionState | { status: "link"; message: string; inviteUrl: string | null };
 
 function inviteUrl(token: string): string {
-  return new URL(`/convite/${token}`, getEnv().BETTER_AUTH_URL).toString();
+  return new URL(`/convite/${token}`, appUrl()).toString();
 }
 
 function text(form: FormData, name: string): string {
