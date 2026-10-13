@@ -24,14 +24,14 @@ async function Ticket({ params }: { params: Promise<{ id: string }> }) {
   const change = order.changeForCents ? order.changeForCents - order.totalCents : 0;
 
   return (
-    <div className="mx-auto w-[74mm] font-mono text-[12px] leading-snug text-black">
+    <div className="mx-auto w-full max-w-[74mm] font-mono text-[12px] leading-snug text-black">
       <title>{`Comanda ${formatOrderNumber(order.number)}`}</title>
-      <style>{"@page { size: 80mm auto; margin: 3mm } @media print { body { background: #fff } }"}</style>
+      <style>{"@page { size: 80mm auto; margin: 3mm } @media print { body { background: #fff } main { padding: 0 !important; margin: 0 !important; max-width: none !important } }"}</style>
       <PrintOnLoad />
       <p className="text-center font-bold">{store.name}</p>
       <p className="text-center text-[16px] font-bold">Pedido {formatOrderNumber(order.number)}</p>
       <p className="text-center">{when}</p>
-      {order.status === "cancelled" && <p className="text-center font-bold">CANCELADO — {order.cancelReason}</p>}
+      {order.status === "cancelled" && <p className="text-center font-bold">CANCELADO{order.cancelReason ? ` — ${order.cancelReason}` : ""}</p>}
       <hr className="my-1 border-dashed border-black" />
       <p className="font-bold">{FULFILLMENT_LABELS[order.fulfillment]}</p>
       <p>
@@ -58,7 +58,7 @@ async function Ticket({ params }: { params: Promise<{ id: string }> }) {
             <span>{formatBRL(line.totalCents)}</span>
           </div>
           {line.options.map((option) => (
-            <p key={option.optionName} className="pl-2">
+            <p key={`${option.groupName}:${option.optionName}`} className="pl-2">
               + {option.groupName}: {option.optionName}
             </p>
           ))}
