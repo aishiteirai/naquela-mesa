@@ -150,6 +150,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     const built = buildPayload(quote.totalCents);
     if ("error" in built) return setError(built.error);
     startTransition(async () => {
+      setError(null);
       const result = await placeOrderAction(store.slug, built.payload);
       if (result.ok) {
         cart.clear();
@@ -319,7 +320,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       )}
 
       <div className="flex flex-col gap-2">
-        <button type="button" onClick={review} disabled={pending} className="rounded border border-neutral-400 px-4 py-3 font-semibold disabled:opacity-50">
+        <button type="button" onClick={review} disabled={pending || !cart.ready} className="rounded border border-neutral-400 px-4 py-3 font-semibold disabled:opacity-50">
           Revisar pedido
         </button>
         <button

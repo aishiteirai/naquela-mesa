@@ -89,6 +89,15 @@ describe("priceItem", () => {
     expect(priceItem(ctx, simple(COCA, 2), 0)).toMatchObject({ productName: "Coca-Cola 2L", sizeName: null, unitPriceCents: 1400, totalCents: 2800 });
   });
 
+  it.each([1, 50])("aceita quantidade %d", (quantity) => {
+    expect(priceItem(ctx, simple(COCA, quantity), 0).quantity).toBe(quantity);
+  });
+
+  it("observação do item é aparada; só espaços vira null", () => {
+    expect(priceItem(ctx, { ...simple(COCA), notes: "  bem gelada  " }, 0).notes).toBe("bem gelada");
+    expect(priceItem(ctx, { ...simple(COCA), notes: "   " }, 0).notes).toBeNull();
+  });
+
   it("pizza inteira usa o preço do tamanho", () => {
     expect(priceItem(ctx, sized(SIZE_GRANDE, [CALABRESA]), 0)).toMatchObject({ productName: "Calabresa", sizeName: "Grande", flavors: ["Calabresa"], unitPriceCents: 5690 });
   });
