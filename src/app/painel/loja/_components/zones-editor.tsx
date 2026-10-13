@@ -1,5 +1,6 @@
 "use client";
 
+import { uuid } from "@/shared/uuid";
 import { useActionState, useState } from "react";
 import type { DeliveryZone } from "@/modules/stores";
 import { formatCentsForInput } from "@/shared/money";
@@ -55,7 +56,7 @@ export function ZonesEditor({ initialZones }: { initialZones: DeliveryZone[] }) 
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setRows((current) => [...current, { key: crypto.randomUUID(), neighborhood: "", fee: "0,00" }])}
+          onClick={() => setRows((current) => [...current, { key: uuid(), neighborhood: "", fee: "0,00" }])}
           className={secondaryButtonClass}
         >
           Adicionar bairro

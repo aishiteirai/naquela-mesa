@@ -25,6 +25,7 @@ async function Tracking({ params }: { params: Promise<{ slug: string; token: str
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-6">
       <title>{`Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`}</title>
+      <meta name="robots" content="noindex, nofollow" />
       {!FINAL_STATUSES.has(order.status) && <AutoRefresh intervalMs={10_000} />}
       <p className="text-sm text-neutral-700 dark:text-neutral-300">{order.store.name}</p>
       <h1 className="text-2xl font-semibold">Pedido {formatOrderNumber(order.number)}</h1>

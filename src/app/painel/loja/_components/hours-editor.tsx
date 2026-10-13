@@ -1,5 +1,6 @@
 "use client";
 
+import { uuid } from "@/shared/uuid";
 import { useActionState, useState } from "react";
 import type { StoreHour } from "@/modules/stores";
 import { FormMessage, SubmitButton } from "@/app/_components/form-controls";
@@ -12,7 +13,7 @@ const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "
 type Row = StoreHour & { key: string };
 
 export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
-  const [rows, setRows] = useState<Row[]>(() => initialHours.map((hour) => ({ ...hour, key: crypto.randomUUID() })));
+  const [rows, setRows] = useState<Row[]>(() => initialHours.map((hour) => ({ ...hour, key: uuid() })));
   const [state, formAction] = useActionState(saveHoursAction, idleState);
 
   function update(key: string, patch: Partial<StoreHour>) {
@@ -72,7 +73,7 @@ export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setRows((current) => [...current, { key: crypto.randomUUID(), weekday: 1, opensAt: "18:00", closesAt: "23:00" }])}
+          onClick={() => setRows((current) => [...current, { key: uuid(), weekday: 1, opensAt: "18:00", closesAt: "23:00" }])}
           className={secondaryButtonClass}
         >
           Adicionar turno

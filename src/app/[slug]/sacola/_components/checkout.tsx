@@ -1,5 +1,6 @@
 "use client";
 
+import { uuid } from "@/shared/uuid";
 import Link from "next/link";
 import { type FocusEvent, type FormEvent, type InputHTMLAttributes, useRef, useState, useTransition } from "react";
 import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
@@ -57,7 +58,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
 
   const [fulfillment, setFulfillment] = useState<Fulfillment>(fulfillments[0]?.[0] ?? "pickup");
   const [payment, setPayment] = useState<PaymentMethod>(payments[0]?.[0] ?? "cash");
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [idempotencyKey] = useState(() => uuid());
   const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [error, setError] = useState<CheckoutError | null>(null);
   const [placed, setPlaced] = useState<Placed | null>(null);

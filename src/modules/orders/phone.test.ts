@@ -8,11 +8,12 @@ describe("normalizeBrazilPhone", () => {
     ["+55 11 98888-7777", "+5511988887777"],
     ["5511988887777", "+5511988887777"],
     ["+1 415 555 0100", "+14155550100"],
+    ["011 98888-7777", "+5511988887777"],
   ])("%s → %s", (input, expected) => {
     expect(normalizeBrazilPhone(input)).toBe(expected);
   });
 
-  it.each(["", "123", "abc", "98888-7777", "+55"])("recusa %s", (input) => {
+  it.each(["", "123", "abc", "98888-7777", "+55", "+55 98888-7777"])("recusa %s", (input) => {
     expect(normalizeBrazilPhone(input)).toBeNull();
   });
 });
