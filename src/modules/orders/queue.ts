@@ -93,7 +93,7 @@ export async function listQueue(storeId: string, now: Date = new Date(), limit: 
   }));
 }
 
-export async function getQueueVersion(storeId: string): Promise<{ version: string; received: number }> {
+export async function getQueueVersion(storeId: string): Promise<{ version: string; received: number; total: number }> {
   const [row] = await db
     .select({
       total: count(),
@@ -105,6 +105,7 @@ export async function getQueueVersion(storeId: string): Promise<{ version: strin
   return {
     version: `${row?.total ?? 0}:${row?.lastUpdate?.getTime() ?? 0}`,
     received: row?.received ?? 0,
+    total: row?.total ?? 0,
   };
 }
 

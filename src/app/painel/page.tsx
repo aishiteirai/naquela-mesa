@@ -14,11 +14,13 @@ const COLUMNS: { title: string; statuses: QueueOrder["status"][] }[] = [
 
 async function Queue() {
   const { store } = await requireStoreAccess();
-  const [orders, version] = await Promise.all([listQueue(store.id), getQueueVersion(store.id)]);
+  // Versão ANTES da lista: pedido que chegar entre as duas leituras dispara alerta no próximo poll.
+  const version = await getQueueVersion(store.id);
+  const orders = await listQueue(store.id);
 
   return (
     <QueueNoticeProvider>
-      <QueuePoller initialVersion={version.version} initialReceived={version.received} />
+      <QueuePoller initialVersion={version.version} initialReceived={version.received} initialTotal={version.total} />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((column) => {
           const columnOrders = orders.filter((order) => column.statuses.includes(order.status));

@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { ORDER_STATUSES, transitionOrder, type OrderStatus } from "@/modules/orders";
 import { isDomainError } from "@/shared/errors";
 import { actionError, success, type ActionState } from "@/app/_lib/action-state";
@@ -9,8 +10,10 @@ const STALE: ActionState = { status: "error", message: "Este pedido já foi atua
 
 async function transition(form: FormData, to: OrderStatus, cancelReason?: string): Promise<ActionState> {
   const { user, store } = await requireStoreAccess();
+  const orderId = z.uuid().safeParse(form.get("orderId"));
+  if (!orderId.success) return STALE;
   try {
-    await transitionOrder(store.id, String(form.get("orderId") ?? ""), to, { userId: user.id, cancelReason });
+    await transitionOrder(store.id, orderId.data, to, { userId: user.id, cancelReason });
   } catch (error) {
     if (isDomainError(error) && error.code === "INVALID_TRANSITION") return STALE;
     return actionError(error);

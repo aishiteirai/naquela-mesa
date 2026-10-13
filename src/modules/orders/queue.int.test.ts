@@ -61,6 +61,7 @@ describe("fila de pedidos", () => {
 
     expect(v1.version).not.toBe(v0.version);
     expect(v1.received).toBe(1);
+    expect(v1.total).toBe(v0.total + 1);
 
     const [order] = await listQueue(a.storeId);
     expect(order).toMatchObject({
@@ -78,6 +79,7 @@ describe("fila de pedidos", () => {
     const v2 = await getQueueVersion(a.storeId);
     expect(v2.version).not.toBe(v1.version);
     expect(v2.received).toBe(0);
+    expect(v2.total).toBe(v1.total);
   });
 
   it("segue o fluxo da retirada até concluir", async () => {

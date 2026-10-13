@@ -8,9 +8,8 @@ const BASE_INTERVAL = 5_000;
 const HIDDEN_INTERVAL = 15_000;
 const MAX_INTERVAL = 30_000;
 const FETCH_TIMEOUT = 8_000;
-const BASE_TITLE = "Painel | Naquela Mesa";
 
-export function QueuePoller({ initialVersion, initialReceived }: { initialVersion: string; initialReceived: number }) {
+export function QueuePoller({ initialVersion, initialReceived, initialTotal }: { initialVersion: string; initialReceived: number; initialTotal: number }) {
   const router = useRouter();
   const [started, setStarted] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -19,6 +18,9 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
   const getSound = () => (sound.current ??= createAlertSound());
   const version = useRef(initialVersion);
   const received = useRef(initialReceived);
+  const total = useRef(initialTotal);
+  const baseTitle = useRef("");
+  const mounted = useRef(true);
   const startedRef = useRef(false);
   const alertTitle = useRef("");
   const wakeLock = useRef<WakeLockSentinel | null>(null);
@@ -30,6 +32,14 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
       // Wake Lock é opcional (nem todo navegador oferece).
     }
   }
+
+  useEffect(() => {
+    baseTitle.current = document.title;
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let failures = 0;
@@ -45,10 +55,12 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
     async function tick() {
       if (inFlight || cancelled) return;
       inFlight = true;
+      const controller = new AbortController();
+      const abortTimer = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT);
       try {
         const response = await fetch("/api/painel/pedidos/versao", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+          signal: controller.signal,
         });
         if (cancelled) return;
         if (response.status === 401 || response.status === 403) {
@@ -58,20 +70,33 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
           return;
         }
         if (!response.ok) throw new Error(String(response.status));
-        const data = (await response.json()) as { version: string; received: number };
+        const data = (await response.json()) as { version: string; received: number; total: number };
         if (cancelled) return;
         setOffline(false);
         failures = 0;
         const versionChanged = data.version !== version.current;
-        const hasNew = data.received > received.current;
+        const hasNew = data.total > total.current;
         version.current = data.version;
         received.current = data.received;
-        if (versionChanged) router.refresh();
+        total.current = data.total;
+        if (versionChanged) {
+          try {
+            router.refresh();
+          } catch {
+            // refresh falho não é falta de conexão.
+          }
+        }
         if (hasNew) {
           alertTitle.current = `(${data.received}) Novo pedido — Painel`;
           document.title = alertTitle.current;
           setAlerting(true);
-          if (startedRef.current) getSound().start();
+          if (startedRef.current) {
+            try {
+              getSound().start();
+            } catch {
+              // som é opcional; não pode derrubar o polling.
+            }
+          }
           try {
             if ("Notification" in window && Notification.permission === "granted") {
               new Notification("Novo pedido", { body: "Abra o painel para aceitar." });
@@ -80,15 +105,21 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
             // Android lança "Illegal constructor"; a notificação é opcional.
           }
         } else if (data.received === 0) {
-          getSound().stop();
+          try {
+            getSound().stop();
+          } catch {
+            // ignore
+          }
           setAlerting(false);
-          document.title = BASE_TITLE;
+          alertTitle.current = baseTitle.current;
+          document.title = baseTitle.current;
         }
       } catch {
         if (cancelled) return;
         setOffline(true);
         failures += 1;
       } finally {
+        window.clearTimeout(abortTimer);
         inFlight = false;
       }
       if (!cancelled) timer = window.setTimeout(tick, nextDelay());
@@ -108,7 +139,7 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
       window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
       sound.current?.stop();
-      document.title = BASE_TITLE;
+      document.title = baseTitle.current;
       void wakeLock.current?.release().catch(() => {});
       wakeLock.current = null;
     };
@@ -119,7 +150,8 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
     function stopAlert() {
       getSound().stop();
       setAlerting(false);
-      document.title = BASE_TITLE;
+      alertTitle.current = baseTitle.current;
+      document.title = baseTitle.current;
     }
     document.addEventListener("pointerdown", stopAlert, { once: true });
     // router.refresh() reaplica o título do metadata do Next; reafirma o alerta.
@@ -141,6 +173,10 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
       void Notification.requestPermission();
     }
     await requestWakeLock();
+    if (!mounted.current) {
+      void wakeLock.current?.release().catch(() => {});
+      wakeLock.current = null;
+    }
   }
 
   return (
