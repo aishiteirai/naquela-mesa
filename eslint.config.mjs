@@ -14,6 +14,10 @@ const parentRelative = {
   group: ["../*", "../**"],
   message: "Use './' dentro do módulo ou '@/...' para o resto. Imports '../' são proibidos.",
 };
+const parentRelativeExceptSchema = {
+  regex: "^\\.\\./(?![a-z0-9-]+/schema$)",
+  message: "Em schema.ts, '../' só é permitido para '../<módulo>/schema' (chaves estrangeiras).",
+};
 const appLayer = {
   group: ["@/app", "@/app/*", "@/app/**"],
   message: "Código de módulo/shared não depende da camada app.",
@@ -36,6 +40,12 @@ const boundaries = [
     files: ["src/shared/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [moduleInternals, clientInternals, parentRelative, appLayer, modulesLayer] }],
+    },
+  },
+  {
+    files: ["src/modules/*/schema.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [moduleInternals, clientInternals, parentRelativeExceptSchema, appLayer] }],
     },
   },
 ];

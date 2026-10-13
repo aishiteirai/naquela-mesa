@@ -18,6 +18,7 @@ describe("fronteiras de módulo", { timeout: 30_000 }, () => {
     ["src/modules/catalog/service.ts", "@/modules/orders"],
     ["src/modules/catalog/service.ts", "@/shared/db/client"],
     ["src/shared/env.ts", "@/shared/money"],
+    ["src/modules/catalog/schema.ts", "../stores/schema"],
   ])("%s pode importar %s", async (file, source) => {
     expect(await restrictedImportCount(source, file)).toBe(0);
   });
@@ -27,6 +28,9 @@ describe("fronteiras de módulo", { timeout: 30_000 }, () => {
     ["src/app/page.tsx", "@/modules/orders/nested/deep"],
     ["src/modules/catalog/service.ts", "@/modules/orders/repo"],
     ["src/modules/catalog/service.ts", "../orders/service"],
+    ["src/modules/catalog/schema.ts", "../stores/service"],
+    ["src/modules/catalog/schema.ts", "../stores"],
+    ["src/modules/catalog/service.ts", "../stores/schema"],
     ["src/modules/catalog/service.ts", "@/app/page"],
     ["src/shared/env.ts", "@/modules/orders"],
     ["src/shared/env.ts", "@/app/layout"],

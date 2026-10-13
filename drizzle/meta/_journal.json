@@ -22,6 +22,13 @@
       "when": 1791869770172,
       "tag": "0002_pretty_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791870060229,
+      "tag": "0003_tan_meltdown",
+      "breakpoints": true
     }
   ]
 }
