@@ -53,10 +53,13 @@ export function ItemDialog({ productId, onClose }: { productId: string; onClose:
         .filter((group): group is MenuOptionGroup => group !== undefined)
     : [];
 
+  const visibleOptionIds = new Set(groups.flatMap((group) => group.options.map((option) => option.id)));
+  const activeOptionIds = optionIds.filter((id) => visibleOptionIds.has(id));
+
   const input: CartItemInput =
     sizes.length > 0
-      ? { kind: "sized", sizeId, flavorIds, optionIds, quantity, notes: notes.trim() || null }
-      : { kind: "simple", productId: product.id, optionIds, quantity, notes: notes.trim() || null };
+      ? { kind: "sized", sizeId, flavorIds, optionIds: activeOptionIds, quantity, notes: notes.trim() || null }
+      : { kind: "simple", productId: product.id, optionIds: activeOptionIds, quantity, notes: notes.trim() || null };
 
   const priced = useMemo<{ line: PricedLine } | { error: string }>(() => {
     try {

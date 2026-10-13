@@ -30,7 +30,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
           addonsEnabled: store.features.addons,
         }}
       >
-        <CartProvider slug={store.slug}>
+        <CartProvider key={store.slug} slug={store.slug}>
           <StoreHeader
             store={store}
             status={

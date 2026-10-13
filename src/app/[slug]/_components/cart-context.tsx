@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { MAX_ITEM_QUANTITY, type CartItemInput } from "@/modules/orders/client";
+import { MAX_ITEM_QUANTITY } from "@/modules/orders/client";
+import { parseStoredCart, type CartLine } from "./cart-storage";
 
-export type CartLine = { key: string; input: CartItemInput; label: string; unitPriceCents: number };
+export type { CartLine };
 
 type CartValue = {
   lines: CartLine[];
@@ -24,8 +25,7 @@ function storageKey(slug: string): string {
 
 function readStored(slug: string): CartLine[] {
   try {
-    const parsed: unknown = JSON.parse(window.localStorage.getItem(storageKey(slug)) ?? "[]");
-    return Array.isArray(parsed) ? (parsed as CartLine[]) : [];
+    return parseStoredCart(window.localStorage.getItem(storageKey(slug)));
   } catch {
     return [];
   }
