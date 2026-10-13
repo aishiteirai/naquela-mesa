@@ -9,3 +9,4 @@ export type {
 } from "./settings";
 export type { ManualStatus, Store, StoreHour } from "./types";
 export { formatOpenStatus, getOpenStatus, localClock, type NextOpening, type OpenStatus } from "./hours";
+export { readableTextColor, themeCssVariables } from "./theme";
