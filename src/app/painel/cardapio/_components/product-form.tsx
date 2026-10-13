@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { EditorCategory, EditorProduct, MenuOptionGroup } from "@/modules/catalog";
 import { formatCentsForInput } from "@/shared/money";
+import { ImageUploadField } from "@/app/_components/image-upload-field";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
@@ -26,7 +27,6 @@ export function ProductForm({ category, optionGroups, product }: Props) {
       <input type="hidden" name="productId" value={product?.id ?? ""} />
       <input type="hidden" name="categoryId" value={category.id} />
       <input type="hidden" name="hasSizes" value={hasSizes ? "1" : "0"} />
-      <input type="hidden" name="imageUrl" value={product?.imageUrl ?? ""} />
 
       <p className="text-sm text-neutral-700 dark:text-neutral-300">Categoria: {category.name}</p>
 
@@ -41,6 +41,9 @@ export function ProductForm({ category, optionGroups, product }: Props) {
         <textarea name="description" defaultValue={product?.description ?? ""} maxLength={300} rows={3} className={inputClass} />
       </label>
       <FieldError state={state} name="description" />
+
+      <ImageUploadField name="imageUrl" label="Foto do produto" defaultUrl={product?.imageUrl ?? null} />
+      <FieldError state={state} name="imageUrl" />
 
       {hasSizes ? (
         <fieldset className="flex flex-col gap-2">
