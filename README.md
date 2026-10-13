@@ -47,3 +47,9 @@ O seed cria o dono demo `dono@pizzariademo.test` / `demo-senha-123` (painel em `
 Monólito modular. Código de domínio em `src/modules/<nome>/`, exposto só por `index.ts`
 (servidor) e `client.ts` (navegador). Utilidades em `src/shared/`. Rotas finas em `src/app/`.
 Imports `../` são proibidos; o lint falha se um módulo importar internals de outro.
+
+## Painel da loja
+
+- `/painel` — dono da loja (login em `/login`). Demo: `dono@pizzariademo.test` / `demo-senha-123`.
+- Cardápio, adicionais, disponibilidade e configurações; cada alteração atualiza o cardápio público na hora.
+- Imagens enviadas ficam em `.data/uploads` (local); servidas em `/uploads/<arquivo>`.
