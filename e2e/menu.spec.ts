@@ -33,3 +33,8 @@ test("slug inexistente mostra loja não encontrada", async ({ page }) => {
   await page.goto("/loja-que-nao-existe");
   await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();
 });
+
+test("slug inválido não chega ao cache e mostra loja não encontrada", async ({ page }) => {
+  await page.goto("/Loja_Invalida");
+  await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();
+});

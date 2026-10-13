@@ -58,6 +58,14 @@ describe("stores service", () => {
     await expect(createStore({ ...base, slug })).rejects.toMatchObject({ code: "VALIDATION" });
   });
 
+  it.each(["admin", "painel", "login"])("recusa slug reservado %s", async (slug) => {
+    await expect(createStore({ ...base, slug })).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+
+  it.each(["http://x.com/a.png", "javascript:alert(1)"])("recusa logoUrl que não é https %s", async (logoUrl) => {
+    await expect(createStore({ ...base, logoUrl })).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+
   it("recusa telefone fora do E.164 e fuso inválido", async () => {
     await expect(createStore({ ...base, whatsappPhone: "11988887777" })).rejects.toMatchObject({ code: "VALIDATION" });
     await expect(createStore({ ...base, timezone: "Marte/Olimpo" })).rejects.toMatchObject({ code: "VALIDATION" });

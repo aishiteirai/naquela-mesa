@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { themeCssVariables } from "@/modules/stores";
+import { SLUG_PATTERN, themeCssVariables } from "@/modules/stores";
 import { CategoryNav, categoryAnchor } from "./_components/category-nav";
 import { OpenStatus } from "./_components/open-status";
 import { ProductCard } from "./_components/product-card";
@@ -10,6 +10,7 @@ import { getStorePageData } from "./data";
 
 async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug.length > 60 || !SLUG_PATTERN.test(slug)) notFound();
   const data = await getStorePageData(slug);
   if (!data) notFound();
   const { store, menu } = data;

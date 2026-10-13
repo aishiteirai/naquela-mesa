@@ -29,6 +29,12 @@ describe("catalogDefinitionSchema", () => {
     expect(parsed.optionGroups[0]?.options[0]?.available).toBe(true);
   });
 
+  it("recusa imagem que não é https", () => {
+    const definition = structuredClone(valid);
+    definition.categories[1]!.products[0]!.imageUrl = "http://x.com/a.png";
+    expect(catalogDefinitionSchema.safeParse(definition).success).toBe(false);
+  });
+
   it("exige preço para cada tamanho da categoria", () => {
     const definition = structuredClone(valid);
     definition.categories[0]!.products[0]!.sizePrices = { broto: 3490 };

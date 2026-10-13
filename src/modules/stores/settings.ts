@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const RESERVED_SLUGS = ["admin", "api", "login", "painel", "pedido", "_next", "favicon.ico"] as const;
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "cor deve estar no formato #RRGGBB");
 const hourMinute = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "horário deve estar no formato HH:MM");
 const cents = z.number().int().nonnegative();
@@ -54,13 +57,14 @@ export const createStoreInputSchema = z.object({
     .string()
     .min(3)
     .max(60)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug deve ter só letras minúsculas, números e hífens"),
+    .regex(SLUG_PATTERN, "slug deve ter só letras minúsculas, números e hífens")
+    .refine((slug) => !RESERVED_SLUGS.includes(slug as (typeof RESERVED_SLUGS)[number]), "slug reservado"),
   name: z.string().trim().min(1).max(120),
   whatsappPhone: z.string().regex(/^\+[1-9]\d{7,14}$/, "telefone deve estar no formato E.164 (+5511999999999)"),
   address: z.string().trim().min(1).max(300).nullable().default(null),
   timezone: z.string().refine(isValidTimeZone, "fuso horário inválido").default("America/Sao_Paulo"),
-  logoUrl: z.url().nullable().default(null),
-  bannerUrl: z.url().nullable().default(null),
+  logoUrl: z.url({ protocol: /^https$/ }).nullable().default(null),
+  bannerUrl: z.url({ protocol: /^https$/ }).nullable().default(null),
   theme: storeThemeSchema.prefault({}),
   features: storeFeaturesSchema.prefault({}),
   rules: storeRulesSchema.prefault({}),

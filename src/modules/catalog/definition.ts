@@ -20,7 +20,7 @@ const optionGroupSchema = z
 const productSchema = z.object({
   name,
   description: name.optional(),
-  imageUrl: z.url().optional(),
+  imageUrl: z.url({ protocol: /^https$/ }).optional(),
   priceCents: cents.optional(),
   sizePrices: z.record(key, cents).optional(),
   allowsHalf: z.boolean().default(false),
