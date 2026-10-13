@@ -1,10 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { getMenu } from "@/modules/catalog";
-import { getStoreBySlug } from "@/modules/stores";
-
-export function storeMenuTag(slug: string): string {
-  return `store-menu:${slug}`;
-}
+import { getStoreBySlug, storeMenuTag } from "@/modules/stores";
 
 export async function getStorePageData(slug: string) {
   "use cache";

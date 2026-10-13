@@ -1,4 +1,6 @@
-export { createStore, deleteStoreBySlug, getStoreBySlug, replaceStoreHours } from "./service";
+export { createStore, deleteStoreBySlug, getStoreById, getStoreBySlug, replaceStoreHours } from "./service";
+export { addStoreMember, getMembershipStoreId } from "./members";
+export { storeMenuTag } from "./cache-tags";
 export type {
   CreateStoreInput,
   StoreFeatures,

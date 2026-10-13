@@ -1,4 +1,5 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, type SQL } from "drizzle-orm";
+import type { z } from "zod";
 import { db } from "@/shared/db/client";
 import { isUniqueViolation } from "@/shared/db/errors";
 import { DomainError } from "@/shared/errors";
@@ -43,8 +44,15 @@ export async function replaceStoreHours(storeId: string, hours: StoreHourInput[]
   });
 }
 
-export async function getStoreBySlug(slug: string): Promise<Store | null> {
-  const [row] = await db.select().from(stores).where(eq(stores.slug, slug)).limit(1);
+function parseOrDefault<T extends z.ZodType>(schema: T, value: unknown, label: string): z.infer<T> {
+  const parsed = schema.safeParse(value);
+  if (parsed.success) return parsed.data;
+  console.warn(`Configuração "${label}" inválida no banco; usando padrão.`, parsed.error.issues);
+  return schema.parse({});
+}
+
+async function loadStore(condition: SQL): Promise<Store | null> {
+  const [row] = await db.select().from(stores).where(condition).limit(1);
   if (!row) return null;
 
   const hours = await db
@@ -62,10 +70,10 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
     logoUrl: row.logoUrl,
     bannerUrl: row.bannerUrl,
     timezone: row.timezone,
-    theme: storeThemeSchema.parse(row.theme),
-    features: storeFeaturesSchema.parse(row.features),
-    rules: storeRulesSchema.parse(row.rules),
-    paymentMethods: storePaymentMethodsSchema.parse(row.paymentMethods),
+    theme: parseOrDefault(storeThemeSchema, row.theme, "theme"),
+    features: parseOrDefault(storeFeaturesSchema, row.features, "features"),
+    rules: parseOrDefault(storeRulesSchema, row.rules, "rules"),
+    paymentMethods: parseOrDefault(storePaymentMethodsSchema, row.paymentMethods, "paymentMethods"),
     manualStatus: row.manualStatus,
     // Postgres devolve "HH:MM:SS"; o domínio usa "HH:MM".
     hours: hours.map((hour) => ({
@@ -74,6 +82,14 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
       closesAt: hour.closesAt.slice(0, 5),
     })),
   };
+}
+
+export function getStoreBySlug(slug: string): Promise<Store | null> {
+  return loadStore(eq(stores.slug, slug));
+}
+
+export function getStoreById(id: string): Promise<Store | null> {
+  return loadStore(eq(stores.id, id));
 }
 
 export async function deleteStoreBySlug(slug: string): Promise<boolean> {

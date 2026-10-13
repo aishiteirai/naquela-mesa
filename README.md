@@ -24,6 +24,8 @@ npm run dev
 
 Acesse http://localhost:3000/login.
 
+O seed cria o dono demo `dono@pizzariademo.test` / `demo-senha-123` (painel em `/painel`).
+
 ## Scripts
 
 | Script | O que faz |
@@ -38,6 +40,7 @@ Acesse http://localhost:3000/login.
 | `npm run db:migrate` | aplica migrations |
 | `npm run seed:demo` | cria/recria a loja "Pizzaria Demo" em `/pizzaria-demo` |
 | `npm run admin:ensure -- <email> <senha> [nome]` | cria ou promove super-admin |
+| `npm run owner:ensure -- <slug> <email> <senha> [nome]` | cria usuário (se preciso) e o vincula como dono da loja |
 
 ## Arquitetura
 

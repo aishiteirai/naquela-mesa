@@ -78,3 +78,9 @@ export const demoCatalog: CatalogDefinition = {
     },
   ],
 };
+
+export const DEMO_OWNER = {
+  email: "dono@pizzariademo.test",
+  password: "demo-senha-123",
+  name: "Dono da Pizzaria Demo",
+} as const;

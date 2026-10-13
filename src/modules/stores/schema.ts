@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { check, doublePrecision, index, integer, jsonb, pgTable, smallint, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, doublePrecision, index, integer, jsonb, pgTable, primaryKey, smallint, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
+import { user } from "../auth/schema";
 import type { StoreFeatures, StorePaymentMethods, StoreRules, StoreTheme } from "./settings";
 
 export const stores = pgTable("stores", {
@@ -38,4 +39,19 @@ export const storeHours = pgTable(
     index("store_hours_store_id_idx").on(t.storeId),
     check("store_hours_weekday_check", sql`${t.weekday} between 0 and 6`),
   ],
+);
+
+export const storeMembers = pgTable(
+  "store_members",
+  {
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["owner"] }).notNull().default("owner"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.storeId, t.userId] }), index("store_members_user_id_idx").on(t.userId)],
 );
