@@ -10,6 +10,20 @@ Cardápio digital e pedidos para restaurantes da região.
 - Node 24+ (`.nvmrc`)
 - Docker (Postgres local e testes de integração)
 
+## Comandos rápidos (Makefile)
+
+```bash
+make setup      # primeira vez: dependências, .env.local, Postgres, migrações e loja demo
+make dev        # sobe o Postgres, migra e roda o servidor em http://localhost:3000
+make update     # depois de mudanças no repositório: git pull, dependências, migrações e demo
+make test       # lint, tipos, testes unitários e de integração
+make e2e        # build + testes E2E (Playwright)
+make check      # tudo o que o CI roda
+make help       # lista todos os comandos
+```
+
+Use `PORT=3001` em qualquer comando para outra porta (ex.: `make dev PORT=3001`). Criar usuários: `make admin EMAIL=... SENHA=...` e `make owner SLUG=... EMAIL=... SENHA=...`.
+
 ## Primeiros passos
 
 ```bash
