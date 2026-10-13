@@ -49,9 +49,9 @@ Serviço de cardápio virtual com pedidos para pequenos restaurantes, pizzarias 
 
 ## 3. Stack
 
-- **Next.js 15** (App Router), TypeScript `strict`. Server Actions + Route Handlers como backend.
+- **Next.js 16** (App Router), TypeScript 5.9 `strict`. Server Actions + Route Handlers como backend.
 - **Postgres** (Neon) + **Drizzle ORM**, migrations versionadas.
-- **Better Auth**: email + senha, sessão no banco. Papéis: `store_owner` (via `store_members`) e `super_admin`.
+- **Better Auth**: email + senha, sessão no banco, cadastro público desabilitado. Plugin `admin` (papel `super_admin`; impersonation para "Acessar como loja"). Dono de loja via `store_members`.
 - **Zod** para validação de toda entrada e dos `jsonb` de configuração.
 - **Tailwind** + **shadcn/ui**; tema da loja aplicado via CSS variables.
 - **Vercel Blob** para imagens.
@@ -88,7 +88,7 @@ src/
 ### Regras
 
 1. Cada módulo expõe apenas `index.ts` (API pública). Internos livres (`service.ts`, `repo.ts`, `schema.ts`, `types.ts`, testes).
-2. Módulos importam outros módulos somente via `index.ts` — garantido por `eslint-plugin-boundaries`; lint falha caso contrário.
+2. Módulos importam outros módulos somente via `index.ts` (ou `client.ts`, para código de navegador) — garantido por `no-restricted-imports` do ESLint; imports `../` proibidos; lint falha caso contrário.
 3. `app/` nunca acessa o banco diretamente; só chama serviços.
 4. Todo serviço recebe `storeId` explícito; todo repo filtra por `store_id`.
 5. Preço é sempre calculado no servidor. O cliente envia apenas IDs, quantidades e observações.
@@ -136,7 +136,7 @@ Os campos `jsonb` têm schema Zod; novas flags não exigem migration.
 ### Usuários e auditoria
 
 ```
-users, sessions, accounts, verifications   -- Better Auth; users.role: 'user' | 'super_admin'
+user, session, account, verification   -- Better Auth (nomes padrão); user.role: 'user' | 'super_admin'
 store_members   user_id, store_id, role ('owner')
 audit_logs      id, actor_user_id, store_id, action, metadata jsonb, created_at
 ```
