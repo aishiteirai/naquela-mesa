@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { startingPriceCents, type MenuProduct } from "@/modules/catalog";
 import { formatBRL } from "@/shared/money";
+import { AddToCartButton } from "./add-to-cart-button";
 
 function priceLabel(product: MenuProduct): string | null {
   const cents = startingPriceCents(product);
@@ -13,7 +14,7 @@ export function ProductCard({ product }: { product: MenuProduct }) {
 
   return (
     <article
-      className={`flex gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800 ${product.available ? "" : "opacity-60"}`}
+      className={`flex gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800 ${product.available ? "" : "bg-neutral-50 dark:bg-neutral-900"}`}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h3 className="font-semibold">{product.name}</h3>
@@ -24,6 +25,11 @@ export function ProductCard({ product }: { product: MenuProduct }) {
             <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-semibold text-white dark:bg-neutral-100 dark:text-neutral-900">
               Esgotado
             </span>
+          )}
+          {product.available && (
+            <div className="ml-auto">
+              <AddToCartButton productId={product.id} productName={product.name} />
+            </div>
           )}
         </div>
       </div>
