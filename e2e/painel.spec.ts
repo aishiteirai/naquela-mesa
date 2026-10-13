@@ -5,7 +5,7 @@ import { loginAsOwner } from "./helpers";
 test.describe.configure({ mode: "serial" });
 
 test.beforeEach(async ({ page }) => {
-  await loginAsOwner(page);
+  await loginAsOwner(page, "/painel/cardapio");
 });
 
 async function publicCard(page: Page, name: string) {

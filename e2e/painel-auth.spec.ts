@@ -7,9 +7,9 @@ test("visitante sem sessão recebe 307 para o login com next", async ({ request 
   expect(response.headers().location).toContain("/login?next=%2Fpainel%2Floja");
 });
 
-test("dono entra e cai no cardápio do painel da própria loja", async ({ page }) => {
+test("dono entra e cai na fila de pedidos da própria loja", async ({ page }) => {
   await loginAsOwner(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Cardápio" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Pedidos" })).toBeVisible();
   await expect(page.getByRole("banner")).toContainText("Pizzaria Demo");
   await expect(page.getByRole("navigation", { name: "Painel" }).getByRole("link", { name: "Ver cardápio" })).toHaveAttribute(
     "href",
@@ -29,5 +29,5 @@ test("login respeita next interno e ignora next externo", async ({ page }) => {
   await page.getByLabel("Email").fill("dono@pizzariademo.test");
   await page.getByLabel("Senha").fill("demo-senha-123");
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/painel\/cardapio$/);
+  await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/painel$/);
 });
