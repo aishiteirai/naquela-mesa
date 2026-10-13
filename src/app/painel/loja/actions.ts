@@ -72,6 +72,7 @@ export async function saveHoursAction(_prev: ActionState, form: FormData): Promi
   await requireStoreAccess();
   const hours = readJson(form, "hours");
   if (!Array.isArray(hours)) return fieldError("hours", "horários inválidos");
+  if (!hours.every((row) => typeof row === "object" && row !== null)) return fieldError("hours", "horários inválidos");
   return mutate((storeId) => replaceStoreHours(storeId, hours), "Horários salvos.");
 }
 
@@ -123,6 +124,7 @@ export async function saveZonesAction(_prev: ActionState, form: FormData): Promi
 
   const zones: { neighborhood: string; feeCents: number }[] = [];
   for (const [index, row] of rows.entries()) {
+    if (typeof row !== "object" || row === null) return fieldError("zones", "bairros inválidos");
     const fee = parseBRLToCents(String((row as { fee?: unknown }).fee ?? ""));
     if (fee === null) return fieldError(`zones.${index}.feeCents`, `taxa inválida no bairro ${index + 1} (use 5,00)`);
     zones.push({ neighborhood: String((row as { neighborhood?: unknown }).neighborhood ?? ""), feeCents: fee });
