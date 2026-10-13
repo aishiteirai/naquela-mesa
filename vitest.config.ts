@@ -16,6 +16,19 @@ export default defineConfig({
           exclude: ["src/**/*.int.test.ts", "tests/integration/**"],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: "integration",
+          environment: "node",
+          include: ["src/**/*.int.test.ts"],
+          globalSetup: ["./tests/integration/global-setup.ts"],
+          setupFiles: ["./tests/integration/setup.ts"],
+          fileParallelism: false,
+          testTimeout: 30_000,
+          hookTimeout: 120_000,
+        },
+      },
     ],
   },
 });
