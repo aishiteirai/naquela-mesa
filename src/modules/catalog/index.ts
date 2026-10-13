@@ -21,3 +21,17 @@ export {
   updateSize,
 } from "./editor";
 export type { MoveDirection } from "./ordering";
+export {
+  addOption,
+  createOptionGroup,
+  createProduct,
+  moveProduct,
+  setOptionAvailability,
+  setProductAvailability,
+  updateOption,
+  updateOptionGroup,
+  updateProduct,
+  type OptionGroupInput,
+  type OptionInput,
+  type ProductInput,
+} from "./editor-products";
