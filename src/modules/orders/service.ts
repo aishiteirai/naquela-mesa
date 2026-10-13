@@ -189,7 +189,7 @@ async function loadLines(orderId: string): Promise<PricedLine[]> {
   }));
 }
 
-async function loadPlacedOrder(orderId: string): Promise<PlacedOrder> {
+export async function loadPlacedOrder(orderId: string): Promise<PlacedOrder> {
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!order) throw new DomainError("NOT_FOUND");
   const store = await getStoreById(order.storeId);
