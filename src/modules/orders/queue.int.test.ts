@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { getMenu, importCatalog } from "@/modules/catalog";
 import { createStore, deleteStoreBySlug, setManualStatus } from "@/modules/stores";
 import { ensureUser } from "@/modules/auth";
-import { pool } from "@/shared/db/client";
+import { db, pool } from "@/shared/db/client";
 import { getQueueVersion, getStoreOrder, listQueue, transitionOrder } from "./queue";
+import { orderStatusEvents } from "./schema";
 import { createOrder } from "./service";
 
 async function setupStore(slug: string) {
@@ -85,6 +87,10 @@ describe("fila de pedidos", () => {
       await transitionOrder(a.storeId, orderId, status, actor);
     }
     expect((await getStoreOrder(a.storeId, orderId)).status).toBe("completed");
+
+    const events = await db.select().from(orderStatusEvents).where(eq(orderStatusEvents.orderId, orderId)).orderBy(asc(orderStatusEvents.at));
+    expect(events.map((event) => event.status)).toEqual(["received", "preparing", "ready", "completed"]);
+    expect(events.slice(1).every((event) => event.byUserId === actor.userId)).toBe(true);
   });
 
   it("recusa transição fora da ordem e a partir de final", async () => {
@@ -119,6 +125,8 @@ describe("fila de pedidos", () => {
     expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
     const rejected = results.find((result) => result.status === "rejected") as PromiseRejectedResult;
     expect(rejected.reason).toMatchObject({ code: "INVALID_TRANSITION" });
+    const events = await db.select().from(orderStatusEvents).where(eq(orderStatusEvents.orderId, orderId));
+    expect(events.filter((event) => event.status === "preparing")).toHaveLength(1);
   });
 
   it("pedido de outra loja → NOT_FOUND e nada muda", async () => {
@@ -140,5 +148,13 @@ describe("fila de pedidos", () => {
 
     const tomorrow = new Date(Date.now() + 25 * 60 * 60 * 1000);
     expect((await listQueue(a.storeId, tomorrow)).map((order) => order.id)).toEqual([open.orderId]);
+  });
+
+  it("limite mantém os pedidos mais novos", async () => {
+    const a = await setupStore("fila-a");
+    await placeOrder("fila-a", a.coca);
+    const second = await placeOrder("fila-a", a.coca);
+    const third = await placeOrder("fila-a", a.coca);
+    expect((await listQueue(a.storeId, new Date(), 2)).map((order) => order.id)).toEqual([second.orderId, third.orderId]);
   });
 });

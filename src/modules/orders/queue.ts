@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gte, inArray, max, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, max, notInArray, or, sql } from "drizzle-orm";
 import { db } from "@/shared/db/client";
 import { DomainError } from "@/shared/errors";
 import { describeLine } from "./pricing";
@@ -33,14 +33,16 @@ const QUEUE_LIMIT = 200;
 const FINISHED_WINDOW_MS = 24 * 60 * 60 * 1000;
 const FINAL = [...FINAL_STATUSES];
 
-export async function listQueue(storeId: string, now: Date = new Date()): Promise<QueueOrder[]> {
+export async function listQueue(storeId: string, now: Date = new Date(), limit: number = QUEUE_LIMIT): Promise<QueueOrder[]> {
   const since = new Date(now.getTime() - FINISHED_WINDOW_MS);
-  const rows = await db
+  // Pega os mais novos (o limite nunca descarta pedido recente) e devolve do mais antigo ao mais novo.
+  const newestFirst = await db
     .select()
     .from(orders)
     .where(and(eq(orders.storeId, storeId), or(notInArray(orders.status, FINAL), gte(orders.createdAt, since))))
-    .orderBy(asc(orders.createdAt))
-    .limit(QUEUE_LIMIT);
+    .orderBy(desc(orders.createdAt))
+    .limit(limit);
+  const rows = newestFirst.reverse();
   if (rows.length === 0) return [];
 
   const orderIds = rows.map((row) => row.id);
