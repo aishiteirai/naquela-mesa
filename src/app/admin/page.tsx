@@ -70,7 +70,7 @@ async function AdminContent() {
                             Acessar como loja
                           </button>
                         </form>
-                        {linkEmail && <NewLinkForm storeId={store.id} email={linkEmail} />}
+                        <NewLinkForm storeId={store.id} email={linkEmail} />
                       </td>
                     </tr>
                   );
