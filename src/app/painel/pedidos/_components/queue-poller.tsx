@@ -20,6 +20,7 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
   const version = useRef(initialVersion);
   const received = useRef(initialReceived);
   const startedRef = useRef(false);
+  const alertTitle = useRef("");
   const wakeLock = useRef<WakeLockSentinel | null>(null);
 
   async function requestWakeLock() {
@@ -67,7 +68,8 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
         received.current = data.received;
         if (versionChanged) router.refresh();
         if (hasNew) {
-          document.title = `(${data.received}) Novo pedido — Painel`;
+          alertTitle.current = `(${data.received}) Novo pedido — Painel`;
+          document.title = alertTitle.current;
           setAlerting(true);
           if (startedRef.current) getSound().start();
           try {
@@ -120,7 +122,15 @@ export function QueuePoller({ initialVersion, initialReceived }: { initialVersio
       document.title = BASE_TITLE;
     }
     document.addEventListener("pointerdown", stopAlert, { once: true });
-    return () => document.removeEventListener("pointerdown", stopAlert);
+    // router.refresh() reaplica o título do metadata do Next; reafirma o alerta.
+    const observer = new MutationObserver(() => {
+      if (document.title !== alertTitle.current) document.title = alertTitle.current;
+    });
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("pointerdown", stopAlert);
+    };
   }, [alerting]);
 
   async function start() {

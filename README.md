@@ -74,3 +74,10 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 - Sacola e checkout: `/<slug>/sacola` (delivery, retirada ou mesa; dinheiro, cartão na entrega ou Pix).
 - Depois de confirmar: botão "Enviar pedido no WhatsApp" (mensagem completa para a loja) e link de acompanhamento `/<slug>/pedido/<token>`.
 - O preço é sempre recalculado no servidor; o total do navegador é só estimativa.
+
+## Fila de pedidos (painel)
+
+- `/painel` mostra os pedidos por status (Novos, Em preparo, Prontos e em entrega, Finalizados nas últimas 24 h) e se atualiza sozinho a cada 5 s.
+- Clique em **Iniciar atendimento** para ligar o alerta sonoro (exigência dos navegadores) e manter a tela acesa.
+- Cada pedido: avançar status, cancelar (com motivo), **Avisar cliente** (WhatsApp com o status) e **Imprimir comanda** (80 mm). Em Loja → "Imprimir comanda ao aceitar" abre a comanda automaticamente ao aceitar.
+- Dica para impressão sem diálogo: abra o Chrome com `--kiosk-printing` e defina a térmica como impressora padrão.

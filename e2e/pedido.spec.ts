@@ -1,17 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { loginAsOwner } from "./helpers";
+import { setStoreStatus } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
-
-async function setStoreStatus(browser: Browser, label: "Abrir agora" | "Fechar agora" | "Automático") {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await loginAsOwner(page);
-  await page.goto("/painel/loja");
-  await page.getByRole("button", { name: label }).click();
-  await expect(page.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
-  await context.close();
-}
 
 // O horário real não pode decidir o teste: a loja fica aberta durante a suíte.
 test.beforeAll(async ({ browser }) => {
