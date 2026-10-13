@@ -9,11 +9,12 @@ import { getQueueVersion, getStoreOrder, listQueue, transitionOrder } from "./qu
 import { orderStatusEvents } from "./schema";
 import { createOrder } from "./service";
 
-async function setupStore(slug: string) {
+async function setupStore(slug: string, features: { dineIn?: boolean } = {}) {
   const { id: storeId } = await createStore({
     slug,
     name: slug,
     whatsappPhone: "+5511999990000",
+    features,
     rules: { minOrderCents: 0, deliveryFee: { strategy: "fixed", fixedCents: 600 } },
   });
   await setManualStatus(storeId, "force_open");
@@ -158,5 +159,33 @@ describe("fila de pedidos", () => {
     const second = await placeOrder("fila-a", a.coca);
     const third = await placeOrder("fila-a", a.coca);
     expect((await listQueue(a.storeId, new Date(), 2)).map((order) => order.id)).toEqual([second.orderId, third.orderId]);
+  });
+
+  it("consumo no local segue recebido → preparo → pronto → concluído", async () => {
+    const a = await setupStore("fila-a", { dineIn: true });
+    const placed = await createOrder("fila-a", {
+      idempotencyKey: randomUUID(),
+      items: [{ kind: "simple", productId: a.coca, optionIds: [], quantity: 1, notes: null }],
+      fulfillment: "dine_in",
+      customer: { name: "Maria Silva", phone: "(11) 98888-7777" },
+      address: null,
+      tableLabel: "Mesa 4",
+      payment: { method: "cash", changeForCents: null },
+      notes: null,
+      expectedTotalCents: 1400,
+    });
+
+    await transitionOrder(a.storeId, placed.orderId, "preparing", actor);
+    await expect(transitionOrder(a.storeId, placed.orderId, "out_for_delivery", actor)).rejects.toMatchObject({
+      code: "INVALID_TRANSITION",
+    });
+    await transitionOrder(a.storeId, placed.orderId, "ready", actor);
+    await transitionOrder(a.storeId, placed.orderId, "completed", actor);
+
+    expect(await getStoreOrder(a.storeId, placed.orderId)).toMatchObject({
+      status: "completed",
+      fulfillment: "dine_in",
+      tableLabel: "Mesa 4",
+    });
   });
 });

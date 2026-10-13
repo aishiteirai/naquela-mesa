@@ -42,6 +42,8 @@ export const orders = pgTable(
   },
   (t) => [
     index("orders_store_created_at_idx").on(t.storeId, t.createdAt),
+    index("orders_store_updated_at_idx").on(t.storeId, t.updatedAt),
+    index("orders_store_status_idx").on(t.storeId, t.status),
     uniqueIndex("orders_store_number_idx").on(t.storeId, t.number),
     uniqueIndex("orders_store_idempotency_idx").on(t.storeId, t.idempotencyKey),
     check(
