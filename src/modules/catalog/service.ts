@@ -91,13 +91,13 @@ export async function readCatalog(storeId: string, scope: { includeInactive: boo
       .select()
       .from(categories)
       .where(onlyActive(eq(categories.storeId, storeId), eq(categories.active, true)))
-      .orderBy(asc(categories.position)),
-    db.select().from(categorySizes).where(eq(categorySizes.storeId, storeId)).orderBy(asc(categorySizes.position)),
+      .orderBy(asc(categories.position), asc(categories.name)),
+    db.select().from(categorySizes).where(eq(categorySizes.storeId, storeId)).orderBy(asc(categorySizes.position), asc(categorySizes.name)),
     db
       .select()
       .from(products)
       .where(onlyActive(eq(products.storeId, storeId), eq(products.active, true)))
-      .orderBy(asc(products.position)),
+      .orderBy(asc(products.position), asc(products.name)),
     db
       .select({
         productId: productSizePrices.productId,
@@ -107,8 +107,8 @@ export async function readCatalog(storeId: string, scope: { includeInactive: boo
       .from(productSizePrices)
       .innerJoin(products, eq(products.id, productSizePrices.productId))
       .where(eq(products.storeId, storeId)),
-    db.select().from(optionGroups).where(eq(optionGroups.storeId, storeId)).orderBy(asc(optionGroups.position)),
-    db.select().from(options).where(eq(options.storeId, storeId)).orderBy(asc(options.position)),
+    db.select().from(optionGroups).where(eq(optionGroups.storeId, storeId)).orderBy(asc(optionGroups.position), asc(optionGroups.name)),
+    db.select().from(options).where(eq(options.storeId, storeId)).orderBy(asc(options.position), asc(options.name)),
     db
       .select({ productId: productOptionGroups.productId, groupId: productOptionGroups.groupId })
       .from(productOptionGroups)

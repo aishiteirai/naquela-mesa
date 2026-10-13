@@ -117,7 +117,7 @@ export async function moveSize(storeId: string, sizeId: string, direction: MoveD
       .select({ id: categorySizes.id })
       .from(categorySizes)
       .where(eq(categorySizes.categoryId, size.categoryId))
-      .orderBy(asc(categorySizes.position));
+      .orderBy(asc(categorySizes.position), asc(categorySizes.name));
     const next = swapOrder(
       rows.map((row) => row.id),
       sizeId,

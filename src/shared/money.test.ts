@@ -50,6 +50,15 @@ describe("parseBRLToCents", () => {
   it.each(["", "abc", "-1", "12.50", "12,505", "1.23,00", "12,", ",50", "1 000"])("recusa %s", (input) => {
     expect(parseBRLToCents(input)).toBeNull();
   });
+
+  it("número além do inteiro seguro → null", () => {
+    expect(parseBRLToCents("99999999999999999999")).toBeNull();
+  });
+
+  it("'R$' sozinho → null; '1.000' é mil reais", () => {
+    expect(parseBRLToCents("R$")).toBeNull();
+    expect(parseBRLToCents("1.000")).toBe(100000);
+  });
 });
 
 describe("formatCentsForInput", () => {

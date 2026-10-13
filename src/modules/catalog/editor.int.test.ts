@@ -1,6 +1,7 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createStore, deleteStoreBySlug } from "@/modules/stores";
-import { pool } from "@/shared/db/client";
+import { db, pool } from "@/shared/db/client";
 import {
   createCategory,
   createSize,
@@ -11,6 +12,7 @@ import {
   updateCategory,
   updateSize,
 } from "./editor";
+import { products } from "./schema";
 import { getMenu, importCatalog } from "./service";
 
 async function newStore(slug: string): Promise<string> {
@@ -104,8 +106,21 @@ describe("catalog editor — categorias e tamanhos", () => {
     await expect(createSize(storeA, categoryB.id, { name: "X", maxFlavors: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(updateSize(storeA, sizeB.id, { name: "Invadido", maxFlavors: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(deleteSize(storeA, sizeB.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(moveSize(storeA, sizeB.id, "up")).rejects.toMatchObject({ code: "NOT_FOUND" });
 
     const viewB = await getCatalogForEditing(storeB);
     expect(viewB.categories[0]).toMatchObject({ name: "Da B", sizes: [{ name: "Grande", maxFlavors: 2 }] });
+  });
+
+  it("posições empatadas são desempatadas por nome", async () => {
+    const storeId = await newStore("loja-a");
+    await importCatalog(storeId, {
+      categories: [{ name: "Bebidas", products: [{ name: "Suco", priceCents: 800 }, { name: "Agua", priceCents: 400 }] }],
+    });
+    // Simula dois cadastros simultâneos que ganharam a mesma posição.
+    await db.update(products).set({ position: 0 }).where(eq(products.storeId, storeId));
+
+    const names = (await getCatalogForEditing(storeId)).categories[0]!.products.map((product) => product.name);
+    expect(names).toEqual(["Agua", "Suco"]);
   });
 });

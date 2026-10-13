@@ -72,6 +72,20 @@ describe("getOpenStatus", () => {
     expect(statusAt("2026-10-16T22:00:00Z", "force_closed")).toEqual({ isOpen: false, nextOpening: null });
   });
 
+  it("turno 18:00–00:00 fecha exatamente à meia-noite", () => {
+    const toMidnight: StoreHour[] = [{ weekday: 2, opensAt: "18:00", closesAt: "00:00" }];
+    const at = (iso: string) => getOpenStatus({ hours: toMidnight, manualStatus: "auto", timeZone, now: new Date(iso) }).isOpen;
+    expect(at("2026-10-14T02:59:00Z")).toBe(true); // terça 23:59
+    expect(at("2026-10-14T03:00:00Z")).toBe(false); // quarta 00:00
+  });
+
+  it("turno de domingo que vira para segunda", () => {
+    const sunday: StoreHour[] = [{ weekday: 0, opensAt: "18:00", closesAt: "01:00" }];
+    const at = (iso: string) => getOpenStatus({ hours: sunday, manualStatus: "auto", timeZone, now: new Date(iso) }).isOpen;
+    expect(at("2026-10-19T03:30:00Z")).toBe(true); // segunda 00:30
+    expect(at("2026-10-19T04:00:00Z")).toBe(false); // segunda 01:00
+  });
+
   it("sem horários cadastrados: fechado sem próxima abertura", () => {
     expect(getOpenStatus({ hours: [], manualStatus: "auto", timeZone, now: new Date("2026-10-16T22:00:00Z") })).toEqual({
       isOpen: false,
