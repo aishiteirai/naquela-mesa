@@ -21,7 +21,7 @@ export default defineConfig({
         test: {
           name: "integration",
           environment: "node",
-          include: ["src/**/*.int.test.ts"],
+          include: ["src/**/*.int.test.ts", "tests/integration/**/*.int.test.ts"],
           globalSetup: ["./tests/integration/global-setup.ts"],
           setupFiles: ["./tests/integration/setup.ts"],
           fileParallelism: false,
