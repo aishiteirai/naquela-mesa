@@ -9,3 +9,15 @@ export {
   type MenuSize,
 } from "./menu";
 export { getMenu, importCatalog } from "./service";
+export type { CatalogEditorView, EditorCategory, EditorProduct, EditorSize } from "./editor-types";
+export {
+  createCategory,
+  createSize,
+  deleteSize,
+  getCatalogForEditing,
+  moveCategory,
+  moveSize,
+  updateCategory,
+  updateSize,
+} from "./editor";
+export type { MoveDirection } from "./ordering";

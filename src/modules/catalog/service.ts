@@ -1,8 +1,9 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, type SQL } from "drizzle-orm";
 import { db } from "@/shared/db/client";
 import { zodIssuesToDomainError } from "@/shared/validation";
 import { catalogDefinitionSchema, type CatalogDefinition } from "./definition";
-import type { Menu, MenuCategory, MenuOptionGroup } from "./menu";
+import type { CatalogEditorView, EditorCategory } from "./editor-types";
+import type { Menu } from "./menu";
 import { categories, categorySizes, optionGroups, options, productOptionGroups, products, productSizePrices } from "./schema";
 
 export async function importCatalog(storeId: string, definition: CatalogDefinition): Promise<void> {
@@ -81,18 +82,21 @@ export async function importCatalog(storeId: string, definition: CatalogDefiniti
   });
 }
 
-export async function getMenu(storeId: string): Promise<Menu> {
+export async function readCatalog(storeId: string, scope: { includeInactive: boolean }): Promise<CatalogEditorView> {
+  const onlyActive = (condition: SQL, active: SQL): SQL | undefined =>
+    scope.includeInactive ? condition : and(condition, active);
+
   const [categoryRows, sizeRows, productRows, priceRows, groupRows, optionRows, linkRows] = await Promise.all([
     db
       .select()
       .from(categories)
-      .where(and(eq(categories.storeId, storeId), eq(categories.active, true)))
+      .where(onlyActive(eq(categories.storeId, storeId), eq(categories.active, true)))
       .orderBy(asc(categories.position)),
     db.select().from(categorySizes).where(eq(categorySizes.storeId, storeId)).orderBy(asc(categorySizes.position)),
     db
       .select()
       .from(products)
-      .where(and(eq(products.storeId, storeId), eq(products.active, true)))
+      .where(onlyActive(eq(products.storeId, storeId), eq(products.active, true)))
       .orderBy(asc(products.position)),
     db
       .select({
@@ -115,33 +119,34 @@ export async function getMenu(storeId: string): Promise<Menu> {
 
   const sizeOrder = new Map(sizeRows.map((size) => [size.id, size.position]));
 
-  const menuCategories: MenuCategory[] = categoryRows
-    .map((category) => ({
-      id: category.id,
-      name: category.name,
-      sizes: sizeRows
-        .filter((size) => size.categoryId === category.id)
-        .map((size) => ({ id: size.id, name: size.name, maxFlavors: size.maxFlavors })),
-      products: productRows
-        .filter((product) => product.categoryId === category.id)
-        .map((product) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          imageUrl: product.imageUrl,
-          priceCents: product.priceCents,
-          sizePrices: priceRows
-            .filter((price) => price.productId === product.id)
-            .sort((a, b) => (sizeOrder.get(a.sizeId) ?? 0) - (sizeOrder.get(b.sizeId) ?? 0))
-            .map((price) => ({ sizeId: price.sizeId, priceCents: price.priceCents })),
-          allowsHalf: product.allowsHalf,
-          available: product.available,
-          optionGroupIds: linkRows.filter((link) => link.productId === product.id).map((link) => link.groupId),
-        })),
-    }))
-    .filter((category) => category.products.length > 0);
+  const editorCategories: EditorCategory[] = categoryRows.map((category) => ({
+    id: category.id,
+    name: category.name,
+    active: category.active,
+    sizes: sizeRows
+      .filter((size) => size.categoryId === category.id)
+      .map((size) => ({ id: size.id, name: size.name, maxFlavors: size.maxFlavors })),
+    products: productRows
+      .filter((product) => product.categoryId === category.id)
+      .map((product) => ({
+        id: product.id,
+        categoryId: product.categoryId,
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        priceCents: product.priceCents,
+        sizePrices: priceRows
+          .filter((price) => price.productId === product.id)
+          .sort((a, b) => (sizeOrder.get(a.sizeId) ?? 0) - (sizeOrder.get(b.sizeId) ?? 0))
+          .map((price) => ({ sizeId: price.sizeId, priceCents: price.priceCents })),
+        allowsHalf: product.allowsHalf,
+        active: product.active,
+        available: product.available,
+        optionGroupIds: linkRows.filter((link) => link.productId === product.id).map((link) => link.groupId),
+      })),
+  }));
 
-  const menuOptionGroups: MenuOptionGroup[] = groupRows.map((group) => ({
+  const optionGroupsView = groupRows.map((group) => ({
     id: group.id,
     name: group.name,
     minSelect: group.minSelect,
@@ -151,5 +156,30 @@ export async function getMenu(storeId: string): Promise<Menu> {
       .map((option) => ({ id: option.id, name: option.name, priceCents: option.priceCents, available: option.available })),
   }));
 
-  return { categories: menuCategories, optionGroups: menuOptionGroups };
+  return { categories: editorCategories, optionGroups: optionGroupsView };
+}
+
+export async function getMenu(storeId: string): Promise<Menu> {
+  const catalog = await readCatalog(storeId, { includeInactive: false });
+  return {
+    categories: catalog.categories
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        sizes: category.sizes,
+        products: category.products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          imageUrl: product.imageUrl,
+          priceCents: product.priceCents,
+          sizePrices: product.sizePrices,
+          allowsHalf: product.allowsHalf,
+          available: product.available,
+          optionGroupIds: product.optionGroupIds,
+        })),
+      }))
+      .filter((category) => category.products.length > 0),
+    optionGroups: catalog.optionGroups,
+  };
 }
