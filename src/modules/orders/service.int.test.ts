@@ -197,6 +197,37 @@ describe("orders service", () => {
     expect((await quoteOrder(SLUG, checkout(ids, { fulfillment: "pickup", address: null }))).deliveryFeeCents).toBe(0);
   });
 
+  it("mesma chave em paralelo grava um pedido e não consome número", async () => {
+    const ids = await setupStore();
+    const input = checkout(ids, { expectedTotalCents: 8490 });
+    const placed = await Promise.all([createOrder(SLUG, input), createOrder(SLUG, input), createOrder(SLUG, input)]);
+    expect(new Set(placed.map((order) => order.orderId)).size).toBe(1);
+    expect(await orderCount(ids.storeId)).toBe(1);
+    const next = await createOrder(SLUG, checkout(ids, { expectedTotalCents: 8490 }));
+    expect(next.number).toBe(2);
+  });
+
+  it("total acima do teto → VALIDATION em items", async () => {
+    const ids = await setupStore();
+    await importCatalog(ids.storeId, { categories: [{ name: "Caros", products: [{ name: "Banquete", priceCents: 10_000_000 }] }] });
+    const menu = await getMenu(ids.storeId);
+    const banquete = menu.categories.flatMap((category) => category.products).find((product) => product.name === "Banquete")!.id;
+    await expect(
+      quoteOrder(SLUG, checkout(ids, { items: [{ kind: "simple", productId: banquete, optionIds: [], quantity: 11, notes: null }] })),
+    ).rejects.toMatchObject({ code: "VALIDATION", details: { issues: [{ path: "items" }] } });
+  });
+
+  it("ids de outra loja são recusados", async () => {
+    const ids = await setupStore();
+    const other = await setupStore("pedido-outra");
+    const sized = (overrides: Record<string, unknown>) => ({
+      items: [{ kind: "sized", sizeId: ids.grande, flavorIds: [ids.calabresa], optionIds: [], quantity: 1, notes: null, ...overrides }],
+    });
+    await expect(quoteOrder(SLUG, checkout(ids, sized({ sizeId: other.grande })))).rejects.toMatchObject({ code: "ITEM_UNAVAILABLE" });
+    await expect(quoteOrder(SLUG, checkout(ids, sized({ flavorIds: [other.calabresa] })))).rejects.toMatchObject({ code: "ITEM_UNAVAILABLE" });
+    await expect(quoteOrder(SLUG, checkout(ids, sized({ optionIds: [other.catupiry] })))).rejects.toMatchObject({ code: "INVALID_OPTIONS" });
+  });
+
   it("token inválido ou inexistente → null", async () => {
     expect(await getOrderTracking("abc")).toBeNull();
     expect(await getOrderTracking("A".repeat(43))).toBeNull();

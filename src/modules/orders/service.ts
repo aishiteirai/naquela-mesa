@@ -135,7 +135,7 @@ function computeQuote(store: Store, menu: Menu, zones: DeliveryZone[], input: Pa
   const totalCents = subtotalCents + deliveryFeeCents;
   if (totalCents > MAX_ORDER_CENTS) throw validation("items", "pedido acima do limite");
   if (input.payment.method === "cash" && input.payment.changeForCents !== null && input.payment.changeForCents < totalCents) {
-    throw validation("payment.changeForCents", "o troco deve ser maior que o total");
+    throw validation("payment.changeForCents", "o troco deve ser igual ou maior que o total");
   }
   return { lines, subtotalCents, deliveryFeeCents, totalCents };
 }
@@ -227,6 +227,7 @@ export async function createOrder(
   if (!phone) throw validation("customer.phone", "telefone inválido (use DDD + número)");
 
   const store = await loadStore(slug);
+  // Repetição com a mesma chave devolve o pedido original, mesmo que a loja tenha fechado ou o carrinho mudado.
   const existing = await findByIdempotency(store.id, input.idempotencyKey);
   if (existing) return loadPlacedOrder(existing);
 
