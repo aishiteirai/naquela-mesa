@@ -9,7 +9,9 @@ import { categorySizes, optionGroups, options, productOptionGroups, products, pr
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-const cents = z.number().int("valor inválido").nonnegative("valor inválido");
+const MAX_CENTS = 100_000_000;
+
+const cents = z.number().int("valor inválido").nonnegative("valor inválido").max(MAX_CENTS, "valor muito alto");
 
 const productInputSchema = z.object({
   categoryId: z.uuid(),
@@ -28,8 +30,8 @@ export type ProductInput = z.input<typeof productInputSchema>;
 const optionGroupInputSchema = z
   .object({
     name: nameSchema,
-    minSelect: z.number().int().min(0, "mínimo inválido"),
-    maxSelect: z.number().int().min(1, "máximo deve ser ao menos 1"),
+    minSelect: z.number().int().min(0, "mínimo inválido").max(50, "máximo de 50"),
+    maxSelect: z.number().int().min(1, "máximo deve ser ao menos 1").max(50, "máximo de 50"),
   })
   .refine((group) => group.minSelect <= group.maxSelect, { message: "mínimo maior que máximo", path: ["minSelect"] });
 
@@ -73,12 +75,15 @@ async function validateProductRelations(storeId: string, data: z.infer<typeof pr
     throw invalid("allowsHalf", "meio a meio exige um tamanho com até 2 sabores");
   }
 
+  if (new Set(data.optionGroupIds).size !== data.optionGroupIds.length) {
+    throw invalid("optionGroupIds", "grupo de adicionais repetido");
+  }
   if (data.optionGroupIds.length > 0) {
     const groups = await tx
       .select({ id: optionGroups.id })
       .from(optionGroups)
       .where(and(eq(optionGroups.storeId, storeId), inArray(optionGroups.id, data.optionGroupIds)));
-    if (groups.length !== new Set(data.optionGroupIds).size) throw invalid("optionGroupIds", "grupo de adicionais inválido");
+    if (groups.length !== data.optionGroupIds.length) throw invalid("optionGroupIds", "grupo de adicionais inválido");
   }
 }
 
@@ -139,11 +144,20 @@ export async function createProduct(storeId: string, input: ProductInput): Promi
 export async function updateProduct(storeId: string, productId: string, input: ProductInput): Promise<void> {
   const data = parseInput(productInputSchema, input);
   await db.transaction(async (tx) => {
-    await findProduct(storeId, productId, tx);
+    const current = await findProduct(storeId, productId, tx);
     await validateProductRelations(storeId, data, tx);
+    const columns = productColumns(data);
+    let position: number | undefined;
+    if (current.categoryId !== data.categoryId) {
+      const [last] = await tx
+        .select({ position: max(products.position) })
+        .from(products)
+        .where(eq(products.categoryId, data.categoryId));
+      position = (last?.position ?? -1) + 1;
+    }
     await tx
       .update(products)
-      .set(productColumns(data))
+      .set(position === undefined ? columns : { ...columns, position })
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
     await replaceProductRelations(productId, data, tx);
   });

@@ -203,4 +203,34 @@ describe("catalog editor — produtos e adicionais", () => {
     expect(viewB.categories.find((c) => c.name === "Bebidas")!.products[0]).toMatchObject({ name: "Coca B", available: true });
     expect(viewB.optionGroups[0]).toMatchObject({ name: "Borda", options: [{ name: "Cheddar B", available: true }] });
   });
+
+  it("recusa grupo repetido e inteiros fora do limite", async () => {
+    const storeId = await newStore("loja-a");
+    const bebidas = await createCategory(storeId, { name: "Bebidas" });
+    const group = await createOptionGroup(storeId, { name: "Extras", minSelect: 0, maxSelect: 1 });
+
+    await expect(
+      createProduct(storeId, pizza({ categoryId: bebidas.id, priceCents: 100, optionGroupIds: [group.id, group.id] })),
+    ).rejects.toMatchObject({ code: "VALIDATION", details: { issues: [{ path: "optionGroupIds" }] } });
+    await expect(createProduct(storeId, pizza({ categoryId: bebidas.id, priceCents: 3_000_000_000 }))).rejects.toMatchObject({
+      code: "VALIDATION",
+    });
+    await expect(createOptionGroup(storeId, { name: "X", minSelect: 0, maxSelect: 40000 })).rejects.toMatchObject({
+      code: "VALIDATION",
+    });
+  });
+
+  it("mover produto de categoria o coloca no fim da nova", async () => {
+    const storeId = await newStore("loja-a");
+    const bebidas = await createCategory(storeId, { name: "Bebidas" });
+    const sucos = await createCategory(storeId, { name: "Sucos" });
+    const coca = await createProduct(storeId, pizza({ categoryId: bebidas.id, name: "Coca", priceCents: 1400 }));
+    await createProduct(storeId, pizza({ categoryId: sucos.id, name: "Laranja", priceCents: 900 }));
+    await createProduct(storeId, pizza({ categoryId: sucos.id, name: "Uva", priceCents: 900 }));
+
+    await updateProduct(storeId, coca.id, pizza({ categoryId: sucos.id, name: "Coca", priceCents: 1400 }));
+
+    const view = await getCatalogForEditing(storeId);
+    expect(view.categories.find((c) => c.name === "Sucos")!.products.map((p) => p.name)).toEqual(["Laranja", "Uva", "Coca"]);
+  });
 });
