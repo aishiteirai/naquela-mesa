@@ -793,7 +793,7 @@ test("login respeita next interno e ignora next externo", async ({ page }) => {
   await page.getByLabel("Email").fill("dono@pizzariademo.test");
   await page.getByLabel("Senha").fill("demo-senha-123");
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL(/localhost:3000\/painel\/cardapio$/);
+  await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/painel\/cardapio$/);
 });
 ```
 
