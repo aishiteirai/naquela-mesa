@@ -13,7 +13,7 @@ export function SignOutButton() {
   }
 
   return (
-    <button type="button" onClick={onClick} className="mt-6 rounded border px-4 py-2 text-sm">
+    <button type="button" onClick={onClick} className="rounded border px-4 py-2 text-sm">
       Sair
     </button>
   );

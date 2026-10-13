@@ -12,6 +12,11 @@ describe("parseEnv", () => {
     expect(parseEnv(valid)).toEqual(valid);
   });
 
+  it("aceita E2E_DISABLE_AUTH_RATE_LIMIT=1 e recusa outros valores", () => {
+    expect(parseEnv({ ...valid, E2E_DISABLE_AUTH_RATE_LIMIT: "1" }).E2E_DISABLE_AUTH_RATE_LIMIT).toBe("1");
+    expect(() => parseEnv({ ...valid, E2E_DISABLE_AUTH_RATE_LIMIT: "true" })).toThrow(/E2E_DISABLE_AUTH_RATE_LIMIT/);
+  });
+
   it("nomeia a variável ausente", () => {
     const rest: Record<string, string> = { ...valid };
     delete rest.DATABASE_URL;

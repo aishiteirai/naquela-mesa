@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { requireSuperAdmin } from "@/modules/auth";
-import { SignOutButton } from "./sign-out-button";
+import { SignOutButton } from "@/app/_components/sign-out-button";
 
 async function AdminContent() {
   const admin = await requireSuperAdmin();

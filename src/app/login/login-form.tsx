@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { authClient } from "@/modules/auth/client";
+import { safeNextPath } from "./next-path";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -14,7 +16,7 @@ export function LoginForm() {
     setPending(true);
     setError(null);
     const form = new FormData(event.currentTarget);
-    const { error: signInError } = await authClient.signIn.email({
+    const { data, error: signInError } = await authClient.signIn.email({
       email: String(form.get("email")),
       password: String(form.get("password")),
     });
@@ -25,7 +27,8 @@ export function LoginForm() {
       );
       return;
     }
-    router.push("/admin");
+    const isSuperAdminUser = data?.user && "role" in data.user && data.user.role === "super_admin";
+    router.push(safeNextPath(searchParams.get("next")) ?? (isSuperAdminUser ? "/admin" : "/painel"));
     router.refresh();
   }
 

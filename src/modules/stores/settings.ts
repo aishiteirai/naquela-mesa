@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const RESERVED_SLUGS = ["admin", "api", "login", "painel", "pedido", "_next", "favicon.ico"] as const;
+export const RESERVED_SLUGS = ["admin", "api", "login", "painel", "pedido", "sem-loja", "uploads", "_next", "favicon.ico"] as const;
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "cor deve estar no formato #RRGGBB");

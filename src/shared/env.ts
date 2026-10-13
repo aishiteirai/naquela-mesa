@@ -4,6 +4,7 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   BETTER_AUTH_SECRET: z.string().min(32, "precisa ter ao menos 32 caracteres"),
   BETTER_AUTH_URL: z.url(),
+  E2E_DISABLE_AUTH_RATE_LIMIT: z.literal("1").optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
