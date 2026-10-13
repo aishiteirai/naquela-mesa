@@ -3859,8 +3859,8 @@ Em `src/app/painel/cardapio/_components/product-form.tsx`: remover `<input type=
 
 ```bash
 npm run build && (npm run start >/tmp/naquela-start.log 2>&1 &) && sleep 5
-curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3000/uploads/..%2F.env"
-curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3000/uploads/3f2504e0-4f89-41d3-9a0c-0305e82c3301.png"
+curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3001/uploads/..%2F.env"
+curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3001/uploads/3f2504e0-4f89-41d3-9a0c-0305e82c3301.png"
 pkill -f "next start"
 ```
 
