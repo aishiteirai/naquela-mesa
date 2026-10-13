@@ -5,6 +5,8 @@ import { requireStoreAccess } from "./_lib/access";
 
 const links = [
   { href: "/painel", label: "Pedidos" },
+  { href: "/painel/pedidos", label: "Histórico" },
+  { href: "/painel/metricas", label: "Métricas" },
   { href: "/painel/cardapio", label: "Cardápio" },
   { href: "/painel/cardapio/adicionais", label: "Adicionais" },
   { href: "/painel/disponibilidade", label: "Disponibilidade" },
