@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db, pool } from "@/shared/db/client";
 import { storeHours, stores } from "./schema";
 import { createStore, deleteStoreBySlug, getStoreBySlug, replaceStoreHours } from "./service";
@@ -16,12 +16,15 @@ describe("stores service", () => {
   });
 
   it("configuração inválida no banco cai no padrão em vez de quebrar", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { id } = await createStore(base);
     await db.update(stores).set({ theme: { primary: "bad" } as never }).where(eq(stores.id, id));
 
     const store = await getStoreBySlug("pizzaria-teste");
 
     expect(store?.theme).toEqual({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" });
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("cria loja com configurações padrão", async () => {
