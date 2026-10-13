@@ -1,4 +1,4 @@
-import type { Fulfillment, OrderStatus, PaymentMethod } from "./types";
+import type { Fulfillment, OrderAddress, OrderChannel, OrderStatus, PaymentMethod } from "./types";
 
 export function formatOrderNumber(orderNumber: number): string {
   return `#${String(orderNumber).padStart(4, "0")}`;
@@ -29,3 +29,17 @@ export const FULFILLMENT_LABELS: Record<Fulfillment, string> = {
   pickup: "Retirada no balcão",
   dine_in: "Consumo no local",
 };
+
+export const CHANNEL_LABELS: Record<OrderChannel, string> = {
+  web: "Cardápio online",
+  whatsapp: "WhatsApp",
+};
+
+export function formatOrderAddress(address: OrderAddress): string {
+  return (
+    `${address.street}, ${address.number}` +
+    (address.complement ? ` - ${address.complement}` : "") +
+    ` — ${address.neighborhood}` +
+    (address.reference ? ` (ref.: ${address.reference})` : "")
+  );
+}

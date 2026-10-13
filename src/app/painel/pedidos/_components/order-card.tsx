@@ -1,6 +1,7 @@
 import {
   advanceLabel,
   FULFILLMENT_LABELS,
+  formatOrderAddress,
   formatOrderNumber,
   isFinalStatus,
   nextStatus,
@@ -51,13 +52,7 @@ export function OrderCard({ order, storeName, storeSlug, timezone, autoPrintOnAc
           {order.customerPhone}
         </a>
       </p>
-      {order.address && (
-        <p>
-          {order.address.street}, {order.address.number}
-          {order.address.complement ? ` - ${order.address.complement}` : ""} — {order.address.neighborhood}
-          {order.address.reference ? ` (ref.: ${order.address.reference})` : ""}
-        </p>
-      )}
+      {order.address && <p>{formatOrderAddress(order.address)}</p>}
       {order.tableLabel && <p>Mesa {order.tableLabel}</p>}
       <ul className="flex flex-col gap-1 border-y border-neutral-200 py-2 dark:border-neutral-800">
         {order.items.map((item, index) => (

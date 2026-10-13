@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { FULFILLMENT_LABELS, formatOrderNumber, PAYMENT_LABELS, statusLabel } from "./labels";
+import {
+  CHANNEL_LABELS,
+  FULFILLMENT_LABELS,
+  formatOrderAddress,
+  formatOrderNumber,
+  PAYMENT_LABELS,
+  statusLabel,
+} from "./labels";
 
 describe("labels", () => {
   it.each([
@@ -21,5 +28,21 @@ describe("labels", () => {
   it("formas de pagamento e tipos", () => {
     expect(PAYMENT_LABELS.card_on_delivery).toBe("Cartão na entrega");
     expect(FULFILLMENT_LABELS.dine_in).toBe("Consumo no local");
+  });
+});
+
+describe("CHANNEL_LABELS", () => {
+  it("nomeia os canais", () => {
+    expect(CHANNEL_LABELS).toEqual({ web: "Cardápio online", whatsapp: "WhatsApp" });
+  });
+});
+
+describe("formatOrderAddress", () => {
+  it("monta o endereço com complemento e referência opcionais", () => {
+    const base = { street: "Rua A", number: "10", complement: null, neighborhood: "Centro", city: null, zipCode: null, reference: null };
+    expect(formatOrderAddress(base)).toBe("Rua A, 10 — Centro");
+    expect(formatOrderAddress({ ...base, complement: "apto 3", reference: "portão azul" })).toBe(
+      "Rua A, 10 - apto 3 — Centro (ref.: portão azul)",
+    );
   });
 });
