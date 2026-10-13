@@ -92,6 +92,15 @@ export function OrderCard({ order, storeName, storeSlug, timezone, autoPrintOnAc
             printUrl={autoPrintOnAccept && order.status === "received" ? `/painel/pedidos/${order.id}/imprimir` : undefined}
           />
         )}
+        <a
+          href={`/painel/pedidos/${order.id}/imprimir`}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Imprimir comanda ${orderLabel}`}
+          className="text-sm underline"
+        >
+          Imprimir comanda
+        </a>
         <a href={notifyUrl} target="_blank" rel="noreferrer" aria-label={`Avisar cliente ${orderLabel}`} className="text-sm underline">
           Avisar cliente
         </a>

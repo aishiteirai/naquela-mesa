@@ -77,7 +77,7 @@ export async function saveHoursAction(_prev: ActionState, form: FormData): Promi
 }
 
 export async function saveOperationsAction(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const { store } = await requireStoreAccess();
+  await requireStoreAccess();
   const minOrderCents = parseBRLToCents(text(form, "minOrder") || "0");
   if (minOrderCents === null) return fieldError("rules.minOrderCents", "valor inválido (use 30,00)");
 
@@ -104,7 +104,7 @@ export async function saveOperationsAction(_prev: ActionState, form: FormData): 
           prepTimeMin: minutes(form, "prepTimeMin"),
           deliveryTimeMin: minutes(form, "deliveryTimeMin"),
           halfPriceRule: form.get("halfPriceRule") === "average" ? "average" : "highest",
-          autoPrintOnAccept: store.rules.autoPrintOnAccept,
+          autoPrintOnAccept: checked(form, "autoPrintOnAccept"),
           deliveryFee,
         },
         paymentMethods: {

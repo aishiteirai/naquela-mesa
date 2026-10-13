@@ -61,6 +61,7 @@ export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, 
           <input name="deliveryTimeMin" type="number" min={1} defaultValue={rules.deliveryTimeMin} className={inputClass} />
         </label>
         <FieldError state={state} name="rules.deliveryTimeMin" />
+        <Check name="autoPrintOnAccept" label="Imprimir comanda ao aceitar" defaultChecked={rules.autoPrintOnAccept} />
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
