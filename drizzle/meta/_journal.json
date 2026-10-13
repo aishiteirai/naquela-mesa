@@ -43,6 +43,13 @@
       "when": 1791872798329,
       "tag": "0005_wooden_dagger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791874480028,
+      "tag": "0006_rich_roulette",
+      "breakpoints": true
     }
   ]
 }
