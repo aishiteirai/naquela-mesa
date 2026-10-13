@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { listQueue, type QueueOrder } from "@/modules/orders";
+import { getQueueVersion, listQueue, type QueueOrder } from "@/modules/orders";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { OrderCard } from "./pedidos/_components/order-card";
 import { QueueNoticeProvider } from "./pedidos/_components/queue-notice";
+import { QueuePoller } from "./pedidos/_components/queue-poller";
 
 const COLUMNS: { title: string; statuses: QueueOrder["status"][] }[] = [
   { title: "Novos", statuses: ["received"] },
@@ -13,10 +14,11 @@ const COLUMNS: { title: string; statuses: QueueOrder["status"][] }[] = [
 
 async function Queue() {
   const { store } = await requireStoreAccess();
-  const orders = await listQueue(store.id);
+  const [orders, version] = await Promise.all([listQueue(store.id), getQueueVersion(store.id)]);
 
   return (
     <QueueNoticeProvider>
+      <QueuePoller initialVersion={version.version} initialReceived={version.received} />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((column) => {
           const columnOrders = orders.filter((order) => column.statuses.includes(order.status));
