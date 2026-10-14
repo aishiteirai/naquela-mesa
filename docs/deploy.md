@@ -53,10 +53,10 @@ O Sentry só é carregado quando `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` estão 
 Da máquina local, apontando para o banco de produção (a senha vai por variável de ambiente, nunca como argumento):
 
 ```bash
- DATABASE_URL="<url direta do Neon>" ADMIN_PASSWORD="<senha forte>" npm run admin:ensure -- voce@exemplo.com "Seu Nome"
+ DATABASE_URL="<url direta do Neon>" BETTER_AUTH_SECRET="<qualquer valor com 32+ caracteres>" BETTER_AUTH_URL="https://<seu-domínio>" ADMIN_PASSWORD="<senha forte>" npm run admin:ensure -- voce@exemplo.com "Seu Nome"
 ```
 
-O espaço antes do comando evita que a senha fique no histórico do shell (bash/zsh com `HIST_IGNORE_SPACE`/`HISTCONTROL=ignorespace`).
+O script carrega o cliente do banco, que valida o ambiente e exige `BETTER_AUTH_SECRET` (32+ caracteres) e `BETTER_AUTH_URL`; por isso vão no comando (o valor do secret não precisa ser o de produção). O espaço antes do comando evita que a senha fique no histórico do shell (bash/zsh com `HIST_IGNORE_SPACE`/`HISTCONTROL=ignorespace`).
 
 ## 6. Domínio
 
@@ -66,7 +66,13 @@ O espaço antes do comando evita que a senha fique no histórico do shell (bash/
 
 ## 7. Loja de demonstração em produção (opcional)
 
-`seed:demo` recusa `NODE_ENV=production`. Para uma demo, rode da máquina local com a `DATABASE_URL` do Neon e `NODE_ENV` não definido. Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
+`seed:demo` recusa `NODE_ENV=production`. Para uma demo, rode da máquina local, com `NODE_ENV` não definido, assim (o espaço inicial evita histórico; `BETTER_AUTH_SECRET` e `BETTER_AUTH_URL` são exigidos pela validação de ambiente):
+
+```bash
+ DATABASE_URL="<url direta do Neon>" BETTER_AUTH_SECRET="<qualquer valor com 32+ caracteres>" BETTER_AUTH_URL="https://<seu-domínio>" npm run seed:demo
+```
+
+Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
 
 ## 8. Checklist de fumaça
 
@@ -75,7 +81,8 @@ O espaço antes do comando evita que a senha fique no histórico do shell (bash/
 - [ ] Painel: "Iniciar atendimento" (precisa clicar de novo a cada recarga da página), alerta sonoro, notificação do navegador (só funciona em HTTPS) e tela que não apaga (Wake Lock, só HTTPS).
 - [ ] Impressão em térmica 80 mm. Chrome com `--kiosk-printing` imprime sem diálogo: atalho do Windows com `chrome.exe --kiosk-printing https://<domínio>/painel`.
 - [ ] Convite de dono e "Acessar como loja".
-- [ ] 11 pedidos seguidos do mesmo celular: aparece "Muitas tentativas…".
+- [ ] Limite por IP: 11 pedidos seguidos com telefones diferentes; o 11º mostra "Muitas tentativas…".
+- [ ] Limite por telefone: 6 pedidos com o mesmo telefone; o 6º mostra "Muitas tentativas…".
 - [ ] Upload de logo vai para o Blob (URL `*.public.blob.vercel-storage.com`).
 - [ ] Erro de teste aparece no Sentry.
 
@@ -88,6 +95,6 @@ O espaço antes do comando evita que a senha fique no histórico do shell (bash/
 ## 10. Notas de operação
 
 - **Limite por IP:** usa o primeiro item de `x-forwarded-for`. Na Vercel isso é seguro (a Vercel sobrescreve o cabeçalho); atrás de outro proxy ou em hospedagem própria seria falsificável.
-- **Upstash fora do ar:** `@upstash/ratelimit` deixa a requisição passar após o timeout (disponibilidade acima de rigor).
+- **Upstash lento ou sem resposta:** `@upstash/ratelimit` deixa a requisição passar após o timeout (disponibilidade acima de rigor). Um erro duro de conexão pode aparecer como página de erro.
 - **Tamanho de corpo:** funções da Vercel aceitam corpos de até ~4,5 MB. O painel redimensiona imagens para no máximo 1200 px em WebP antes de enviar; só se bate nesse limite se o navegador não conseguir redimensionar (aparece um erro genérico).
 - **Upload:** imagens vão para o Vercel Blob. Limpeza de órfãs e cota por loja ainda não existem.
