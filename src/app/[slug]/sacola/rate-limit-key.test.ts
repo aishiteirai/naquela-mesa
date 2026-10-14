@@ -1,8 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { phoneRateLimitKey } from "./rate-limit-key";
-
-// O barrel do módulo abre o banco; o teste só precisa da normalização.
-vi.mock("@/modules/orders", () => import("@/modules/orders/phone"));
 
 const body = (phone: unknown) => ({ customer: { phone } });
 
