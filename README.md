@@ -1,320 +1,168 @@
-# Naquela Mesa
+<div align="center">
 
-**Cardápio digital com pedidos para pequenos restaurantes, pizzarias e lanchonetes**, no estilo Anota AI, Goomer e Beefood. O cliente pede pelo celular, o pedido aparece na hora no painel da loja (com alerta sonoro e comanda para impressora térmica) e segue para o WhatsApp do restaurante já formatado.
+<pre>
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣶⣶⣶⣶⣶⣦⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣀⣶⣿⠟⠛⠋⠙⠛⠛⠛⢿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⣾⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢘⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣄⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢸⣻⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣸⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⠙⢣⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣽⢿⠃⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠈⣿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣎⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠻⠿⡆⠀⠀⠀⠀⠀⠀⠀⡠⠁⠙⠿⡇⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⠢⢄⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢀⠤⠒⠒⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠒⢄⡀⠀
+⠀⠀⠀⠀⡰⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠑
 
-- **Produção:** https://naquela-mesa.vercel.app
-- **Status:** MVP completo (fases F0 a F6) e em produção, em fase de demonstração para os primeiros restaurantes.
+projeto:                                                 
+ ,                                    ,_ _               
+/|/\    _,   _,         _ |\  _,     /| | |   _  ,   _,  
+ |  |  / |  / |  |  |  |/ |/ / |      | | |  |/ / \_/ |  
+ |  |_/\/|_/\/|_/ \/|_/|_/|_/\/|_/    | | |_/|_/ \/ \/|_/
+              |)                                         
+</pre>
 
----
+<h3>Cardápio digital com pedidos direto pelo celular</h3>
 
-## Sumário
+<p>O cliente monta o pedido em uma página pública da loja.<br>
+A equipe recebe, acompanha e imprime tudo em um painel que se atualiza sozinho.<br>
+Sem app para instalar.</p>
 
-1. [O que o sistema faz](#o-que-o-sistema-faz)
-2. [Como um pedido acontece](#como-um-pedido-acontece)
-3. [Tecnologias](#tecnologias)
-4. [Arquitetura](#arquitetura)
-5. [Rodando na sua máquina](#rodando-na-sua-máquina)
-6. [Comandos do dia a dia](#comandos-do-dia-a-dia)
-7. [Testes e CI](#testes-e-ci)
-8. [Deploy e custos](#deploy-e-custos)
-9. [Segurança e LGPD](#segurança-e-lgpd)
-10. [Estrutura de pastas](#estrutura-de-pastas)
-11. [Próximos passos](#próximos-passos)
-12. [Documentação](#documentação)
+<p>
+<img alt="Next.js" src="https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=nextdotjs&logoColor=white">
+<img alt="React" src="https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB">
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white">
+<img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white">
+<img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white">
+<img alt="Vercel" src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white">
+</p>
 
----
+</div>
 
-## O que o sistema faz
+<br>
 
-O Naquela Mesa é **multi-loja**: uma única instalação atende vários restaurantes, cada um no seu endereço (`/pizzaria-do-joao`, `/lanchonete-da-maria`…). A aparência e as regras são configuradas pelo painel, sem código por cliente.
+## Como funciona o pedido
 
-Há três tipos de usuário:
+```
+ Cliente                                   Loja
+ ───────                                   ────
+ 1. Abre o cardápio  /<loja>
+ 2. Escolhe itens, tamanhos e adicionais
+ 3. Revisa a sacola e faz o checkout
+    (entrega, retirada ou mesa;
+     dinheiro, cartão ou Pix)
+ 4. Confirma ──────────────────────────▶  5. Pedido entra na fila (alerta sonoro)
+    e envia o resumo pelo WhatsApp         6. Aceita, prepara e avança o status
+ 7. Acompanha pelo link do pedido  ◀────     (comanda impressa ao aceitar)
+                                           8. Avisa o cliente pelo WhatsApp
+```
 
-### 🍕 Cliente final (sem login)
+O total exibido no navegador é apenas uma estimativa: **o preço é sempre recalculado no servidor** antes de o pedido ser gravado.
 
-| O que faz | Onde |
+## Principais funções
+
+**Para o cliente**
+- Cardápio público por loja, responsivo e sem cadastro
+- Tamanhos, sabores meio a meio e adicionais por produto
+- Entrega, retirada ou consumo na mesa; dinheiro, cartão na entrega ou Pix
+- Envio do pedido completo por WhatsApp e página de acompanhamento
+
+**Para a loja (`/painel`)**
+- Fila de pedidos por status com atualização automática, alerta sonoro e tela sempre acesa
+- Comanda para impressora térmica de 80 mm, com impressão automática ao aceitar
+- Editor de cardápio, adicionais, disponibilidade, horários, entrega e Pix, com efeito imediato na página pública
+- Histórico com filtros e busca; métricas de faturamento, ticket médio, cancelamentos, produtos mais vendidos e pedidos por hora, tipo e canal
+- Checklist de primeiros passos até a loja estar pronta
+
+**Para a administração (`/admin`)**
+- Criação de lojas a partir de modelos de cardápio prontos
+- Link de acesso de uso único para o dono definir a senha (válido por 7 dias)
+- Modo suporte para acessar o painel de uma loja, com registro de auditoria
+
+## Stack
+
+| Camada | Tecnologia |
 |---|---|
-| Vê o cardápio da loja, com fotos, preços, esgotados e o horário de funcionamento | `/<loja>` |
-| Monta o pedido: tamanhos, **pizza meio a meio**, adicionais (borda, bacon…) e observações | botão **Adicionar** em cada produto |
-| Escolhe delivery, retirada ou consumo no local; paga em dinheiro (com troco), cartão na entrega ou Pix | `/<loja>/sacola` |
-| Envia o pedido formatado para o WhatsApp da loja | depois de confirmar |
-| Acompanha o status do pedido por link | `/<loja>/pedido/<código>` |
+| Aplicação | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 |
+| Dados | PostgreSQL + Drizzle ORM, validação com Zod |
+| Autenticação | Better Auth |
+| Infraestrutura | Vercel, Neon, Upstash Redis (rate limit), Vercel Blob (imagens), Sentry |
+| Testes | Vitest (unitários e integração com Testcontainers), Playwright (E2E) |
 
-### 🧑‍🍳 Dono do restaurante (painel)
+## Rodando localmente
 
-| O que faz | Onde |
-|---|---|
-| **Fila de pedidos** em colunas (Novos, Em preparo, Prontos/Em entrega, Finalizados), atualizada sozinha a cada 5 s, com alerta sonoro, notificação e tela sempre acesa | `/painel` |
-| Aceita, avança ou cancela pedidos; **avisa o cliente** pelo WhatsApp; **imprime a comanda** em 80 mm (inclusive automaticamente ao aceitar) | cartão de cada pedido |
-| **Histórico** com filtros por período e status e busca por número, nome ou telefone | `/painel/pedidos` |
-| **Métricas**: faturamento, ticket médio, cancelamentos, top 10 produtos, pedidos por hora, por tipo e por canal | `/painel/metricas` |
-| Cadastra categorias, tamanhos, produtos (com foto), grupos de adicionais e marca itens esgotados | `/painel/cardapio`, `/painel/disponibilidade` |
-| Configura logo, banner, cores, horários, "Abrir/Fechar agora", taxas de entrega (fixa ou por bairro), formas de pagamento e pedido mínimo | `/painel/loja` |
-| Vê o checklist **Primeiros passos** até a loja estar pronta | topo do `/painel` |
-
-### 🛠️ Super-admin (você, dono da plataforma)
-
-| O que faz | Onde |
-|---|---|
-| Cria uma loja em minutos a partir de um **modelo de cardápio** (Pizzaria, Hamburgueria ou Lanchonete) | `/admin` → **Nova loja** |
-| Gera um **link de acesso** (vale 7 dias, uma vez só) para o dono criar a senha, ou redefinir a senha depois | depois de criar a loja, ou em **Lojas** |
-| **Acessa o painel de qualquer loja** para dar suporte (modo suporte com faixa de aviso) | **Lojas → Acessar como loja** |
-| Consulta o **registro de suporte** (quem entrou, em qual loja, quando) | **Registro de suporte** |
-
-> **Fora do MVP (roadmap):** bot de pedidos pelo WhatsApp (API oficial), Pix online, cupons, agendamento, taxa por distância, vários usuários por loja e domínio próprio por loja.
-
----
-
-## Como um pedido acontece
-
-```
-Cliente (celular)                    Servidor                         Restaurante (painel)
-─────────────────                    ────────                         ────────────────────
-1. Abre /pizzaria-demo  ───────────▶ monta o cardápio (com cache)
-2. Monta a sacola (fica no navegador)
-3. "Revisar pedido"     ───────────▶ recalcula TODOS os preços,
-                                     taxa, horário e regras
-4. "Confirmar pedido"   ───────────▶ grava o pedido com número
-                                     sequencial (#0042)  ─────────▶ 5. Em até ~5 s o pedido
-                                                                       aparece em "Novos" com som
-6. "Enviar no WhatsApp" ──▶ WhatsApp da loja com o pedido completo
-                                                                    7. Aceita → imprime a comanda
-                                                                    8. Avança: em preparo → saiu
-                                                                       para entrega → concluído
-9. Acompanha o status pelo link ◀──── status atualizado ◀────────── 9. "Avisar cliente" (WhatsApp)
-```
-
-Pontos importantes do fluxo:
-
-- **O preço é sempre calculado no servidor.** O total mostrado no navegador é só uma estimativa; se o cardápio mudou, o cliente vê o novo valor antes de confirmar.
-- **Clique duplo não gera pedido duplicado** (chave de idempotência por pedido).
-- **Dois aparelhos no painel** não conseguem aceitar o mesmo pedido duas vezes: o segundo recebe "Este pedido já foi atualizado em outro aparelho".
-- **O link de acompanhamento não mostra dados pessoais** (só o primeiro nome, os itens e o status).
-
----
-
-## Tecnologias
-
-| Camada | Escolha | Por quê |
-|---|---|---|
-| App web | **Next.js 16** (App Router, Server Components, Server Actions) + **React 19** + **TypeScript** | um projeto só para cardápio, painel e backend |
-| Estilo | **Tailwind CSS 4** | layout padronizado com o tema de cada loja por variáveis CSS |
-| Banco | **PostgreSQL** (Neon em produção) + **Drizzle ORM** | SQL tipado e migrações versionadas em `drizzle/` |
-| Login | **Better Auth** (email e senha, plugin admin) | sessões no banco, impersonação para suporte, cadastro público desligado |
-| Validação | **Zod** | toda entrada de formulário e configuração é validada |
-| Rate limit | **Upstash Redis** | limita pedidos, cotações, convites e uploads (o login usa o limitador do Better Auth no banco) |
-| Imagens | **Vercel Blob** | logos, banners e fotos dos produtos |
-| Erros | **Sentry** (carregado só quando configurado) | erros inesperados; regras de negócio não poluem o painel |
-| Testes | **Vitest** (unitários e integração com Postgres no Docker) + **Playwright** (E2E) | |
-| Hospedagem | **Vercel** (funções em São Paulo) | deploy a cada push na `main` |
-
----
-
-## Arquitetura
-
-O projeto é um **monólito modular**: um único app, mas com o domínio dividido em módulos isolados.
-
-```
-src/
-├── app/            ← rotas e telas (finas: só chamam módulos)
-├── modules/        ← regras de negócio, uma pasta por domínio
-│   ├── stores/       lojas, horários, entrega, membros, convites
-│   ├── catalog/      categorias, tamanhos, produtos, adicionais
-│   ├── orders/       preços, pedidos, fila, status, histórico, métricas
-│   ├── whatsapp/     mensagens e links wa.me
-│   ├── auth/         login, sessão, super-admin, impersonação
-│   ├── onboarding/   modelos de cardápio, criação de loja, checklist
-│   ├── audit/        registro de ações do super-admin
-│   └── media/        upload de imagens (disco local ou Vercel Blob)
-└── shared/         ← utilidades sem regra de negócio (dinheiro, env, banco, rate limit…)
-```
-
-Regras que o **lint verifica automaticamente**:
-
-1. Cada módulo expõe só o que está em `index.ts` (servidor) e `client.ts` (código seguro para o navegador). Importar arquivos internos de outro módulo quebra o build.
-2. `src/app/` nunca acessa o banco diretamente, só pelos módulos.
-3. Imports com `../` são proibidos (exceto entre `schema.ts`, para chaves estrangeiras).
-
-Outras decisões:
-
-- **Isolamento entre lojas:** o `storeId` do painel sempre vem da sessão, nunca de um parâmetro do navegador. Há testes garantindo que a loja A não lê nem altera dados da loja B.
-- **Dinheiro em centavos** (`number` inteiro), formatado só na tela com `formatBRL`.
-- **Datas no fuso da loja** (`America/Sao_Paulo` por padrão), inclusive em métricas e horários.
-- **Tempo quase real por polling:** o painel consulta só uma "versão" leve da fila e recarrega quando ela muda.
-
----
-
-## Rodando na sua máquina
-
-### Pré-requisitos
-
-- **Node.js 24+**
-- **Docker** (Postgres local e testes de integração)
-- **make** (opcional, mas facilita)
-
-### Primeira vez
+Requisitos: **Node 24+** e **Docker**.
 
 ```bash
-git clone https://github.com/aishiteirai/naquela-mesa.git
-cd naquela-mesa
-make setup        # instala dependências, cria .env.local, sobe o Postgres, migra e cria a loja demo
-make admin EMAIL=voce@exemplo.com SENHA=uma-senha-forte   # seu super-admin local
-make dev          # http://localhost:3000
+make setup    # dependências, .env.local, Postgres, migrações e loja demo
+make dev      # http://localhost:3000
+```
+
+A loja demo fica em `/pizzaria-demo`, com cerca de 30 dias de pedidos fictícios para as métricas. Para entrar no painel, use `dono@pizzariademo.test` / `demo-senha-123` em `/login`. Para criar o primeiro super-admin:
+
+```bash
+make admin EMAIL=voce@exemplo.com SENHA=uma-senha-forte
 ```
 
 <details>
-<summary>Sem make (passo a passo manual)</summary>
-
-```bash
-npm install
-cp .env.example .env.local            # troque BETTER_AUTH_SECRET por: openssl rand -base64 32
-npm run db:up                         # Postgres no Docker (porta 5434)
-npm run db:migrate
-npm run seed:demo
-ADMIN_PASSWORD=uma-senha-forte npm run admin:ensure -- voce@exemplo.com "Seu Nome"
-npm run dev
-```
-</details>
-
-### O que abrir
-
-| Endereço | O quê | Acesso |
-|---|---|---|
-| http://localhost:3000/pizzaria-demo | cardápio da loja demo | público |
-| http://localhost:3000/painel | painel da Pizzaria Demo | `dono@pizzariademo.test` / `demo-senha-123` |
-| http://localhost:3000/admin | painel do super-admin | o usuário criado com `make admin` |
-
-A **Pizzaria Demo** vem com cardápio completo (pizzas meio a meio, bordas, bebidas), horários, bairros e **~30 dias de pedidos fictícios** para as métricas terem o que mostrar. `make update` (ou `npm run seed:demo`) recria tudo do zero.
-
-> A loja demo segue os horários cadastrados (fecha às segundas). Para testar um pedido fora do horário, use **Loja → Abrir agora** no painel.
-
----
-
-## Comandos do dia a dia
-
-### Makefile
+<summary><b>Todos os comandos</b></summary>
 
 | Comando | O que faz |
 |---|---|
-| `make setup` | primeira vez: dependências, `.env.local`, Postgres, migrações e loja demo |
-| `make dev` | sobe o Postgres, aplica migrações e roda o servidor (`PORT=3000`) |
-| `make update` | depois de um `git pull`: dependências, migrações e loja demo |
-| `make test` | lint, tipos, testes unitários e de integração |
-| `make e2e` | build de produção + testes E2E |
-| `make check` | tudo o que o CI roda |
-| `make admin EMAIL=… SENHA=… [NOME=…]` | cria ou promove um super-admin (e troca a senha se já existir) |
-| `make owner SLUG=… EMAIL=… SENHA=… [NOME=…]` | vincula um dono a uma loja |
-| `make help` | lista todos os comandos |
+| `make setup` | Primeira instalação completa |
+| `make dev` | Sobe o Postgres, migra e roda o servidor (`PORT=3001` para outra porta) |
+| `make update` | `git pull`, dependências, migrações e demo |
+| `make test` | Lint, tipos, testes unitários e de integração |
+| `make e2e` | Build e testes E2E (Playwright) |
+| `make check` | Tudo o que o CI roda |
+| `make db-seed` | Recria a loja demo |
+| `make db-studio` | Abre o Drizzle Studio |
+| `make admin EMAIL=... SENHA=...` | Cria ou promove um super-admin |
+| `make owner SLUG=... EMAIL=... SENHA=...` | Vincula um dono a uma loja |
+| `make help` | Lista todos os comandos |
 
-Qualquer comando aceita outra porta: `make dev PORT=3001`.
+</details>
 
-### Scripts npm
+## Arquitetura
 
-| Script | O que faz |
-|---|---|
-| `npm run dev` / `build` / `start` | servidor de desenvolvimento / build / produção |
-| `npm run lint` | ESLint, incluindo as fronteiras entre módulos |
-| `npm run typecheck` | checagem de tipos |
-| `npm test` | testes unitários |
-| `npm run test:int` | testes de integração (sobe um Postgres no Docker sozinho) |
-| `npm run test:e2e` | testes E2E com Playwright |
-| `npm run db:generate` | gera uma migração a partir dos `schema.ts` |
-| `npm run db:migrate` | aplica as migrações |
-| `npm run db:studio` | abre o Drizzle Studio para ver o banco |
-| `npm run seed:demo` | apaga e recria a Pizzaria Demo |
-| `ADMIN_PASSWORD=… npm run admin:ensure -- <email> [nome]` | cria ou promove super-admin (a senha vai por variável de ambiente) |
-
----
-
-## Testes e CI
-
-| Tipo | Ferramenta | O que cobre |
-|---|---|---|
-| **Unitários** | Vitest | preços e meio a meio, taxas, horários (inclusive virada de meia-noite), status, mensagens do WhatsApp, períodos e métricas, rate limit, validações |
-| **Integração** | Vitest + Postgres (Testcontainers) | criação de pedido (numeração, idempotência, concorrência), isolamento entre lojas, fila e transições, convites, histórico, métricas |
-| **E2E** | Playwright | pedido completo com meio a meio, fila do painel, cardápio e esgotados, métricas e histórico, criação de loja pelo super-admin, convite do dono e modo suporte |
-
-O **GitHub Actions** roda tudo em cada push e pull request (`.github/workflows/ci.yml`): lint, tipos, unitários, integração e E2E contra um build de produção.
-
-Para rodar o E2E localmente, use `make e2e`. Ele já cria o super-admin de teste e recria a loja demo.
-
----
-
-## Deploy e custos
-
-O app roda na **Vercel**, com banco **Neon**, **Upstash**, **Vercel Blob** e **Sentry**, todos conectados pelo painel da Vercel. Cada push na `main` gera um deploy de produção, e **as migrações rodam sozinhas** antes do build (só em produção; os previews usam uma cópia separada do banco).
-
-O passo a passo completo está em **[`docs/deploy.md`](docs/deploy.md)**: contas, variáveis de ambiente, primeiro super-admin, domínio e checklist de testes.
-
-Variáveis obrigatórias em produção (o app se recusa a subir sem elas):
-
-- `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET` e `BETTER_AUTH_URL`;
-- Upstash: `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` **ou** `KV_REST_API_URL`/`KV_REST_API_TOKEN` (nomes criados pela integração da Vercel);
-- Blob: `BLOB_STORE_ID` (Blob **Public** conectado ao projeto) **ou** `BLOB_READ_WRITE_TOKEN`.
-
-Recomendadas: `DATABASE_URL_UNPOOLED` (migrações pela conexão direta), `APP_URL`, `SENTRY_DSN` e `NEXT_PUBLIC_SENTRY_DSN`. **Nunca** defina `E2E_DISABLE_RATE_LIMIT` em produção.
-
-**Custos:** para demonstração, tudo cabe nos planos gratuitos. Para **vender**, a Vercel exige o plano **Pro** (US$ 20/mês, o Hobby não permite uso comercial), e o Neon gratuito tem 100 horas de computação por mês somadas entre todas as lojas. Detalhes e limites na seção 9 de [`docs/deploy.md`](docs/deploy.md).
-
----
-
-## Segurança e LGPD
-
-- **Senhas** com hash pelo Better Auth; **cadastro público desligado** (contas só por convite ou script).
-- **Convites** de uso único, válidos por 7 dias; no banco fica só o hash do token. Trocar a senha encerra as sessões antigas.
-- **Rate limit** em pedidos (10 a cada 10 min por IP e 5 por telefone), cotações, convites, uploads e login (5 tentativas por minuto).
-- **Isolamento entre lojas** testado automaticamente; Server Actions validam login e entrada com Zod.
-- **Upload** só de JPG, PNG ou WebP (verificados pelo conteúdo do arquivo), até 5 MB.
-- **Modo suporte auditado:** todo "Acessar como loja" fica registrado, com quem, qual loja e quando.
-- **LGPD:** a página de acompanhamento não mostra telefone nem endereço, e o cardápio tem link para a [política de privacidade](https://naquela-mesa.vercel.app/privacidade). A loja é a controladora dos dados dos seus clientes; a plataforma é a operadora.
-
----
-
-## Estrutura de pastas
+O projeto é um **monólito modular**: uma única aplicação, com um deploy e um banco, organizada por dentro em módulos de domínio com fronteiras rígidas. Cada módulo funciona como um pequeno serviço, com seus dados, suas regras e uma API pública, mas tudo roda no mesmo processo. Assim fica a simplicidade de operar um monólito sem o acoplamento típico dele, e se um domínio precisar virar um serviço separado, a fronteira já existe.
 
 ```
-.
-├── src/
-│   ├── app/               rotas: [slug] (cardápio), painel, admin, convite, login, api
-│   ├── modules/           domínio (ver Arquitetura)
-│   └── shared/            env, banco, dinheiro, erros, rate limit, Sentry
-├── drizzle/               migrações SQL geradas
-├── scripts/               seed da demo, super-admin, dono, build da Vercel, limpeza do E2E
-├── e2e/                   testes Playwright
-├── tests/                 setup dos testes de integração e teste das fronteiras de módulo
-├── docs/
-│   ├── deploy.md          roteiro de deploy
-│   └── superpowers/       spec do MVP e planos de cada fase
-├── Makefile               atalhos (make help)
-└── docker-compose.yml     Postgres local
+src/
+├── app/            rotas, páginas, server actions e APIs (Next.js App Router)
+├── modules/        domínio, um diretório por contexto de negócio
+│   └── <módulo>/
+│       ├── index.ts      API pública para o servidor
+│       ├── client.ts     API pública para o navegador (quando existe)
+│       ├── schema.ts     tabelas do módulo (Drizzle)
+│       └── service.ts    casos de uso
+└── shared/         infraestrutura sem regra de negócio: banco, env, dinheiro, validação
 ```
 
----
-
-## Próximos passos
-
-**Antes de vender:**
-- Domínio próprio (ex.: `naquelamesa.com.br`) e plano **Vercel Pro**.
-- Testes de campo: impressora térmica de 80 mm, notificações no tablet e pedidos reais pelo celular.
-
-**Melhorias técnicas anotadas:**
-- Source maps no Sentry.
-- Limpeza de imagens órfãs e cota de upload por loja.
-- Busca e ordenação que ignorem acentos.
-- Tempo médio de aceite e de preparo nas métricas.
-
-**Roadmap de produto:**
-- Bot de pedidos pelo WhatsApp (API oficial).
-- Pix online.
-- Cupons e agendamento.
-- Vários usuários por loja.
-
----
-
-## Documentação
-
-| Documento | Conteúdo |
+| Módulo | Responsabilidade |
 |---|---|
-| [`docs/superpowers/specs/2026-10-13-naquela-mesa-mvp-design.md`](docs/superpowers/specs/2026-10-13-naquela-mesa-mvp-design.md) | design completo do MVP: decisões, modelo de dados, fluxos, erros, segurança e fases |
-| [`docs/superpowers/plans/`](docs/superpowers/plans/) | plano de implementação de cada fase (F0 a F6) |
-| [`docs/deploy.md`](docs/deploy.md) | roteiro de deploy, variáveis, custos e checklist pós-deploy |
+| `auth` | Login, sessão, papel de super-admin e guardas de acesso |
+| `stores` | Lojas, membros, horários, configurações, tema e convites |
+| `catalog` | Cardápio, tamanhos, adicionais e disponibilidade |
+| `orders` | Checkout, preço, fila, status, histórico e métricas |
+| `whatsapp` | Mensagens de pedido e de status |
+| `onboarding` | Criação de lojas por modelo e checklist inicial |
+| `media` | Validação e armazenamento de imagens |
+| `audit` | Registro de ações sensíveis, como o modo suporte |
+
+As fronteiras são verificadas pelo ESLint, então uma violação quebra o CI:
+- Um módulo só importa outro pela API pública (`@/modules/<nome>`), nunca por arquivos internos.
+- As dependências seguem um único sentido: `app → modules → shared`. Não há ciclos entre módulos.
+- Cada módulo declara as próprias tabelas em `schema.ts`; o Drizzle junta todas para gerar as migrações.
+
+## Deploy
+
+O roteiro completo (Vercel, Neon, Upstash, Blob, Sentry, domínio e checklist) está em [`docs/deploy.md`](docs/deploy.md).
+
+Variáveis obrigatórias em produção: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (ou `KV_REST_API_*`) e `BLOB_STORE_ID` (ou `BLOB_READ_WRITE_TOKEN`). Nunca defina `E2E_DISABLE_RATE_LIMIT` em produção.
+
+<br>
+
+<div align="center">
+<sub>Naquela Mesa · cardápio digital e gestão de pedidos</sub>
+</div>
