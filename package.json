@@ -21,6 +21,7 @@
     "e2e:cleanup": "node --env-file-if-exists=.env.local --import tsx scripts/e2e-cleanup.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^11.7.0",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
     "@vercel/blob": "^2.8.1",
