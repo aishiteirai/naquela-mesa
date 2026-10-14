@@ -7,6 +7,7 @@ export default defineConfig({
   dialect: "postgresql",
   schema: "./src/modules/*/schema.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL ?? "" },
+  // Migração usa a conexão direta (o pooler do Neon não suporta tudo que o drizzle-kit faz).
+  dbCredentials: { url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL ?? "" },
   strict: true,
 });

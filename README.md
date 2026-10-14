@@ -66,7 +66,7 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 
 - `/painel` — dono da loja (login em `/login`). Demo: `dono@pizzariademo.test` / `demo-senha-123`.
 - Cardápio, adicionais, disponibilidade e configurações; cada alteração atualiza o cardápio público na hora.
-- Imagens enviadas ficam em `.data/uploads` (local); servidas em `/uploads/<arquivo>`.
+- Imagens enviadas ficam em `.data/uploads` (local, servidas em `/uploads/<arquivo>`) ou no Vercel Blob quando `BLOB_READ_WRITE_TOKEN` existe.
 
 ## Pedido do cliente
 
@@ -97,3 +97,9 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 - **Esqueceu a senha:** em "Lojas", "Gerar link de acesso" cria um link novo (o anterior deixa de valer); o dono define uma nova senha por ele.
 - **Acessar como loja:** abre o painel da loja como se fosse o dono, com a faixa "Modo suporte". Entrada e saída ficam em "Registro de suporte".
 - **Primeiros passos:** o painel da loja mostra o que falta configurar (logo, horários, entrega, Pix, cardápio) até tudo estar feito.
+
+## Deploy
+
+Roteiro completo (Vercel, Neon, Upstash, Blob, Sentry, domínio e checklist): `docs/deploy.md`.
+
+Variáveis obrigatórias em produção: `DATABASE_URL`, `DATABASE_URL_UNPOOLED` (migrações), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` e `BLOB_READ_WRITE_TOKEN`. Nunca defina `E2E_DISABLE_RATE_LIMIT` em produção.
