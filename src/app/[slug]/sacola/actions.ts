@@ -6,6 +6,7 @@ import { buildOrderMessage, waMeLink } from "@/modules/whatsapp";
 import { appUrl } from "@/shared/env";
 import { isDomainError } from "@/shared/errors";
 import { clientIp, enforceRateLimit, RATE_LIMITS } from "@/shared/rate-limit";
+import { phoneRateLimitKey } from "./rate-limit-key";
 import { toCheckoutError, type CheckoutError } from "./messages";
 
 export type QuoteResult = { ok: true; quote: OrderQuote } | { ok: false; error: CheckoutError };
@@ -19,13 +20,6 @@ function filledHoneypot(payload: unknown): boolean {
   if (typeof payload !== "object" || payload === null) return false;
   const value = (payload as { website?: unknown }).website;
   return typeof value === "string" && value.trim() !== "";
-}
-
-function phoneDigits(payload: unknown): string | null {
-  if (typeof payload !== "object" || payload === null) return null;
-  const phone = (payload as { customer?: { phone?: unknown } }).customer?.phone;
-  const digits = typeof phone === "string" ? phone.replace(/\D/g, "") : "";
-  return digits.length >= 10 ? digits.slice(-11) : null;
 }
 
 export async function quoteOrderAction(slug: string, payload: unknown): Promise<QuoteResult> {
@@ -43,7 +37,7 @@ export async function placeOrderAction(slug: string, payload: unknown): Promise<
   if (filledHoneypot(payload)) return { ok: false, error: BOT_ERROR };
   try {
     await enforceRateLimit(RATE_LIMITS.orderByIp, clientIp(await headers()));
-    const phone = phoneDigits(payload);
+    const phone = phoneRateLimitKey(payload);
     if (phone) await enforceRateLimit(RATE_LIMITS.orderByPhone, phone);
     const order = await createOrder(slug, payload, "web");
     const trackingPath = `/${order.store.slug}/pedido/${order.publicToken}`;
