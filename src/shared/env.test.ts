@@ -40,6 +40,22 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ ...valid, DATABASE_POOL_MAX: "0" })).toThrow(/DATABASE_POOL_MAX/);
   });
 
+  it("aceita os nomes KV_REST_API_* da integração Upstash da Vercel", () => {
+    const env = parseEnv({ ...valid, KV_REST_API_URL: "https://kv.upstash.io", KV_REST_API_TOKEN: "kv-token" });
+    expect(env.UPSTASH_REDIS_REST_URL).toBe("https://kv.upstash.io");
+    expect(env.UPSTASH_REDIS_REST_TOKEN).toBe("kv-token");
+
+    const explicit = parseEnv({
+      ...valid,
+      UPSTASH_REDIS_REST_URL: "https://upstash.io",
+      UPSTASH_REDIS_REST_TOKEN: "token",
+      KV_REST_API_URL: "https://kv.upstash.io",
+      KV_REST_API_TOKEN: "kv-token",
+    });
+    expect(explicit.UPSTASH_REDIS_REST_URL).toBe("https://upstash.io");
+    expect(explicit.UPSTASH_REDIS_REST_TOKEN).toBe("token");
+  });
+
   it("exige URL e token do Upstash juntos", () => {
     expect(() => parseEnv({ ...valid, UPSTASH_REDIS_REST_URL: "https://x.upstash.io" })).toThrow(/UPSTASH_REDIS_REST_TOKEN/);
   });

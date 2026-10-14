@@ -35,7 +35,12 @@ const envSchema = z
 export type Env = z.infer<typeof envSchema>;
 
 export function parseEnv(raw: Record<string, string | undefined>): Env {
-  const result = envSchema.safeParse(raw);
+  // A integração Upstash do Marketplace da Vercel cria KV_REST_API_*; os nomes UPSTASH_* têm prioridade.
+  const result = envSchema.safeParse({
+    ...raw,
+    UPSTASH_REDIS_REST_URL: raw.UPSTASH_REDIS_REST_URL ?? raw.KV_REST_API_URL,
+    UPSTASH_REDIS_REST_TOKEN: raw.UPSTASH_REDIS_REST_TOKEN ?? raw.KV_REST_API_TOKEN,
+  });
   if (!result.success) {
     const issues = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
     throw new Error(`Variáveis de ambiente inválidas: ${issues}`);

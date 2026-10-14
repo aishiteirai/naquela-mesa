@@ -102,4 +102,4 @@ Imports `../` são proibidos; o lint falha se um módulo importar internals de o
 
 Roteiro completo (Vercel, Neon, Upstash, Blob, Sentry, domínio e checklist): `docs/deploy.md`.
 
-Variáveis obrigatórias em produção: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` e `BLOB_READ_WRITE_TOKEN`. Recomendada: `DATABASE_URL_UNPOOLED` (conexão direta para as migrações; sem ela usa `DATABASE_URL`). Nunca defina `E2E_DISABLE_RATE_LIMIT` em produção.
+Variáveis obrigatórias em produção: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` (ou `KV_REST_API_URL` e `KV_REST_API_TOKEN`, criadas pela integração da Vercel) e `BLOB_READ_WRITE_TOKEN`. Recomendada: `DATABASE_URL_UNPOOLED` (conexão direta para as migrações; sem ela usa `DATABASE_URL`). Nunca defina `E2E_DISABLE_RATE_LIMIT` em produção.

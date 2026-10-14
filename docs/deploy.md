@@ -37,6 +37,8 @@ O script `vercel-build` roda `drizzle-kit migrate` **somente** quando `VERCEL_EN
 | `APP_URL` | Production | domínio final |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Preview | URL de preview, separadas por vírgula |
 | `UPSTASH_REDIS_REST_URL` | Production e Preview | Upstash (integração) |
+
+A integração Upstash do Marketplace cria `KV_REST_API_URL` e `KV_REST_API_TOKEN` em vez dos nomes `UPSTASH_*`; o app aceita os dois (os `UPSTASH_*` têm prioridade se existirem).
 | `UPSTASH_REDIS_REST_TOKEN` | Production e Preview | Upstash (integração) |
 | `BLOB_READ_WRITE_TOKEN` | Production e Preview | Vercel Blob (aba Storage) |
 | `SENTRY_DSN` | Production e Preview | Sentry (servidor) |
