@@ -17,7 +17,8 @@ export async function POST(request: Request) {
   if (!user) return reply(401, { error: "Faça login de novo." });
   if (!(await getMembershipStoreId(user.id))) return reply(403, { error: "Sem acesso." });
 
-  const length = Number(request.headers.get("content-length") ?? "0");
+  const length = Number(request.headers.get("content-length"));
+  if (!Number.isFinite(length) || length <= 0) return reply(411, { error: "Não foi possível enviar a imagem." });
   if (length > MAX_IMAGE_BYTES + MULTIPART_OVERHEAD) return reply(413, { error: "a imagem deve ter até 5 MB" });
 
   try {

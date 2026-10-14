@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { detectImageType, MAX_IMAGE_BYTES, readImage, saveImage } from "./images";
 
 const put = vi.hoisted(() => vi.fn());
@@ -25,8 +25,15 @@ describe("detectImageType", () => {
 });
 
 describe("saveImage com Vercel Blob", () => {
+  const originalToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+  beforeEach(() => {
+    put.mockReset();
+  });
+
   afterAll(() => {
-    delete process.env.BLOB_READ_WRITE_TOKEN;
+    if (originalToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
+    else process.env.BLOB_READ_WRITE_TOKEN = originalToken;
   });
 
   it("envia ao Blob quando há token e devolve a URL pública", async () => {
