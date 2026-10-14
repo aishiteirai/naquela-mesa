@@ -39,12 +39,13 @@ export async function saveImage(bytes: Uint8Array): Promise<{ url: string }> {
 
   const fileName = `${randomUUID()}.${type}`;
   const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (token) {
+  // Store conectado ao projeto na Vercel autentica por OIDC (BLOB_STORE_ID + token do runtime), sem token fixo.
+  if (token || process.env.BLOB_STORE_ID) {
     const blob = await put(`uploads/${fileName}`, Buffer.from(bytes), {
       access: "public",
       contentType: CONTENT_TYPES[type],
       addRandomSuffix: false,
-      token,
+      ...(token ? { token } : {}),
     });
     return { url: blob.url };
   }

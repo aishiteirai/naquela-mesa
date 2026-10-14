@@ -40,13 +40,13 @@ O script `vercel-build` roda `drizzle-kit migrate` **somente** quando `VERCEL_EN
 
 A integração Upstash do Marketplace cria `KV_REST_API_URL` e `KV_REST_API_TOKEN` em vez dos nomes `UPSTASH_*`; o app aceita os dois (os `UPSTASH_*` têm prioridade se existirem).
 | `UPSTASH_REDIS_REST_TOKEN` | Production e Preview | Upstash (integração) |
-| `BLOB_READ_WRITE_TOKEN` | Production e Preview | Vercel Blob (aba Storage) |
+| `BLOB_STORE_ID` ou `BLOB_READ_WRITE_TOKEN` | Production e Preview | Vercel Blob: o store conectado ao projeto cria `BLOB_STORE_ID` e autentica por OIDC (sem token fixo); `BLOB_READ_WRITE_TOKEN` só é necessária fora da Vercel |
 | `SENTRY_DSN` | Production e Preview | Sentry (servidor) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Production e Preview | Sentry (navegador; normalmente o mesmo DSN) |
 
 Em Preview, `BETTER_AUTH_URL` também é obrigatória pelo app; use a URL do preview.
 
-**Aviso:** **nunca** defina `E2E_DISABLE_RATE_LIMIT` na Vercel. Com `VERCEL_ENV=production`, o app se recusa a subir se ela existir, ou se faltarem `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` ou `BLOB_READ_WRITE_TOKEN`.
+**Aviso:** **nunca** defina `E2E_DISABLE_RATE_LIMIT` na Vercel. Com `VERCEL_ENV=production`, o app se recusa a subir se ela existir, ou se faltarem `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` ou o Blob (`BLOB_STORE_ID` ou `BLOB_READ_WRITE_TOKEN`).
 
 O Sentry só é carregado quando `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` estão definidas. Para o ambiente do Sentry aparecer correto em preview, ative **"Automatically expose System Environment Variables"** na Vercel (para `NEXT_PUBLIC_VERCEL_ENV`).
 

@@ -26,14 +26,33 @@ describe("detectImageType", () => {
 
 describe("saveImage com Vercel Blob", () => {
   const originalToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const originalStoreId = process.env.BLOB_STORE_ID;
 
   beforeEach(() => {
     put.mockReset();
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.BLOB_STORE_ID;
   });
 
   afterAll(() => {
     if (originalToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
     else process.env.BLOB_READ_WRITE_TOKEN = originalToken;
+    if (originalStoreId === undefined) delete process.env.BLOB_STORE_ID;
+    else process.env.BLOB_STORE_ID = originalStoreId;
+  });
+
+  it("com só BLOB_STORE_ID (store conectado por OIDC) envia ao Blob sem token explícito", async () => {
+    process.env.BLOB_STORE_ID = "store_abc";
+    put.mockResolvedValueOnce({ url: "https://abc.public.blob.vercel-storage.com/uploads/y.webp" });
+
+    const result = await saveImage(WEBP);
+
+    expect(result).toEqual({ url: "https://abc.public.blob.vercel-storage.com/uploads/y.webp" });
+    expect(put).toHaveBeenCalledWith(expect.stringMatching(/^uploads\/[0-9a-f-]{36}\.webp$/), expect.any(Buffer), {
+      access: "public",
+      contentType: "image/webp",
+      addRandomSuffix: false,
+    });
   });
 
   it("envia ao Blob quando há token e devolve a URL pública", async () => {
@@ -61,9 +80,11 @@ describe("saveImage com Vercel Blob", () => {
 describe("saveImage / readImage", () => {
   let dir: string;
   const originalBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const originalStoreId = process.env.BLOB_STORE_ID;
 
   beforeAll(async () => {
     delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.BLOB_STORE_ID;
     dir = await mkdtemp(path.join(tmpdir(), "naquela-uploads-"));
     process.env.UPLOAD_DIR = dir;
   });
@@ -71,6 +92,8 @@ describe("saveImage / readImage", () => {
   afterAll(async () => {
     if (originalBlobToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
     else process.env.BLOB_READ_WRITE_TOKEN = originalBlobToken;
+    if (originalStoreId === undefined) delete process.env.BLOB_STORE_ID;
+    else process.env.BLOB_STORE_ID = originalStoreId;
     delete process.env.UPLOAD_DIR;
     await rm(dir, { recursive: true, force: true });
   });

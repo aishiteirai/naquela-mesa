@@ -78,6 +78,8 @@ describe("parseEnv", () => {
     const noBlob: Record<string, string> = { ...production };
     delete noBlob.BLOB_READ_WRITE_TOKEN;
     expect(() => parseEnv(noBlob)).toThrow(/BLOB_READ_WRITE_TOKEN/);
+    // Store conectado ao projeto pela Vercel (OIDC): só BLOB_STORE_ID, sem token de leitura e escrita.
+    expect(parseEnv({ ...noBlob, BLOB_STORE_ID: "store_abc" }).BLOB_STORE_ID).toBe("store_abc");
 
     expect(() => parseEnv({ ...production, E2E_DISABLE_RATE_LIMIT: "1" })).toThrow(/E2E_DISABLE_RATE_LIMIT/);
     // Preview pode rodar sem Blob/Upstash (cai no disco/memória).

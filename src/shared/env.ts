@@ -18,6 +18,7 @@ const envSchema = z
     UPSTASH_REDIS_REST_URL: z.url().optional(),
     UPSTASH_REDIS_REST_TOKEN: optionalText,
     BLOB_READ_WRITE_TOKEN: optionalText,
+    BLOB_STORE_ID: optionalText,
   })
   .transform((env) => ({ ...env, DATABASE_POOL_MAX: env.DATABASE_POOL_MAX ?? (env.VERCEL_ENV ? 3 : 10) }))
   .superRefine((env, ctx) => {
@@ -28,7 +29,9 @@ const envSchema = z
     if (env.VERCEL_ENV !== "production") return;
     // Em produção serverless, limitador em memória e disco local não funcionam: falha cedo.
     if (!env.UPSTASH_REDIS_REST_URL) ctx.addIssue({ code: "custom", path: ["UPSTASH_REDIS_REST_URL"], message: "obrigatória em produção" });
-    if (!env.BLOB_READ_WRITE_TOKEN) ctx.addIssue({ code: "custom", path: ["BLOB_READ_WRITE_TOKEN"], message: "obrigatória em produção" });
+    if (!env.BLOB_READ_WRITE_TOKEN && !env.BLOB_STORE_ID) {
+      ctx.addIssue({ code: "custom", path: ["BLOB_READ_WRITE_TOKEN"], message: "obrigatória em produção (ou BLOB_STORE_ID, com o store conectado ao projeto)" });
+    }
     if (env.E2E_DISABLE_RATE_LIMIT) ctx.addIssue({ code: "custom", path: ["E2E_DISABLE_RATE_LIMIT"], message: "proibida em produção" });
   });
 
