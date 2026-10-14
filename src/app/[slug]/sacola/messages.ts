@@ -30,6 +30,8 @@ export function toCheckoutError(error: DomainError): CheckoutError {
         ...plain(error.code, "Os preços mudaram desde a revisão. Confira o novo total e confirme de novo."),
         quote: details.quote as OrderQuote,
       };
+    case "RATE_LIMITED":
+      return plain(error.code, "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo.");
     case "NOT_FOUND":
       return plain(error.code, "Loja não encontrada.");
     case "VALIDATION": {

@@ -14,7 +14,7 @@ describe("toCheckoutError", () => {
     [new DomainError("FULFILLMENT_DISABLED"), "Esse tipo de pedido não está disponível agora. Escolha outra opção."],
     [new DomainError("PAYMENT_DISABLED"), "Essa forma de pagamento não está disponível. Escolha outra."],
     [new DomainError("NOT_FOUND"), "Loja não encontrada."],
-    [new DomainError("RATE_LIMITED"), "Não foi possível enviar o pedido. Tente de novo."],
+    [new DomainError("INVALID_TRANSITION"), "Não foi possível enviar o pedido. Tente de novo."],
   ])("%o", (error, message) => {
     expect(toCheckoutError(error)).toMatchObject({ code: error.code, message, fieldErrors: {} });
   });
@@ -35,6 +35,14 @@ describe("toCheckoutError", () => {
       code: "VALIDATION",
       message: "Confira os campos destacados.",
       fieldErrors: { "customer.phone": "telefone inválido" },
+    });
+  });
+
+  it("traduz RATE_LIMITED", () => {
+    expect(toCheckoutError(new DomainError("RATE_LIMITED", { retryAfterSec: 120 }))).toEqual({
+      code: "RATE_LIMITED",
+      message: "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo.",
+      fieldErrors: {},
     });
   });
 });

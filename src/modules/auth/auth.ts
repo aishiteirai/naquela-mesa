@@ -11,8 +11,14 @@ export const auth = betterAuth({
   secret: getEnv().BETTER_AUTH_SECRET,
   baseURL: getEnv().BETTER_AUTH_URL,
   trustedOrigins: getEnv().BETTER_AUTH_TRUSTED_ORIGINS,
-  // Só o servidor dos testes E2E define isto (vários logins em sequência a partir do mesmo IP).
-  ...(getEnv().E2E_DISABLE_RATE_LIMIT === "1" ? { rateLimit: { enabled: false } } : {}),
+  rateLimit: {
+    // Ligado também fora de produção; só o servidor do E2E desliga.
+    enabled: getEnv().E2E_DISABLE_RATE_LIMIT !== "1",
+    storage: "database",
+    window: 60,
+    max: 100,
+    customRules: { "/sign-in/email": { window: 60, max: 5 } },
+  },
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
