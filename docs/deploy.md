@@ -1,13 +1,13 @@
 # Roteiro de deploy (Vercel)
 
-Tudo no plano gratuito. Nenhum segredo real deve ser colocado neste arquivo nem no repositório.
+Tudo começa no plano gratuito (veja os limites e o uso comercial na seção 9). Nenhum segredo real deve ser colocado neste arquivo nem no repositório.
 
 ## 1. Contas
 
 1. **GitHub**: o repositório `aishiteirai/naquela-mesa` já existe.
 2. **Vercel**: entre com o GitHub.
 3. **Neon** (Postgres) e **Upstash** (Redis): crie pela aba **Integrations / Marketplace** da Vercel; a integração já cria as variáveis de ambiente.
-4. **Vercel Blob**: aba **Storage** do projeto.
+4. **Vercel Blob**: aba **Storage** (da conta ou do projeto) → **Create → Blob**. **Escolha acesso Public**: logos, banners e fotos são abertos por qualquer cliente. O acesso não pode ser mudado depois de criado; se o Blob nascer Private, os uploads falham com "Cannot use public access on a private store" e é preciso desconectá-lo, criar outro Public, conectar ao projeto e fazer *Redeploy*.
 5. **Sentry**: crie um projeto do tipo "Next.js".
 
 ## 2. Criar o projeto na Vercel
@@ -101,9 +101,13 @@ Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
 
 ## 9. Custos e limites
 
-- Planos gratuitos: Neon 0,5 GB, Upstash 10 mil comandos/dia, Blob 1 GB.
-- O painel consulta a fila a cada 5 s por aparelho aberto: ~17 mil requisições/dia por tablet ligado 24 h.
-- Migre de plano quando chegar perto desses limites (banco cheio, comandos do Upstash acabando ou Blob quase em 1 GB).
+- **Uso comercial:** o plano Hobby (gratuito) da Vercel é só para projetos pessoais. Com o primeiro restaurante pagante, passe para o **Pro** (US$ 20/mês). No Hobby, ao passar de um limite a Vercel pausa o site em vez de cobrar.
+- **Vercel Hobby:** ~1 milhão de chamadas de função e 4 h de CPU ativa por mês.
+- **Neon gratuito:** 0,5 GB e 100 horas de computação por mês, somadas entre todas as lojas (é um banco só). O banco dorme após 5 min sem acesso (o primeiro acesso depois disso demora alguns segundos) e, se a cota acabar, fica parado até o mês virar. Acompanhe em **Neon → Usage**.
+- **Upstash gratuito:** 500 mil comandos/mês (o rate limit só gasta comandos em cotações e pedidos).
+- **Blob:** 1 GB de armazenamento.
+- O painel consulta a fila a cada 5 s por aparelho aberto (15 s com a aba oculta): ~17 mil requisições/dia por tablet ligado 24 h, e o banco fica acordado enquanto um painel estiver aberto. Peça aos restaurantes para fechar o painel fora do expediente.
+- Migre de plano quando chegar perto desses limites (horas de computação do Neon, banco cheio, comandos do Upstash ou Blob quase em 1 GB).
 
 ## 10. Notas de operação
 
@@ -112,4 +116,5 @@ Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
 - **Limite por IP:** pode afetar muitos clientes atrás da mesma rede (CGNAT / Wi-Fi compartilhado); aceitável no MVP. Usa o primeiro item de `x-forwarded-for`. Na Vercel isso é seguro (a Vercel sobrescreve o cabeçalho); atrás de outro proxy ou em hospedagem própria seria falsificável.
 - **Upstash lento ou fora do ar:** as requisições passam (limite temporariamente desligado) e o erro é registrado em log ("rate limit indisponível"). Disponibilidade acima de rigor.
 - **Tamanho de corpo:** funções da Vercel aceitam corpos de até ~4,5 MB. O painel redimensiona imagens para no máximo 1200 px em WebP antes de enviar; só se bate nesse limite se o navegador não conseguir redimensionar (aparece um erro genérico).
-- **Upload:** imagens vão para o Vercel Blob. Limpeza de órfãs e cota por loja ainda não existem.
+- **Upload:** imagens vão para o Vercel Blob (que precisa ser Public). Limpeza de órfãs e cota por loja ainda não existem.
+- **SSL do Postgres:** as URLs do Neon vêm com `sslmode=require`; o app troca para `sslmode=verify-full` ao conectar (o mesmo comportamento que o `pg` já aplicava), o que tira o aviso "SECURITY WARNING: The SSL modes 'prefer', 'require'…" dos logs.
