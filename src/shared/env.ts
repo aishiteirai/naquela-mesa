@@ -5,7 +5,7 @@ const optionalText = z.string().min(1).optional();
 const envSchema = z
   .object({
     DATABASE_URL: z.url(),
-    DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
+    DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).optional(),
     BETTER_AUTH_SECRET: z.string().min(32, "precisa ter ao menos 32 caracteres"),
     BETTER_AUTH_URL: z.url(),
     BETTER_AUTH_TRUSTED_ORIGINS: z
@@ -19,6 +19,7 @@ const envSchema = z
     UPSTASH_REDIS_REST_TOKEN: optionalText,
     BLOB_READ_WRITE_TOKEN: optionalText,
   })
+  .transform((env) => ({ ...env, DATABASE_POOL_MAX: env.DATABASE_POOL_MAX ?? (env.VERCEL_ENV ? 3 : 10) }))
   .superRefine((env, ctx) => {
     if (Boolean(env.UPSTASH_REDIS_REST_URL) !== Boolean(env.UPSTASH_REDIS_REST_TOKEN)) {
       const missing = env.UPSTASH_REDIS_REST_URL ? "UPSTASH_REDIS_REST_TOKEN" : "UPSTASH_REDIS_REST_URL";

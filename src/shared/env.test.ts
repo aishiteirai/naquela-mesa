@@ -67,4 +67,10 @@ describe("parseEnv", () => {
     // Preview pode rodar sem Blob/Upstash (cai no disco/memória).
     expect(parseEnv({ ...valid, VERCEL_ENV: "preview" }).VERCEL_ENV).toBe("preview");
   });
+
+  it("DATABASE_POOL_MAX padrão: 3 na Vercel, 10 fora; valor explícito vence", () => {
+    expect(parseEnv(valid).DATABASE_POOL_MAX).toBe(10);
+    expect(parseEnv({ ...valid, VERCEL_ENV: "preview" }).DATABASE_POOL_MAX).toBe(3);
+    expect(parseEnv({ ...valid, VERCEL_ENV: "preview", DATABASE_POOL_MAX: "7" }).DATABASE_POOL_MAX).toBe(7);
+  });
 });

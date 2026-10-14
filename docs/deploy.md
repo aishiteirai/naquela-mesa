@@ -14,18 +14,24 @@ Tudo no plano gratuito. Nenhum segredo real deve ser colocado neste arquivo nem 
 
 1. Importe `aishiteirai/naquela-mesa`.
 2. Framework: Next.js.
-3. *Build Command*: deixe em branco (a Vercel usa o script `vercel-build` sozinha: `drizzle-kit migrate && next build`).
-4. Node 24 (vem do `.nvmrc`).
+3. *Build Command*: deixe em branco (a Vercel usa o script `vercel-build` sozinha: `node scripts/vercel-build.mjs`).
+4. Node 24 vem de `engines.node` no `package.json` (a Vercel ignora o `.nvmrc`).
 
-As migrações rodam antes de cada build, inclusive em preview (contra o banco de preview). A migração usa `DATABASE_URL_UNPOOLED` quando existir, nunca o pooler.
+O script `vercel-build` roda `drizzle-kit migrate` **somente** quando `VERCEL_ENV=production` ou `MIGRATE_ON_BUILD=1`; nos demais casos registra "migrations skipped (preview)" e roda só `next build`. A migração usa `DATABASE_URL_UNPOOLED` quando existir, nunca o pooler.
+
+**O Preview NÃO pode compartilhar o banco de produção.** Escolha uma opção:
+
+- **(a)** Dê ao Preview seu próprio branch/banco no Neon (`DATABASE_URL` e `DATABASE_URL_UNPOOLED` com escopo Preview) e defina `MIGRATE_ON_BUILD=1` no Preview: as migrações rodam contra o banco de preview.
+- **(b)** Deixe o Preview sem migrações (sem `MIGRATE_ON_BUILD`): ele roda contra o esquema que o banco dele já tiver.
 
 ## 3. Variáveis de ambiente
 
 | Variável | Ambiente | Origem |
 |---|---|---|
-| `DATABASE_URL` | Production e Preview | Neon (integração) |
-| `DATABASE_URL_UNPOOLED` | Production e Preview | Neon (integração); conexão direta, usada nas migrações |
-| `DATABASE_POOL_MAX` | Production e Preview | você define: `3` |
+| `DATABASE_URL` | Production: banco de produção. Preview: banco/branch **próprio** do Preview | Neon (integração); nunca o mesmo valor nos dois ambientes |
+| `DATABASE_URL_UNPOOLED` | Production: banco de produção. Preview: branch próprio (só na opção a) | Neon (integração); conexão direta, usada nas migrações |
+| `MIGRATE_ON_BUILD` | Preview (só na opção a) | você define: `1` (em Production as migrações já rodam sozinhas) |
+| `DATABASE_POOL_MAX` | Production e Preview | opcional; padrão `3` quando `VERCEL_ENV` existe, `10` fora da Vercel |
 | `BETTER_AUTH_SECRET` | Production e Preview | `openssl rand -base64 32`; use um valor diferente no Preview |
 | `BETTER_AUTH_URL` | Production | domínio final (ex.: `https://naquelamesa.com.br`) |
 | `APP_URL` | Production | domínio final |
@@ -45,7 +51,7 @@ O Sentry só é carregado quando `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` estão 
 ## 4. Primeiro deploy
 
 1. Faça push na `main`.
-2. A Vercel roda as migrações e o build.
+2. A Vercel roda as migrações (só em produção) e o build.
 3. Confira no log do build a mensagem "migrations applied".
 
 ## 5. Primeiro super-admin
@@ -55,6 +61,8 @@ Da máquina local, apontando para o banco de produção (a senha vai por variáv
 ```bash
  DATABASE_URL="<url direta do Neon>" BETTER_AUTH_SECRET="<qualquer valor com 32+ caracteres>" BETTER_AUTH_URL="https://<seu-domínio>" ADMIN_PASSWORD="<senha forte>" npm run admin:ensure -- voce@exemplo.com "Seu Nome"
 ```
+
+Rodar `admin:ensure` de novo para um e-mail que já existe **redefine a senha** dele (e o promove a super-admin).
 
 O script carrega o cliente do banco, que valida o ambiente e exige `BETTER_AUTH_SECRET` (32+ caracteres) e `BETTER_AUTH_URL`; por isso vão no comando (o valor do secret não precisa ser o de produção). O espaço antes do comando evita que a senha fique no histórico do shell (bash/zsh com `HIST_IGNORE_SPACE`/`HISTCONTROL=ignorespace`).
 
@@ -81,8 +89,11 @@ Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
 - [ ] Painel: "Iniciar atendimento" (precisa clicar de novo a cada recarga da página), alerta sonoro, notificação do navegador (só funciona em HTTPS) e tela que não apaga (Wake Lock, só HTTPS).
 - [ ] Impressão em térmica 80 mm. Chrome com `--kiosk-printing` imprime sem diálogo: atalho do Windows com `chrome.exe --kiosk-printing https://<domínio>/painel`.
 - [ ] Convite de dono e "Acessar como loja".
-- [ ] Limite por IP: 11 pedidos seguidos com telefones diferentes; o 11º mostra "Muitas tentativas…".
-- [ ] Limite por telefone: 6 pedidos com o mesmo telefone; o 6º mostra "Muitas tentativas…".
+- [ ] Limite por telefone (faça **primeiro**): 6 pedidos com o mesmo telefone; o 6º mostra "Muitas tentativas…".
+- [ ] Limite por IP (só depois): aguarde 10 minutos (ou use outra rede) e faça 11 pedidos seguidos com telefones diferentes; o 11º mostra "Muitas tentativas…". Sem a espera, o limite por IP já pode ter sido atingido pelos testes anteriores e o resultado seria um falso positivo.
+
+**Atenção:** esses testes criam pedidos reais na loja. Cancele-os no painel depois (use a loja de demonstração, se existir).
+
 - [ ] Upload de logo vai para o Blob (URL `*.public.blob.vercel-storage.com`).
 - [ ] Erro de teste aparece no Sentry.
 
@@ -94,7 +105,9 @@ Ele **apaga e recria** a loja `pizzaria-demo` e nada mais.
 
 ## 10. Notas de operação
 
-- **Limite por IP:** usa o primeiro item de `x-forwarded-for`. Na Vercel isso é seguro (a Vercel sobrescreve o cabeçalho); atrás de outro proxy ou em hospedagem própria seria falsificável.
-- **Upstash lento ou sem resposta:** `@upstash/ratelimit` deixa a requisição passar após o timeout (disponibilidade acima de rigor). Um erro duro de conexão pode aparecer como página de erro.
+- **Guarda de produção:** as exigências (Upstash, Blob, sem `E2E_DISABLE_RATE_LIMIT`) dependem de `VERCEL_ENV`, que só existe na Vercel; em hospedagem própria seria preciso definir as mesmas variáveis manualmente.
+- **Migração 0012 (CHECKs):** falha se um banco já existente tiver linhas de pedido inválidas (produção nova não é afetada).
+- **Limite por IP:** pode afetar muitos clientes atrás da mesma rede (CGNAT / Wi-Fi compartilhado); aceitável no MVP. Usa o primeiro item de `x-forwarded-for`. Na Vercel isso é seguro (a Vercel sobrescreve o cabeçalho); atrás de outro proxy ou em hospedagem própria seria falsificável.
+- **Upstash lento ou fora do ar:** as requisições passam (limite temporariamente desligado) e o erro é registrado em log ("rate limit indisponível"). Disponibilidade acima de rigor.
 - **Tamanho de corpo:** funções da Vercel aceitam corpos de até ~4,5 MB. O painel redimensiona imagens para no máximo 1200 px em WebP antes de enviar; só se bate nesse limite se o navegador não conseguir redimensionar (aparece um erro genérico).
 - **Upload:** imagens vão para o Vercel Blob. Limpeza de órfãs e cota por loja ainda não existem.

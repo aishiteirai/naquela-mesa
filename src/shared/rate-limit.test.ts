@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { clientIp, createMemoryRateLimiter, enforceRateLimit, type RateLimitPolicy } from "./rate-limit";
 
 const policy: RateLimitPolicy = { name: "teste", limit: 2, windowSec: 60 };
@@ -38,6 +38,14 @@ describe("enforceRateLimit", () => {
     await enforceRateLimit(policy, "y", limiter);
     await enforceRateLimit(policy, "y", limiter);
     await expect(enforceRateLimit(policy, "y", limiter)).rejects.toMatchObject({ code: "RATE_LIMITED", details: { retryAfterSec: 60 } });
+  });
+
+  it("falha aberta: erro do limitador não bloqueia e é logado", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const broken = { check: () => Promise.reject(new Error("upstash fora")) };
+    await expect(enforceRateLimit(policy, "z", broken)).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith("rate limit indisponível", "teste", expect.any(Error));
+    spy.mockRestore();
   });
 });
 

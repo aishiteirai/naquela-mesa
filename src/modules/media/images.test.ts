@@ -60,13 +60,17 @@ describe("saveImage com Vercel Blob", () => {
 
 describe("saveImage / readImage", () => {
   let dir: string;
+  const originalBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
 
   beforeAll(async () => {
+    delete process.env.BLOB_READ_WRITE_TOKEN;
     dir = await mkdtemp(path.join(tmpdir(), "naquela-uploads-"));
     process.env.UPLOAD_DIR = dir;
   });
 
   afterAll(async () => {
+    if (originalBlobToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
+    else process.env.BLOB_READ_WRITE_TOKEN = originalBlobToken;
     delete process.env.UPLOAD_DIR;
     await rm(dir, { recursive: true, force: true });
   });

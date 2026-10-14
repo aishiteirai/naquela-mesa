@@ -9,6 +9,7 @@ describe("dropExpectedErrors", () => {
     expect(dropExpectedErrors(event, { originalException: new DomainError("STORE_CLOSED") })).toBeNull();
     expect(dropExpectedErrors(event, { originalException: Object.assign(new Error("r"), { digest: "NEXT_REDIRECT;replace;/login;307;" }) })).toBeNull();
     expect(dropExpectedErrors(event, { originalException: Object.assign(new Error("n"), { digest: "NEXT_HTTP_ERROR_FALLBACK;404" }) })).toBeNull();
+    expect(dropExpectedErrors(event, { originalException: Object.assign(new Error("nf"), { digest: "NEXT_NOT_FOUND" }) })).toBeNull();
   });
 
   it("mantém erros inesperados", () => {

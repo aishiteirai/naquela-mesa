@@ -67,7 +67,14 @@ export function getRateLimiter(): RateLimiter {
 }
 
 export async function enforceRateLimit(policy: RateLimitPolicy, identifier: string, limiter: RateLimiter = getRateLimiter()): Promise<void> {
-  const result = await limiter.check(policy, identifier);
+  let result: RateLimitResult;
+  try {
+    result = await limiter.check(policy, identifier);
+  } catch (error) {
+    // Falha aberta: infraestrutura do limitador fora do ar não pode derrubar pedidos.
+    console.error("rate limit indisponível", policy.name, error);
+    return;
+  }
   if (!result.ok) throw new DomainError("RATE_LIMITED", { retryAfterSec: result.retryAfterSec });
 }
 
