@@ -1,0 +1,3 @@
+ALTER TABLE "order_item_options" ADD CONSTRAINT "order_item_options_price_check" CHECK ("order_item_options"."price_cents" >= 0);--> statement-breakpoint
+ALTER TABLE "order_items" ADD CONSTRAINT "order_items_quantity_check" CHECK ("order_items"."quantity" between 1 and 50);--> statement-breakpoint
+ALTER TABLE "order_items" ADD CONSTRAINT "order_items_amounts_check" CHECK ("order_items"."unit_price_cents" >= 0 and "order_items"."total_cents" >= 0);

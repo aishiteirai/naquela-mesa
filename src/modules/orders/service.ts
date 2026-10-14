@@ -218,10 +218,11 @@ export type OrderTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Grava itens (com cópia de nome e preço) e adicionais de um pedido, na ordem das linhas. */
 export async function insertOrderLines(tx: OrderTx, orderId: string, lines: PricedLine[]): Promise<void> {
-  for (const [position, line] of lines.entries()) {
-    const [item] = await tx
-      .insert(orderItems)
-      .values({
+  if (lines.length === 0) return;
+  const items = await tx
+    .insert(orderItems)
+    .values(
+      lines.map((line, position) => ({
         orderId,
         productName: line.productName,
         sizeName: line.sizeName,
@@ -231,12 +232,16 @@ export async function insertOrderLines(tx: OrderTx, orderId: string, lines: Pric
         totalCents: line.totalCents,
         notes: line.notes,
         position,
-      })
-      .returning({ id: orderItems.id });
-    if (line.options.length > 0) {
-      await tx.insert(orderItemOptions).values(line.options.map((option) => ({ orderItemId: item!.id, ...option })));
-    }
-  }
+      })),
+    )
+    .returning({ id: orderItems.id, position: orderItems.position });
+
+  // Liga cada opção ao item pela posição (a ordem do RETURNING não é garantida).
+  const itemIdByPosition = new Map(items.map((item) => [item.position, item.id]));
+  const options = lines.flatMap((line, position) =>
+    line.options.map((option) => ({ orderItemId: itemIdByPosition.get(position)!, ...option })),
+  );
+  if (options.length > 0) await tx.insert(orderItemOptions).values(options);
 }
 
 

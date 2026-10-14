@@ -4,7 +4,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { getMenu, importCatalog, setProductAvailability } from "@/modules/catalog";
 import { createStore, deleteStoreBySlug, replaceDeliveryZones, setManualStatus, updateStoreOperations } from "@/modules/stores";
 import { db, pool } from "@/shared/db/client";
-import { orders } from "./schema";
+import { orderItems, orders } from "./schema";
 import { createOrder, getOrderTracking, quoteOrder } from "./service";
 
 const SLUG = "pedido-teste";
@@ -231,5 +231,14 @@ describe("orders service", () => {
   it("token inválido ou inexistente → null", async () => {
     expect(await getOrderTracking("abc")).toBeNull();
     expect(await getOrderTracking("A".repeat(43))).toBeNull();
+  });
+
+  it("o banco recusa item com quantidade ou valor inválido", async () => {
+    const ids = await setupStore();
+    const placed = await createOrder(SLUG, checkout(ids, { expectedTotalCents: 8490 }));
+    const base = { orderId: placed.orderId, productName: "X", quantity: 1, unitPriceCents: 100, totalCents: 100 };
+    await expect(db.insert(orderItems).values({ ...base, quantity: 0 })).rejects.toMatchObject({ cause: { constraint: "order_items_quantity_check" } });
+    await expect(db.insert(orderItems).values({ ...base, quantity: 51 })).rejects.toMatchObject({ cause: { constraint: "order_items_quantity_check" } });
+    await expect(db.insert(orderItems).values({ ...base, totalCents: -1 })).rejects.toMatchObject({ cause: { constraint: "order_items_amounts_check" } });
   });
 });

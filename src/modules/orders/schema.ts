@@ -69,7 +69,11 @@ export const orderItems = pgTable(
     notes: text("notes"),
     position: integer("position").notNull().default(0),
   },
-  (t) => [index("order_items_order_id_idx").on(t.orderId)],
+  (t) => [
+    index("order_items_order_id_idx").on(t.orderId),
+    check("order_items_quantity_check", sql`${t.quantity} between 1 and 50`),
+    check("order_items_amounts_check", sql`${t.unitPriceCents} >= 0 and ${t.totalCents} >= 0`),
+  ],
 );
 
 export const orderItemOptions = pgTable(
@@ -83,7 +87,10 @@ export const orderItemOptions = pgTable(
     optionName: text("option_name").notNull(),
     priceCents: integer("price_cents").notNull(),
   },
-  (t) => [index("order_item_options_item_id_idx").on(t.orderItemId)],
+  (t) => [
+    index("order_item_options_item_id_idx").on(t.orderItemId),
+    check("order_item_options_price_check", sql`${t.priceCents} >= 0`),
+  ],
 );
 
 export const orderStatusEvents = pgTable(
