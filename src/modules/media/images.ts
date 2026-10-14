@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { DomainError } from "@/shared/errors";
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -37,6 +38,18 @@ export async function saveImage(bytes: Uint8Array): Promise<{ url: string }> {
   if (!type) throw invalidImage("envie uma imagem JPG, PNG ou WebP");
 
   const fileName = `${randomUUID()}.${type}`;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (token) {
+    const blob = await put(`uploads/${fileName}`, Buffer.from(bytes), {
+      access: "public",
+      contentType: CONTENT_TYPES[type],
+      addRandomSuffix: false,
+      token,
+    });
+    return { url: blob.url };
+  }
+
+  // Desenvolvimento: disco local, servido por /uploads/[file].
   await mkdir(uploadDir(), { recursive: true });
   await writeFile(path.join(uploadDir(), fileName), bytes);
   return { url: `/uploads/${fileName}` };

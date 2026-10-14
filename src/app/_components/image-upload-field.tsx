@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { type ChangeEvent, useState, useTransition } from "react";
-import { uploadImageAction } from "@/app/painel/upload-action";
 
 const MAX_SIDE = 1200;
 
@@ -35,9 +34,10 @@ export function ImageUploadField({ name, label, defaultUrl }: { name: string; la
       const form = new FormData();
       form.set("file", await resizeForUpload(file), "imagem");
       try {
-        const result = await uploadImageAction(form);
-        if ("error" in result) setError(result.error);
-        else setUrl(result.url);
+        const response = await fetch("/api/painel/upload", { method: "POST", body: form });
+        const result = (await response.json()) as { url?: string; error?: string };
+        if (result.url) setUrl(result.url);
+        else setError(result.error ?? "Não foi possível enviar a imagem.");
       } catch {
         setError("Não foi possível enviar a imagem.");
       }
