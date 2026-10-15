@@ -82,3 +82,8 @@ test("?item= de produto inexistente não abre nada e limpa a URL", async ({ page
   await expect(page).toHaveURL(/\/pizzaria-demo$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("loja sem foto de capa mostra o topo em gradiente", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  await expect(page.getByTestId("cover-fallback")).toBeVisible();
+});

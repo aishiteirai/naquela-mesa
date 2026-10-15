@@ -1,5 +1,6 @@
 "use client";
 
+import { ShoppingBagIcon } from "lucide-react";
 import Link from "next/link";
 import { formatBRL } from "@/shared/money";
 import { useCart } from "./cart-context";
@@ -13,9 +14,12 @@ export function CartBar({ slug }: { slug: string }) {
       <Link
         href={`/${slug}/sacola`}
         aria-label="Ver sacola"
-        className="mx-auto flex max-w-3xl items-center justify-between rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-lg"
+        className="mx-auto flex max-w-3xl items-center justify-between rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-lg"
       >
-        <span>Ver sacola ({cart.count})</span>
+        <span className="flex items-center gap-2">
+          <ShoppingBagIcon className="size-5" aria-hidden="true" />
+          Ver sacola ({cart.count})
+        </span>
         <span>{formatBRL(cart.estimatedSubtotalCents)}</span>
       </Link>
     </div>
