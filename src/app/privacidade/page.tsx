@@ -1,6 +1,6 @@
 export default function PrivacidadePage() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6 text-neutral-800 dark:text-neutral-200">
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6 leading-relaxed">
       <h1 className="text-2xl font-semibold">Política de privacidade</h1>
       <p>
         Ao fazer um pedido, você informa nome, telefone e, se for entrega, endereço. Esses dados são usados apenas pelo restaurante

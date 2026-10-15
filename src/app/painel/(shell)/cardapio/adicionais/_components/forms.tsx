@@ -4,7 +4,7 @@ import { useActionState, useEffect } from "react";
 import type { MenuOption, MenuOptionGroup } from "@/modules/catalog";
 import { formatCentsForInput } from "@/shared/money";
 import { idleState } from "@/app/_lib/action-state";
-import { FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import {
   addOptionAction,
   createOptionGroupAction,

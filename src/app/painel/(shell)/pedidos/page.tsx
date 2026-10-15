@@ -4,7 +4,7 @@ import { listOrderHistory, ORDER_STATUSES, resolvePeriod, statusLabel, type Orde
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect } from "@/app/painel/_components/native-select";
+import { NativeSelect } from "@/app/_components/native-select";
 import { PeriodFields } from "@/app/painel/_components/period-fields";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { firstParam } from "@/app/painel/_lib/search-params";

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { idleState } from "@/app/_lib/action-state";
-import { TextField } from "@/app/painel/_components/form-fields";
+import { TextField } from "@/app/_components/form-fields";
 import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 

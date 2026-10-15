@@ -140,8 +140,13 @@ test("fechar agora e voltar ao automático", async ({ page }) => {
 test("prévia muda ao trocar a cor; cor, fonte e logo aparecem no cardápio", async ({ page }) => {
   await page.goto("/painel/loja");
   const appearance = page.getByRole("tabpanel", { name: "Aparência" });
-  await appearance.getByLabel("Cor principal").fill("#1d4ed8");
-  await expect(appearance.getByTestId("preview-cart-button")).toHaveCSS("background-color", "rgb(29, 78, 216)");
+  // Preencher antes da hidratação não dispara o onChange do React (e repetir o mesmo valor também não):
+  // alterna para outra cor e volta, até a prévia reagir.
+  await expect(async () => {
+    await appearance.getByLabel("Cor principal").fill("#000000");
+    await appearance.getByLabel("Cor principal").fill("#1d4ed8");
+    await expect(appearance.getByTestId("preview-cart-button")).toHaveCSS("background-color", "rgb(29, 78, 216)", { timeout: 1_000 });
+  }).toPass();
 
   await appearance.getByRole("combobox", { name: "Fonte dos títulos" }).click();
   await page.getByRole("option", { name: "Clássica (com serifa)" }).click();

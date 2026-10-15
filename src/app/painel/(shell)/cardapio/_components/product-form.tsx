@@ -9,7 +9,7 @@ import type { EditorCategory, EditorProduct, MenuOptionGroup } from "@/modules/c
 import { formatCentsForInput } from "@/shared/money";
 import { ImageUploadField } from "@/app/_components/image-upload-field";
 import { idleState } from "@/app/_lib/action-state";
-import { FieldError, FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { FieldError, FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import { saveProductAction } from "@/app/painel/(shell)/cardapio/actions";
 
 type Props = {

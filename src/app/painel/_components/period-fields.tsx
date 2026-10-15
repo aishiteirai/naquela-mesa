@@ -1,7 +1,7 @@
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PERIOD_LABELS, PERIOD_PRESETS, type PeriodPreset } from "@/modules/orders";
-import { NativeSelect } from "./native-select";
+import { NativeSelect } from "@/app/_components/native-select";
 
 type Props = { preset: PeriodPreset; from: string; to: string };
 

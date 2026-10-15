@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import { useId, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function InviteLink({ url }: { url: string }) {
+  const id = useId();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -16,17 +20,16 @@ export function InviteLink({ url }: { url: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-1 text-sm">
-      <label className="flex flex-col gap-1">
-        Link de acesso
-        <input readOnly value={url} onFocus={(event) => event.currentTarget.select()} className={inputClass} />
-      </label>
-      <div className="flex items-center gap-2">
-        <button type="button" onClick={copy} className={secondaryButtonClass}>
+    <Field>
+      <FieldLabel htmlFor={id}>Link de acesso</FieldLabel>
+      <div className="flex gap-2">
+        <Input id={id} readOnly value={url} onFocus={(event) => event.currentTarget.select()} className="font-mono text-xs" />
+        <Button type="button" variant="outline" onClick={copy}>
+          {copied ? <CheckIcon /> : <CopyIcon />}
           {copied ? "Copiado!" : "Copiar link"}
-        </button>
-        <span className="text-neutral-700 dark:text-neutral-300">Vale por 7 dias e uma vez só. Envie ao dono pelo WhatsApp.</span>
+        </Button>
       </div>
-    </div>
+      <FieldDescription>Vale por 7 dias e uma vez só. Envie ao dono pelo WhatsApp.</FieldDescription>
+    </Field>
   );
 }

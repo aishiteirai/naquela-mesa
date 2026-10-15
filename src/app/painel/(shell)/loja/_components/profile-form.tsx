@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Store } from "@/modules/stores";
 import { ImageUploadField } from "@/app/_components/image-upload-field";
 import { idleState } from "@/app/_lib/action-state";
-import { fieldErrorOf, FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { fieldErrorOf, FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import { saveProfileAction } from "@/app/painel/(shell)/loja/actions";
 import { ThemePreview } from "./theme-preview";
 

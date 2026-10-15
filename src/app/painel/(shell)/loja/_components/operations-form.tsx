@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import type { Store } from "@/modules/stores";
 import { formatCentsForInput } from "@/shared/money";
 import { idleState } from "@/app/_lib/action-state";
-import { FieldError, FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { FieldError, FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import { saveOperationsAction } from "@/app/painel/(shell)/loja/actions";
 
 function Check({ name, label, defaultChecked }: { name: string; label: string; defaultChecked: boolean }) {

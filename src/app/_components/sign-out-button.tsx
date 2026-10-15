@@ -1,6 +1,8 @@
 "use client";
 
+import { LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/modules/auth/client";
 
 export function SignOutButton() {
@@ -13,8 +15,9 @@ export function SignOutButton() {
   }
 
   return (
-    <button type="button" onClick={onClick} className="rounded border px-4 py-2 text-sm">
+    <Button type="button" variant="outline" onClick={onClick}>
+      <LogOutIcon />
       Sair
-    </button>
+    </Button>
   );
 }

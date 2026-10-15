@@ -9,7 +9,7 @@ import type { DeliveryZone } from "@/modules/stores";
 import { formatCentsForInput } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { idleState } from "@/app/_lib/action-state";
-import { FormMessage, SubmitButton } from "@/app/painel/_components/form-fields";
+import { FormMessage, SubmitButton } from "@/app/_components/form-fields";
 import { saveZonesAction } from "@/app/painel/(shell)/loja/actions";
 
 type Row = { key: string; neighborhood: string; fee: string };

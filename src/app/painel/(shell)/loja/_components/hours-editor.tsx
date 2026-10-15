@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { StoreHour } from "@/modules/stores";
 import { uuid } from "@/shared/uuid";
 import { idleState } from "@/app/_lib/action-state";
-import { FormMessage, SubmitButton } from "@/app/painel/_components/form-fields";
+import { FormMessage, SubmitButton } from "@/app/_components/form-fields";
 import { saveHoursAction } from "@/app/painel/(shell)/loja/actions";
 
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];

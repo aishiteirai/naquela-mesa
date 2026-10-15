@@ -4,7 +4,7 @@ import { useActionState, useEffect, useId } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { idleState } from "@/app/_lib/action-state";
-import { FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import { createCategoryAction, updateCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
 
 /** Renomear / ativar uma categoria (sem `categoryId`: cria uma nova). Chama `onDone` ao salvar. */

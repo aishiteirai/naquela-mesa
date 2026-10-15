@@ -7,7 +7,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EditorSize } from "@/modules/catalog";
 import { idleState } from "@/app/_lib/action-state";
-import { FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
 import { createSizeAction, deleteSizeAction, moveSizeAction, updateSizeAction } from "@/app/painel/(shell)/cardapio/actions";
 
 function FlavorsSelect({ label, defaultValue }: { label: string; defaultValue: number }) {
