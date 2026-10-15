@@ -13,7 +13,7 @@ Sem regra de negócio nova e sem mudança de servidor: actions, autenticação, 
 
 ## 2. Decisões
 
-- **Telas de conta** (login, convite, sem loja): `Card` centralizado com a marca "Naquela Mesa" acima. Sempre claras (fora do `PanelThemeProvider`, como hoje).
+- **Telas de conta** (login, convite, sem loja): na estética da landing page (paleta quente, Fraunces, logo), com cartão centralizado e, no desktop, painel ilustrado ao lado. A paleta troca os tokens do shadcn só nessas telas (`brand-theme.ts`). Sempre claras (fora do `PanelThemeProvider`).
 - **Admin:** topo fixo com título, saudação, `ModeToggle` e "Sair"; seções em `Card` (Nova loja, Lojas, Registro de suporte); lojas em `Table` no desktop. Ações por loja: "Acessar como loja" e "Gerar link de acesso" (este abre um `Dialog` com o formulário e o link gerado, em vez de ocupar a célula da tabela).
 - **Primitivas de formulário compartilhadas:** `form-fields.tsx` (`TextField`, `SubmitButton`, `FieldError`, `FormMessage`) e `native-select.tsx` saem de `src/app/painel/_components` para `src/app/_components`, usadas por painel, admin e convite.
 - `SignOutButton` vira `Button` do shadcn (ícone + "Sair").

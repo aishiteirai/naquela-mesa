@@ -1,38 +1,16 @@
 import type { Metadata } from "next";
-import { Fraunces, Pacifico } from "next/font/google";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/app/_components/brand-logo";
+import { BRAND_COLOR, brandFonts, brandThemeStyle, displayFont, scriptFont } from "@/app/_components/brand-theme";
 
 // Landing page (design "Landing page — Naquela Mesa" no canvas "Logo Nelson Gonçalves").
 // Só frontend por enquanto: os botões ainda não levam a lugar nenhum (href="#"), exceto as âncoras da própria página.
-
-const fraunces = Fraunces({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-fraunces" });
-const pacifico = Pacifico({ subsets: ["latin"], weight: "400", variable: "--font-pacifico" });
 
 export const metadata: Metadata = {
   title: "Naquela Mesa — cardápio digital e pedidos para restaurantes",
   description: "Seu cliente pede pelo cardápio da loja no celular, sem baixar nada. Sua equipe recebe, prepara e imprime tudo num painel simples.",
 };
-
-const BRAND = "#D9622B";
-
-// Paleta própria da landing (quente, sempre clara), fora dos tokens do app.
-const palette = {
-  "--nm-ink": "#3B2A20",
-  "--nm-muted": "#6E5644",
-  "--nm-cream": "#FBF5EC",
-  "--nm-sand": "#F6EADB",
-  "--nm-card": "#FFFCF7",
-  "--nm-line": "#EBDCC8",
-  "--nm-brand": BRAND,
-  "--nm-cta": "#B5481C",
-  "--nm-cta-hover": "#963A15",
-  "--nm-accent-ink": "#8A3A17",
-} as CSSProperties;
-
-const display = "font-[family-name:var(--font-fraunces)] font-semibold";
-const script = "font-[family-name:var(--font-pacifico)]";
 
 const button =
   "inline-flex h-[46px] items-center justify-center gap-2 rounded-xl border border-transparent px-6 text-[15px] font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-[var(--nm-cta)]/40";
@@ -57,8 +35,8 @@ function Wrap({ className, children }: { className?: string; children: ReactNode
 
 function Brand() {
   return (
-    <a href="#" className={cn(script, "flex items-center gap-2.5 text-[21px] text-[var(--nm-brand)] sm:text-[26px]")}>
-      <BrandLogo id="header" size={40} color={BRAND} className="size-[34px] sm:size-10" />
+    <a href="#" className={cn(scriptFont, "flex items-center gap-2.5 text-[21px] text-[var(--nm-brand)] sm:text-[26px]")}>
+      <BrandLogo id="header" size={40} color={BRAND_COLOR} className="size-[34px] sm:size-10" />
       Naquela Mesa
     </a>
   );
@@ -109,8 +87,8 @@ function HeroMockup() {
 export default function HomePage() {
   return (
     <div
-      style={palette}
-      className={cn(fraunces.variable, pacifico.variable, "min-h-dvh w-full bg-[var(--nm-cream)] font-sans text-[var(--nm-ink)]")}
+      style={brandThemeStyle}
+      className={cn(brandFonts, "min-h-dvh w-full bg-[var(--nm-cream)] font-sans text-[var(--nm-ink)]")}
     >
       <header>
         <Wrap className="flex h-16 items-center justify-between gap-6 sm:h-[76px]">
@@ -133,7 +111,7 @@ export default function HomePage() {
               <span className="self-start rounded-full border border-[#EBCFB4] bg-[#FFF6EC] px-3.5 py-[5px] text-[13px] font-medium text-[var(--nm-accent-ink)]">
                 Cardápio digital para restaurantes
               </span>
-              <h1 className={cn(display, "m-0 text-[33px] leading-[1.06] tracking-[-0.02em] sm:text-[40px] lg:text-[54px]")}>
+              <h1 className={cn(displayFont, "m-0 text-[33px] leading-[1.06] tracking-[-0.02em] sm:text-[40px] lg:text-[54px]")}>
                 Pedidos como em casa, do celular do cliente para a sua cozinha.
               </h1>
               <p className="m-0 max-w-[32rem] text-base leading-[1.65] text-[var(--nm-muted)] sm:text-lg">
@@ -154,7 +132,7 @@ export default function HomePage() {
 
         <section id="como-funciona" aria-labelledby="como-funciona-titulo" className="bg-[var(--nm-sand)] py-16 md:py-[88px]">
           <Wrap className="flex flex-col gap-10">
-            <h2 id="como-funciona-titulo" className={cn(display, "m-0 text-center text-[30px] leading-[1.15] tracking-[-0.015em] md:text-4xl")}>
+            <h2 id="como-funciona-titulo" className={cn(displayFont, "m-0 text-center text-[30px] leading-[1.15] tracking-[-0.015em] md:text-4xl")}>
               Como funciona
             </h2>
             <ol className="mx-auto grid w-full max-w-[520px] list-none gap-5 p-0 md:max-w-none md:grid-cols-3">
@@ -162,7 +140,7 @@ export default function HomePage() {
                 <li key={step.title} className="flex flex-col gap-3 rounded-[18px] border border-[var(--nm-line)] bg-[var(--nm-card)] p-[22px] md:p-7">
                   <span
                     aria-hidden="true"
-                    className={cn(display, "flex size-10 items-center justify-center rounded-full bg-[var(--nm-brand)] text-lg text-white")}
+                    className={cn(displayFont, "flex size-10 items-center justify-center rounded-full bg-[var(--nm-brand)] text-lg text-white")}
                   >
                     {index + 1}
                   </span>
@@ -176,8 +154,8 @@ export default function HomePage() {
 
         <section id="comecar" aria-labelledby="comecar-titulo" className="py-16 md:py-[88px]">
           <Wrap className="flex flex-col items-center gap-5 text-center">
-            <BrandLogo id="cta" size={88} color={BRAND} label="Logo Naquela Mesa" />
-            <h2 id="comecar-titulo" className={cn(display, "m-0 text-[30px] leading-[1.15] tracking-[-0.015em] md:text-4xl")}>
+            <BrandLogo id="cta" size={88} color={BRAND_COLOR} label="Logo Naquela Mesa" />
+            <h2 id="comecar-titulo" className={cn(displayFont, "m-0 text-[30px] leading-[1.15] tracking-[-0.015em] md:text-4xl")}>
               Vamos abrir a sua mesa?
             </h2>
             <p className="m-0 max-w-[30rem] text-[17px] leading-relaxed text-[var(--nm-muted)]">
@@ -193,7 +171,7 @@ export default function HomePage() {
       <footer className="border-t border-[var(--nm-line)]">
         <Wrap className="flex flex-col items-start gap-4 py-6 text-[13px] text-[var(--nm-muted)] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <span>
-            <span className={cn(script, "text-[17px] text-[var(--nm-brand)]")}>Naquela Mesa</span> · cardápio digital e gestão de pedidos
+            <span className={cn(scriptFont, "text-[17px] text-[var(--nm-brand)]")}>Naquela Mesa</span> · cardápio digital e gestão de pedidos
           </span>
           <div className="flex gap-5">
             <a href="#" className="hover:text-[var(--nm-cta)]">
