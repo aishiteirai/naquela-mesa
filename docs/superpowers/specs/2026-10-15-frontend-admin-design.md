@@ -26,7 +26,7 @@ Rótulos e nomes acessíveis usados pelos testes: `Email`, `Senha`, `Entrar`, `p
 
 ## 4. Testes
 
-- E2E: suíte atual verde; novo teste do link de acesso pelo `Dialog` (loja sem dono gera link e mostra o campo `Link de acesso`).
+- E2E: suíte atual verde; novo teste do link de acesso pelo `Dialog` (gera link para a loja com dono e o convite pede nova senha).
 - Lint, typecheck, unitários e build verdes; `grep` sem `neutral-`, `red-`, `green-` (exceto WhatsApp) e `dark:` manual em `src/app`.
 
 ## 5. Fora do escopo
