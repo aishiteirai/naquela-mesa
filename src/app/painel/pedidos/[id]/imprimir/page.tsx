@@ -92,8 +92,10 @@ async function Ticket({ params }: { params: Promise<{ id: string }> }) {
 
 export default function PrintPage({ params }: PageProps<"/painel/pedidos/[id]/imprimir">) {
   return (
-    <Suspense fallback={<p>Carregando comanda...</p>}>
-      <Ticket params={params} />
-    </Suspense>
+    <main className="px-4 py-6">
+      <Suspense fallback={<p>Carregando comanda...</p>}>
+        <Ticket params={params} />
+      </Suspense>
+    </main>
   );
 }

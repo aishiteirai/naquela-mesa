@@ -1,7 +1,7 @@
 # Reforma do frontend — Painel da loja
 
 - **Data:** 2026-10-15
-- **Status:** aguardando revisão
+- **Status:** implementado (branch `claude/frontend-reforma-mmdfui`, a partir da `frontend-shadcn`)
 - **Branch:** `frontend-shadcn`
 - **Depende de:** Fundação (`2026-10-15-frontend-fundacao-design.md`) e Cardápio público (`2026-10-15-frontend-cardapio-design.md`), ambos concluídos.
 
@@ -84,3 +84,12 @@ Contador ao vivo na sidebar; excluir produto; arrastar para reordenar; mudança 
 ## 6. Critério de pronto
 
 Painel inteiro dentro do shell com sidebar; cardápio em tela única com painel lateral e chaves de disponibilidade; configurações em abas com prévia e campo de fonte; fila/histórico/métricas com componentes shadcn; rotas antigas redirecionando; seção 5 verde; commits na `frontend-shadcn`.
+
+## 7. Notas da implementação
+
+- `sidebar`, `table` e `tooltip` foram gerados a partir do código-fonte do shadcn (fixture radix-nova da sidebar e arquivos base do radix com o estilo nova aplicado), porque o registry `ui.shadcn.com` não era acessível no ambiente. `use-mobile` usa `useSyncExternalStore` (a versão original faz `setState` em efeito, recusado pelo lint).
+- Novo `@/modules/catalog/client` (só `menu.ts` e `editor-types.ts`): componentes cliente do painel precisam de `startingPriceCents` sem puxar o banco.
+- Redirecionamentos em `next.config.ts` (`redirects()`, 307). `/painel/cardapio/produtos/novo?categoria=X` vai para `/painel/cardapio?novo=X&categoria=X` (a query original é repassada).
+- Histórico: o detalhe do pedido abre num painel lateral (`Sheet`) a partir da linha da tabela (desktop) ou do cartão (celular), em vez do `<details>` expansível.
+- `parsePanelParams`: produto aberto seleciona a categoria dele, mesmo com outra em `categoria`; `produto` vence `novo`.
+- Filtros GET (histórico, métricas) usam `<select>` nativo com visual de `Input` (`NativeSelect`), para funcionar sem JS.

@@ -51,8 +51,18 @@ describe("store settings service", () => {
     });
   });
 
+  it("fonte serif persiste e mantém as cores; sem fonte, a salva continua", async () => {
+    const storeId = await newStore("loja-a");
+    await updateStoreProfile(storeId, { ...profile, theme: { ...profile.theme, font: "serif" } });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#1d4ed8", secondary: "#facc15", font: "serif" });
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#000000", secondary: "#ffffff" } });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#000000", secondary: "#ffffff", font: "serif" });
+  });
+
   it.each([
     ["cor inválida", { theme: { primary: "red", secondary: "#facc15" } }],
+    ["fonte inválida", { theme: { primary: "#1d4ed8", secondary: "#facc15", font: "comic" as "sans" } }],
     ["logo http", { logoUrl: "http://x.com/a.png" }],
     ["telefone inválido", { whatsappPhone: "1199" }],
     ["nome vazio", { name: " " }],
