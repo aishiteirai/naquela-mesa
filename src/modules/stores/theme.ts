@@ -27,11 +27,24 @@ export function readableTextColor(hex: string): typeof BLACK | typeof WHITE {
   return contrastRatio(luminance, 0) >= contrastRatio(luminance, 1) ? BLACK : WHITE;
 }
 
+// Fontes carregadas no layout raiz (next/font) e expostas como CSS vars no <html>.
+const HEADING_FONTS: Record<StoreTheme["font"], string> = {
+  sans: "var(--font-geist-sans)",
+  serif: "var(--font-lora)",
+};
+
+// --brand-* atendem as telas atuais; --primary/--ring/--heading-font fazem os componentes shadcn
+// e os títulos dentro da loja usarem a marca dela.
 export function themeCssVariables(theme: StoreTheme) {
+  const primaryForeground = readableTextColor(theme.primary);
   return {
     "--brand-primary": theme.primary,
-    "--brand-primary-foreground": readableTextColor(theme.primary),
+    "--brand-primary-foreground": primaryForeground,
     "--brand-secondary": theme.secondary,
     "--brand-secondary-foreground": readableTextColor(theme.secondary),
+    "--primary": theme.primary,
+    "--primary-foreground": primaryForeground,
+    "--ring": theme.primary,
+    "--heading-font": HEADING_FONTS[theme.font],
   };
 }

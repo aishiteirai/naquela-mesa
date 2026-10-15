@@ -19,12 +19,28 @@ describe("readableTextColor", () => {
 });
 
 describe("themeCssVariables", () => {
-  it("gera variáveis da marca com texto legível", () => {
+  it("gera variáveis da marca e sobrescreve os tokens do shadcn", () => {
     expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" })).toEqual({
       "--brand-primary": "#B91C1C",
       "--brand-primary-foreground": "#FFFFFF",
       "--brand-secondary": "#F59E0B",
       "--brand-secondary-foreground": "#000000",
+      "--primary": "#B91C1C",
+      "--primary-foreground": "#FFFFFF",
+      "--ring": "#B91C1C",
+      "--heading-font": "var(--font-geist-sans)",
     });
+  });
+
+  it("usa Lora nos títulos quando a fonte é serif", () => {
+    expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "serif" })["--heading-font"]).toBe(
+      "var(--font-lora)",
+    );
+  });
+
+  it("primária clara ganha texto preto nos botões", () => {
+    const vars = themeCssVariables({ primary: "#ffff00", secondary: "#F59E0B", font: "sans" });
+    expect(vars["--primary-foreground"]).toBe("#000000");
+    expect(vars["--brand-primary-foreground"]).toBe("#000000");
   });
 });
