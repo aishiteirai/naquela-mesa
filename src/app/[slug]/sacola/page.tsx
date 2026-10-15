@@ -1,11 +1,19 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
-import { SLUG_PATTERN, themeCssVariables } from "@/modules/stores";
+import { SLUG_PATTERN } from "@/modules/stores";
 import { CartProvider } from "@/app/[slug]/_components/cart-context";
+import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { getStorePageData } from "@/app/[slug]/data";
 import { Checkout } from "./_components/checkout";
+
+export async function generateMetadata({ params }: PageProps<"/[slug]/sacola">): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
+  const data = await getStorePageData(slug);
+  if (!data) return {};
+  return { title: `Sacola | ${data.store.name}` };
+}
 
 async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -15,17 +23,13 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
   const { store, zones } = data;
 
   return (
-    <div style={themeCssVariables(store.theme) as CSSProperties} className="flex flex-1 flex-col">
-      <title>{`Sacola | ${store.name}`}</title>
+    <StoreShell theme={store.theme}>
       <CartProvider slug={store.slug}>
-        <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
-          <Link href={`/${store.slug}`} className="text-sm underline">
-            ← Voltar ao cardápio
-          </Link>
-          <h1 className="text-2xl font-semibold">Sua sacola</h1>
+        <main className="flex flex-1 flex-col">
           <Checkout
             store={{
               slug: store.slug,
+              address: store.address,
               features: { delivery: store.features.delivery, pickup: store.features.pickup, dineIn: store.features.dineIn },
               paymentMethods: store.paymentMethods,
               deliveryFee: store.rules.deliveryFee,
@@ -34,13 +38,13 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
           />
         </main>
       </CartProvider>
-    </div>
+    </StoreShell>
   );
 }
 
 export default function SacolaPage({ params }: PageProps<"/[slug]/sacola">) {
   return (
-    <Suspense fallback={<p className="p-6">Carregando sacola...</p>}>
+    <Suspense fallback={<p className="p-6 text-muted-foreground">Carregando sacola...</p>}>
       <CheckoutContent params={params} />
     </Suspense>
   );

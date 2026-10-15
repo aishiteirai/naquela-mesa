@@ -61,7 +61,7 @@ export type OrderTracking = {
   deliveryFeeCents: number;
   totalCents: number;
   paymentMethod: PaymentMethod;
-  store: StoreRef & { timezone: string };
+  store: StoreRef & { timezone: string; logoUrl: string | null; theme: Store["theme"] };
 };
 
 const PUBLIC_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
@@ -335,6 +335,6 @@ export async function getOrderTracking(publicToken: string): Promise<OrderTracki
     deliveryFeeCents: order.deliveryFeeCents,
     totalCents: order.totalCents,
     paymentMethod: order.paymentMethod,
-    store: { slug: store.slug, name: store.name, whatsappPhone: store.whatsappPhone, timezone: store.timezone },
+    store: { slug: store.slug, name: store.name, whatsappPhone: store.whatsappPhone, timezone: store.timezone, logoUrl: store.logoUrl, theme: store.theme },
   };
 }

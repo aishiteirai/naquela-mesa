@@ -38,3 +38,16 @@ export function advanceLabel(fulfillment: Fulfillment, status: OrderStatus): str
       return null;
   }
 }
+
+export type TimelineStep = { status: OrderStatus; state: "done" | "current" | "upcoming" };
+
+// Etapas do fluxo do pedido para o acompanhamento do cliente; cancelado não tem linha do tempo.
+export function timelineFor(fulfillment: Fulfillment, status: OrderStatus): TimelineStep[] | null {
+  if (status === "cancelled") return null;
+  const flow = FLOWS[fulfillment];
+  const index = flow.indexOf(status);
+  return flow.map((step, position) => ({
+    status: step,
+    state: position < index || status === "completed" ? "done" : position === index ? "current" : "upcoming",
+  }));
+}

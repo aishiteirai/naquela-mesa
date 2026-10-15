@@ -24,7 +24,7 @@ async function Ticket({ params }: { params: Promise<{ id: string }> }) {
   const change = order.changeForCents ? order.changeForCents - order.totalCents : 0;
 
   return (
-    <div className="mx-auto w-full max-w-[74mm] font-mono text-[12px] leading-snug text-black">
+    <div className="mx-auto w-full max-w-[74mm] font-mono text-[12px] leading-snug bg-white text-black">
       <title>{`Comanda ${formatOrderNumber(order.number)}`}</title>
       <style>{"@page { size: 80mm auto; margin: 3mm } @media print { body { background: #fff } main { padding: 0 !important; margin: 0 !important; max-width: none !important } }"}</style>
       <PrintOnLoad />

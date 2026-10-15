@@ -83,7 +83,7 @@ test("cor principal e logo aparecem no cardápio", async ({ page }) => {
 
   await page.goto("/pizzaria-demo");
   await expect(page.getByRole("img", { name: "Logo de Pizzaria Demo" })).toBeVisible();
-  await expect(page.locator('[style*="--brand-primary:#1d4ed8"]')).toHaveCount(1);
+  await expect(page.locator('[style*="--primary:#1d4ed8"]')).toHaveCount(1);
 });
 
 test("turnos sobrepostos são recusados", async ({ page }) => {
