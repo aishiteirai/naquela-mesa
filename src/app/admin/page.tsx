@@ -4,6 +4,7 @@ import { requireSuperAdmin } from "@/modules/auth";
 import { STORE_TEMPLATES, TEMPLATE_LABELS } from "@/modules/onboarding";
 import { listStoresForAdmin } from "@/modules/stores";
 import { SignOutButton } from "@/app/_components/sign-out-button";
+import { ModeToggle } from "@/components/mode-toggle";
 import { secondaryButtonClass } from "@/app/_components/styles";
 import { startSupportAction } from "./actions";
 import { CreateStoreForm } from "./_components/create-store-form";
@@ -23,6 +24,7 @@ async function AdminContent() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <p className="text-sm text-neutral-700 dark:text-neutral-300">Olá, {admin.name}.</p>
+        <ModeToggle />
         <SignOutButton />
       </div>
 

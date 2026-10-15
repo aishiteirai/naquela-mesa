@@ -38,3 +38,10 @@ test("slug inválido não chega ao cache e mostra loja não encontrada", async (
   await page.goto("/Loja_Invalida");
   await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();
 });
+
+test("cardápio continua claro com o sistema em modo escuro", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/pizzaria-demo");
+  await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
+  await expect(page.locator("body")).toHaveCSS("background-color", "lab(100 0 0)");
+});

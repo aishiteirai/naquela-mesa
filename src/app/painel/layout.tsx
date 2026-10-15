@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignOutButton } from "@/app/_components/sign-out-button";
+import { ModeToggle } from "@/components/mode-toggle";
+import { PanelThemeProvider } from "@/components/panel-theme-provider";
 import { SupportBanner } from "./_components/support-banner";
 import { requireStoreAccess } from "./_lib/access";
 
@@ -32,7 +34,8 @@ async function PainelHeader() {
             Ver cardápio
           </a>
         </nav>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <ModeToggle />
           <SignOutButton />
         </div>
       </div>
@@ -42,13 +45,15 @@ async function PainelHeader() {
 
 export default function PainelLayout({ children }: LayoutProps<"/painel">) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="border-b print:hidden border-neutral-200 dark:border-neutral-800">
-        <Suspense fallback={<div className="h-14" />}>
-          <PainelHeader />
-        </Suspense>
-      </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</main>
-    </div>
+    <PanelThemeProvider>
+      <div className="flex min-h-dvh flex-col">
+        <header className="border-b print:hidden border-neutral-200 dark:border-neutral-800">
+          <Suspense fallback={<div className="h-14" />}>
+            <PainelHeader />
+          </Suspense>
+        </header>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</main>
+      </div>
+    </PanelThemeProvider>
   );
 }
