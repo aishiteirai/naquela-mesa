@@ -28,46 +28,45 @@ Sem mudança de regras de negócio ou backend, exceto o que a identidade da loja
 
 ### 3.1 Setup e tokens
 
-- Antes de codar, ler os guias relevantes em `node_modules/next/dist/docs/` (fontes, layout raiz, `cacheComponents`, componentes cliente no layout) — Next 16.4 tem mudanças incompatíveis com versões anteriores.
-- `npx shadcn init`: Tailwind v4, cor base **neutral**, primitivas Radix, `components.json`, componentes em `src/components/ui`, utilitário `cn` em `src/lib/utils.ts`, alias `@/` já existente.
-- `src/app/globals.css` adota o formato do shadcn: variáveis OKLCH em `:root` e `.dark`, mapeadas em `@theme inline`; `@custom-variant dark (&:is(.dark *))`; raio base `--radius: 0.625rem`.
-- Tokens adicionais em `@theme inline`:
-  - `--color-brand-secondary` / `--color-brand-secondary-foreground` (padrão: `--secondary` / `--secondary-foreground`);
-  - `--font-heading` (padrão: Geist sans).
-- Fontes via `next/font/google` no layout raiz: Geist e Geist Mono (já existentes) e Lora (serif, só para títulos de lojas com `font: "serif"`).
+- Antes de codar, ler os guias relevantes em `node_modules/next/dist/docs/` — Next 16.4 tem mudanças incompatíveis com versões anteriores.
+- `npx shadcn@4.21.5 init -t next -b radix -p nova`: Tailwind v4, cor base **neutral**, primitivas Radix, ícones lucide, `components.json`, componentes em `src/components/ui`, `cn` em `src/lib/utils.ts` (pacote `cn`, oficial do shadcn). Validado numa cópia descartável: lint, typecheck e build verdes.
+- `src/app/globals.css` adota o formato do shadcn: variáveis OKLCH em `:root` e `.dark`, mapeadas em `@theme inline`; raio base `--radius: 0.625rem`.
+- O `init` gera `--font-sans: var(--font-sans)` (autorreferência); corrigir para `var(--font-geist-sans)`.
+- Tokens adicionais:
+  - `--brand-secondary` / `--brand-secondary-foreground` (padrão em `:root`: `--secondary` / `--secondary-foreground`), mapeados como `bg-brand-secondary` etc.;
+  - `--heading-font` (padrão: Geist sans), usado por `font-heading` e pela regra base `h1, h2, h3 { font-family: var(--heading-font) }`.
+- Fontes via `next/font/google` no layout raiz: Geist e Geist Mono (já existentes) e Lora (`--font-lora`, `preload: false`, só para títulos de lojas com `font: "serif"`).
 
 ### 3.2 Tema da loja
 
-- **`src/shared/color.ts`**
-  - `parseHex(value: string): { r: number; g: number; b: number } | null` — aceita `#RGB` e `#RRGGBB`.
-  - `readableForeground(hex: string): string` — luminância relativa WCAG; retorna branco (`#ffffff`) ou quase-preto (`#0a0a0a`), o que der maior contraste. Com hex inválido, retorna o foreground padrão sem lançar.
-- **`<StoreTheme theme={store.theme}>`** (`src/app/[slug]/_components/store-theme.tsx`, componente de servidor)
-  - Renderiza uma `div` com `style` inline definindo:
-    - `--primary: theme.primary`, `--primary-foreground: readableForeground(theme.primary)`, `--ring: theme.primary`;
-    - `--brand-secondary: theme.secondary`, `--brand-secondary-foreground: readableForeground(theme.secondary)`;
-    - `--font-heading`: variável da Geist se `sans`, da Lora se `serif`.
-  - Como sobrescreve os tokens do próprio shadcn, todo componente (Button, Badge, anel de foco) dentro da loja já sai na cor dela.
-- **Aplicação:** novo `src/app/[slug]/layout.tsx` busca a loja pelo slug reaproveitando `getStorePageData` de `data.ts` (mesma cache tag `storeMenuTag`, sem consulta extra) e envolve as páginas com `<StoreTheme>`. Slug inexistente segue o comportamento atual de `not-found`.
-- Regra em `@layer base` do `globals.css`: `h1, h2, h3 { font-family: var(--font-heading) }` — sem editar telas. Fora da loja, `--font-heading` é Geist, então nada muda no painel. Classe utilitária `font-heading` também disponível para outros elementos.
-- O `<StoreTheme>` é exportado de forma reaproveitável para a pré-visualização de tema no painel (tela fica para o subprojeto 3).
+O código atual já tem a base: `src/modules/stores/theme.ts` exporta `readableTextColor(hex)` (luminância relativa WCAG, retorna `#000000`/`#FFFFFF`, testado) e `themeCssVariables(theme)`, aplicado por `style` inline num wrapper em `src/app/[slug]/page.tsx` e `src/app/[slug]/sacola/page.tsx`. As telas atuais usam `--brand-primary(-foreground)` e `--brand-secondary(-foreground)`. A Fundação estende isso em vez de criar módulo novo:
+
+- `themeCssVariables(theme)` passa a emitir também:
+  - `--primary: theme.primary`, `--primary-foreground: readableTextColor(theme.primary)`, `--ring: theme.primary`;
+  - `--heading-font`: `var(--font-geist-sans)` se `sans`, `var(--font-lora)` se `serif`.
+- As chaves `--brand-*` continuam (telas atuais e E2E dependem delas); o subprojeto 2 remove `--brand-primary*` quando as telas usarem `bg-primary`.
+- Como o wrapper sobrescreve os tokens do próprio shadcn, todo componente (Button, Badge, anel de foco) dentro da loja sai na cor dela.
+- Cor inválida: o schema (`hexColor`, `#RRGGBB`) já valida ao ler a loja; `readableTextColor` mantém o `RangeError` atual.
+- Fica como está: wrapper por página (sem `[slug]/layout.tsx`, que exigiria Suspense extra por causa de `params` com `cacheComponents`). A página de acompanhamento do pedido não recebe tema agora — subprojeto 2.
+- A pré-visualização de tema no painel reaproveita `themeCssVariables` (tela fica para o subprojeto 3).
 
 ### 3.3 Modo escuro
 
-- Dependência `next-themes`. `ThemeProvider` com `attribute="class"`, `defaultTheme="system"`, `enableSystem`, `disableTransitionOnChange`. `<html suppressHydrationWarning>`.
-- Um wrapper cliente (`src/components/theme-provider.tsx`) lê `usePathname()`:
-  - `/painel/*` e `/admin/*`: tema livre;
-  - `/painel/pedidos/[id]/imprimir`: `forcedTheme="light"`;
-  - qualquer outra rota: `forcedTheme="light"`.
-- Motivo: o `next-themes` aplica a classe no `<html>`; forçar por rota evita a classe `dark` vazar para o cardápio em navegação no cliente.
-- Se a leitura dos docs mostrar que `usePathname` no layout raiz conflita com `cacheComponents`, plano B: provider apenas nos layouts de `painel` e `admin`, e o layout raiz sem classe de tema (claro).
-- **`<ModeToggle>`** (`src/components/mode-toggle.tsx`): `DropdownMenu` com Claro / Escuro / Sistema, rótulos em pt-BR e `aria-label`. Colocado no header atual do painel e na página de admin.
+- Dependência `next-themes` (instalada pelo `shadcn add sonner`).
+- **Não** usar provider no layout raiz com `usePathname`: com `cacheComponents`, `usePathname` suspende em rotas com params dinâmicos (`/[slug]`), o que exigiria Suspense em volta do app inteiro (docs: `use-pathname.md`, seção Cache Components).
+- **`<PanelThemeProvider>`** (`src/components/panel-theme-provider.tsx`, cliente): `ThemeProvider` com `attribute="class"`, `defaultTheme="system"`, `enableSystem`, `disableTransitionOnChange`. Usado só em `src/app/painel/layout.tsx` e num novo `src/app/admin/layout.tsx`.
+  - Ao desmontar (ex.: "Sair" faz `router.push("/login")` no cliente), remove `dark`/`light` e `color-scheme` do `<html>`, para a classe não vazar para rotas claras.
+- Rotas fora de painel/admin nunca recebem `.dark`, logo ficam claras mesmo com o sistema em escuro.
+- **Impressão sempre clara:** os tokens `.dark` e a variante `dark:` do Tailwind valem só em `@media screen`. A página `/painel/pedidos/[id]/imprimir` segue o tema na tela e imprime clara.
+- `<html suppressHydrationWarning>` no layout raiz.
+- **`<ModeToggle>`** (`src/components/mode-toggle.tsx`): `DropdownMenu` com Claro / Escuro / Sistema; botão com `aria-label="Alternar tema"`. Colocado no header atual do painel e na página de admin.
 
 ### 3.4 Componentes base
 
 Instalados via `npx shadcn add`: `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `switch`, `radio-group`, `field`, `card`, `badge`, `separator`, `dialog`, `sheet`, `dropdown-menu`, `tabs`, `skeleton`, `alert`, `sonner`.
 
 - Não usar o `form` do shadcn (depende de react-hook-form); formulários continuam em Server Actions + `useActionState`, compostos com `Field` + `Label`.
-- `<Toaster>` (sonner) no layout raiz.
+- `<Toaster theme="light" />` (sonner) no layout raiz, fora do provider de tema; as cores do toast vêm dos tokens (`--popover` etc.), então seguem o modo escuro no painel.
 - Subprojetos adicionam outros componentes conforme a necessidade (`table`, `chart`, `sidebar`, etc.).
 - `src/app/_components/styles.ts` e `form-controls.tsx` permanecem até os subprojetos os tornarem obsoletos; o subprojeto 4 remove o que sobrar.
 
@@ -80,7 +79,8 @@ Instalados via `npx shadcn add`: `button`, `input`, `label`, `textarea`, `select
 
 ## 5. Testes e verificação
 
-- Unitários (Vitest) para `src/shared/color.ts`: `#RGB` e `#RRGGBB`, hex inválido, primária padrão `#B91C1C` → branco, secundária padrão `#F59E0B` → escuro, amarelo claro → escuro, preto → branco.
+- Unitários (Vitest) em `src/modules/stores/theme.test.ts`: `themeCssVariables` com fonte sans e serif, primária amarela → `--primary-foreground` preto.
+- E2E: cardápio com sistema em escuro continua claro; no painel, tema escuro persiste após reload, impressão sai clara e "Sair" volta ao claro.
 - `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` verdes.
 - `npm run test:int` e `npm run test:e2e` sem regressão (telas não mudam; ajustar seletores só se o wrapper de tema alterar algo).
 - Smoke manual no `npm run dev`:
@@ -91,4 +91,4 @@ Instalados via `npx shadcn add`: `button`, `input`, `label`, `textarea`, `select
 
 ## 6. Critério de pronto
 
-shadcn configurado; tokens e modo escuro funcionando conforme 3.3; `<StoreTheme>` aplicado no `[slug]` (cor e fonte da loja já visíveis nos botões e títulos atuais do cardápio); verificações da seção 5 verdes; commits na branch `frontend-shadcn` com o email do projeto.
+shadcn configurado; tokens e modo escuro funcionando conforme 3.3; `themeCssVariables` estendido (cor e fonte da loja já visíveis nos títulos atuais do cardápio e em qualquer componente shadcn dentro da loja); verificações da seção 5 verdes; commits na branch `frontend-shadcn` com o email do projeto.
