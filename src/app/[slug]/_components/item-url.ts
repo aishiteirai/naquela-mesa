@@ -6,6 +6,13 @@ import { ITEM_PARAM } from "@/app/[slug]/_lib/item-param";
 // (o mesmo que o botão voltar do celular). Aberto por link direto, fechar só limpa o parâmetro.
 let pushedByMenu = false;
 
+// Voltar do navegador/Android consome a entrada criada por openItem: sem isto a flag fica velha e um fechar posterior sairia da página.
+if (typeof window !== "undefined") {
+  window.addEventListener("popstate", () => {
+    pushedByMenu = false;
+  });
+}
+
 function urlWithItem(productId: string | null): string {
   const url = new URL(window.location.href);
   if (productId) url.searchParams.set(ITEM_PARAM, productId);
