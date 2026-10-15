@@ -1,7 +1,6 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { redirect } from "next/navigation";
 import {
   createCategory,
   createProduct,
@@ -124,11 +123,10 @@ export async function saveProductAction(_prev: ActionState, form: FormData): Pro
   const parsed = readProductForm(form);
   if ("error" in parsed) return parsed.error;
 
+  // Sem redirect: o painel lateral fecha sozinho ao receber o sucesso.
   const productId = text(form, "productId");
-  const state = await mutate(
+  return mutate(
     (storeId) => (productId ? updateProduct(storeId, productId, parsed.input) : createProduct(storeId, parsed.input)),
     "Produto salvo.",
   );
-  if (state.status === "success") redirect("/painel/cardapio");
-  return state;
 }

@@ -1,90 +1,102 @@
 "use client";
 
-import { useActionState } from "react";
+import { PencilIcon, PlusIcon } from "lucide-react";
+import { useCallback, useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import type { MenuOption, MenuOptionGroup } from "@/modules/catalog";
-import { formatCentsForInput } from "@/shared/money";
-import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
-import { inputClass } from "@/app/_components/styles";
-import { idleState } from "@/app/_lib/action-state";
-import { addOptionAction, updateOptionAction, updateOptionGroupAction } from "@/app/painel/(shell)/cardapio/adicionais/actions";
+import { formatBRL } from "@/shared/money";
+import { toggleOptionAvailabilityAction } from "@/app/painel/(shell)/cardapio/availability-actions";
+import { OptionForm, OptionGroupForm } from "./forms";
 
-function OptionRow({ option }: { option: MenuOption }) {
-  const [state, formAction] = useActionState(updateOptionAction, idleState);
+function ruleLabel(group: MenuOptionGroup): string {
+  if (group.minSelect === 0) return group.maxSelect === 1 ? "Opcional · até 1" : `Opcional · até ${group.maxSelect}`;
+  if (group.minSelect === group.maxSelect) return `Obrigatório · escolha ${group.minSelect}`;
+  return `Obrigatório · de ${group.minSelect} a ${group.maxSelect}`;
+}
+
+type Editing = { kind: "group" } | { kind: "option"; option: MenuOption | null } | null;
+
+function OptionRow({ option, onEdit }: { option: MenuOption; onEdit: () => void }) {
+  const [available, setOptimisticAvailable] = useOptimistic(option.available);
+  const [, startTransition] = useTransition();
+
+  function toggle(next: boolean) {
+    const form = new FormData();
+    form.set("optionId", option.id);
+    form.set("available", String(next));
+    startTransition(async () => {
+      setOptimisticAvailable(next);
+      try {
+        await toggleOptionAvailabilityAction(form);
+        toast.success(`${option.name} marcada como ${next ? "disponível" : "esgotada"}`);
+      } catch {
+        toast.error(`Não foi possível atualizar ${option.name}.`);
+      }
+    });
+  }
 
   return (
-    <li>
-      <form action={formAction} className="flex flex-wrap items-end gap-2">
-        <input type="hidden" name="optionId" value={option.id} />
-        <label className="flex flex-col gap-1 text-sm">
-          Opção
-          <input name="name" defaultValue={option.name} required maxLength={80} className={inputClass} />
-        </label>
-        <label className="flex w-28 flex-col gap-1 text-sm">
-          Preço
-          <input name="price" inputMode="decimal" defaultValue={formatCentsForInput(option.priceCents)} className={inputClass} />
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="available" defaultChecked={option.available} />
-          Disponível
-        </label>
-        <SubmitButton>Salvar opção</SubmitButton>
-        <FieldError state={state} name="name" />
-        <FieldError state={state} name="priceCents" />
-        <FormMessage state={state} />
-      </form>
+    <li className="flex items-center gap-3 py-2">
+      <span className="min-w-0 flex-1 truncate">{option.name}</span>
+      <span className="text-sm text-muted-foreground tabular-nums">{option.priceCents > 0 ? `+ ${formatBRL(option.priceCents)}` : "grátis"}</span>
+      <Switch checked={available} onCheckedChange={toggle} aria-label={`Disponível: ${option.name}`} />
+      <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label={`Editar ${option.name}`}>
+        <PencilIcon />
+      </Button>
     </li>
   );
 }
 
 export function OptionGroupCard({ group }: { group: MenuOptionGroup }) {
-  const [groupState, groupAction] = useActionState(updateOptionGroupAction, idleState);
-  const [optionState, optionAction] = useActionState(addOptionAction, idleState);
+  const [editing, setEditing] = useState<Editing>(null);
+  const close = useCallback(() => setEditing(null), []);
 
   return (
-    <section aria-label={group.name} className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-      <h2 className="text-lg font-semibold">{group.name}</h2>
+    <Card role="region" aria-label={group.name}>
+      <CardHeader>
+        <CardTitle>
+          <h2>{group.name}</h2>
+        </CardTitle>
+        <CardDescription>{ruleLabel(group)}</CardDescription>
+        <CardAction>
+          <Button variant="outline" size="sm" onClick={() => setEditing({ kind: "group" })} aria-label={`Editar grupo ${group.name}`}>
+            <PencilIcon />
+            Editar
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        {group.options.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma opção ainda.</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {group.options.map((option) => (
+              <OptionRow key={option.id} option={option} onEdit={() => setEditing({ kind: "option", option })} />
+            ))}
+          </ul>
+        )}
+        <Button variant="ghost" size="sm" className="self-start" onClick={() => setEditing({ kind: "option", option: null })}>
+          <PlusIcon />
+          Opção
+        </Button>
+      </CardContent>
 
-      <form action={groupAction} className="flex flex-wrap items-end gap-2">
-        <input type="hidden" name="groupId" value={group.id} />
-        <label className="flex flex-col gap-1 text-sm">
-          Nome do grupo
-          <input name="name" defaultValue={group.name} required maxLength={80} className={inputClass} />
-        </label>
-        <label className="flex w-24 flex-col gap-1 text-sm">
-          Mínimo
-          <input name="minSelect" type="number" min={0} defaultValue={group.minSelect} required className={inputClass} />
-        </label>
-        <label className="flex w-24 flex-col gap-1 text-sm">
-          Máximo
-          <input name="maxSelect" type="number" min={1} defaultValue={group.maxSelect} required className={inputClass} />
-        </label>
-        <SubmitButton>Salvar grupo</SubmitButton>
-        <FieldError state={groupState} name="name" />
-        <FieldError state={groupState} name="minSelect" />
-        <FormMessage state={groupState} />
-      </form>
-
-      <ul className="flex flex-col gap-3">
-        {group.options.map((option) => (
-          <OptionRow key={option.id} option={option} />
-        ))}
-      </ul>
-
-      <form action={optionAction} className="flex flex-wrap items-end gap-2">
-        <input type="hidden" name="groupId" value={group.id} />
-        <label className="flex flex-col gap-1 text-sm">
-          Nova opção
-          <input name="name" required maxLength={80} className={inputClass} />
-        </label>
-        <label className="flex w-28 flex-col gap-1 text-sm">
-          Preço da nova opção
-          <input name="price" inputMode="decimal" placeholder="0,00" className={inputClass} />
-        </label>
-        <SubmitButton>Adicionar opção</SubmitButton>
-        <FieldError state={optionState} name="name" />
-        <FieldError state={optionState} name="priceCents" />
-        <FormMessage state={optionState} />
-      </form>
-    </section>
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && close()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editing?.kind === "group" ? "Editar grupo" : editing?.kind === "option" && editing.option ? "Editar opção" : "Nova opção"}
+            </DialogTitle>
+            <DialogDescription>{group.name}</DialogDescription>
+          </DialogHeader>
+          {editing?.kind === "group" && <OptionGroupForm group={group} onDone={close} />}
+          {editing?.kind === "option" && <OptionForm groupId={group.id} option={editing.option} onDone={close} />}
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }

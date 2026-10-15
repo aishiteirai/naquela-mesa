@@ -1,28 +1,51 @@
 "use client";
 
-import { useActionState } from "react";
-import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
-import { inputClass } from "@/app/_components/styles";
+import { useActionState, useEffect, useId } from "react";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
 import { idleState } from "@/app/_lib/action-state";
-import { updateCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
+import { FormMessage, SubmitButton, TextField } from "@/app/painel/_components/form-fields";
+import { createCategoryAction, updateCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
 
-export function CategoryForm({ categoryId, name, active }: { categoryId: string; name: string; active: boolean }) {
-  const [state, formAction] = useActionState(updateCategoryAction, idleState);
+/** Renomear / ativar uma categoria (sem `categoryId`: cria uma nova). Chama `onDone` ao salvar. */
+export function CategoryForm({
+  category,
+  onDone,
+}: {
+  category: { id: string; name: string; active: boolean } | null;
+  onDone: () => void;
+}) {
+  const [state, formAction] = useActionState(category ? updateCategoryAction : createCategoryAction, idleState);
+  const activeId = useId();
+
+  useEffect(() => {
+    if (state.status === "success") onDone();
+  }, [state, onDone]);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-2">
-      <input type="hidden" name="categoryId" value={categoryId} />
-      <label className="flex flex-col gap-1 text-sm">
-        Nome da categoria
-        <input name="name" defaultValue={name} required maxLength={80} className={inputClass} />
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="active" defaultChecked={active} />
-        Ativa
-      </label>
-      <SubmitButton>Salvar categoria</SubmitButton>
-      <FieldError state={state} name="name" />
-      <FormMessage state={state} />
+    <form action={formAction} className="flex flex-col gap-6">
+      {category && <input type="hidden" name="categoryId" value={category.id} />}
+      <FieldGroup>
+        <TextField
+          label={category ? "Nome da categoria" : "Nova categoria"}
+          name="name"
+          state={state}
+          defaultValue={category?.name}
+          placeholder={category ? undefined : "Ex.: Pizzas"}
+          required
+          maxLength={80}
+        />
+        {category && (
+          <Field orientation="horizontal">
+            <Switch id={activeId} name="active" defaultChecked={category.active} />
+            <FieldLabel htmlFor={activeId}>Ativa (aparece no cardápio)</FieldLabel>
+          </Field>
+        )}
+      </FieldGroup>
+      <div className="flex flex-col gap-2">
+        <SubmitButton>{category ? "Salvar categoria" : "Adicionar categoria"}</SubmitButton>
+        {state.status === "error" && <FormMessage state={state} />}
+      </div>
     </form>
   );
 }
