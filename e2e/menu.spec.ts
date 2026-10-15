@@ -87,3 +87,13 @@ test("loja sem foto de capa mostra o topo em gradiente", async ({ page }) => {
   await page.goto("/pizzaria-demo");
   await expect(page.getByTestId("cover-fallback")).toBeVisible();
 });
+
+test("landing page mostra a proposta, como funciona e o convite final", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: "Pedidos como em casa, do celular do cliente para a sua cozinha." })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Como funciona" }).getByRole("listitem")).toHaveCount(3);
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Criar minha loja" }).click();
+  await expect(page).toHaveURL(/#comecar$/);
+  await expect(page.getByRole("heading", { name: "Vamos abrir a sua mesa?" })).toBeInViewport();
+  await expect(page.getByRole("img", { name: "Logo Naquela Mesa" })).toBeVisible();
+});
