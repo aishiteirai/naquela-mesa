@@ -4,7 +4,7 @@ PORT ?= 3000
 export PORT
 
 .DEFAULT_GOAL := help
-.PHONY: help setup update dev build start test e2e check env db-up db-migrate db-seed db-studio admin owner
+.PHONY: help setup update dev build start test e2e e2e-db check env db-up db-migrate db-seed db-studio admin owner
 
 help: ## Lista os comandos
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36mmake %-12s\033[0m %s\n", $$1, $$2}'
@@ -33,7 +33,11 @@ test: ## Lint, tipos, testes unitários e de integração
 	npm test
 	npm run test:int
 
-e2e: db-up db-migrate build ## Testes E2E (Playwright)
+# O E2E recria e altera a Pizzaria Demo: roda num banco próprio para não mexer nos dados do `make dev`.
+E2E_DATABASE_URL ?= postgres://naquela:naquela@localhost:5434/naquela_mesa_e2e
+
+e2e: export DATABASE_URL = $(E2E_DATABASE_URL)
+e2e: db-up e2e-db db-migrate build ## Testes E2E (Playwright), no banco naquela_mesa_e2e
 	ADMIN_PASSWORD=e2e-senha-123 npm run admin:ensure -- e2e-admin@naquelamesa.test "E2E Admin"
 	CI=1 npm run test:e2e
 
@@ -51,6 +55,10 @@ db-up: ## Sobe o Postgres local (Docker); reaproveita um que já esteja na porta
 	@npm run db:up --silent 2>/dev/null || \
 		(docker ps --format '{{.Ports}}' | grep -q ':5434->' && echo "Postgres já rodando na porta 5434 — usando o existente") || \
 		(echo "Não consegui subir o Postgres. Veja: docker compose up db"; exit 1)
+
+e2e-db: export DATABASE_URL = $(E2E_DATABASE_URL)
+e2e-db: ## Cria o banco do E2E se ainda não existir
+	node --import tsx scripts/ensure-database.ts
 
 db-migrate: ## Aplica as migrações
 	npm run db:migrate
