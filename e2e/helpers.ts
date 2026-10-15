@@ -15,7 +15,7 @@ export async function setStoreStatus(browser: Browser, label: "Abrir agora" | "F
   const context = await browser.newContext();
   const page = await context.newPage();
   await loginAsOwner(page);
-  await page.goto("/painel/loja");
+  await page.goto("/painel/loja?aba=horarios");
   await page.getByRole("button", { name: label }).click();
   await expect(page.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
   await context.close();

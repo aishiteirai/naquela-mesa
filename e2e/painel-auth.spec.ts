@@ -10,11 +10,15 @@ test("visitante sem sessão recebe 307 para o login com next", async ({ request 
 test("dono entra e cai na fila de pedidos da própria loja", async ({ page }) => {
   await loginAsOwner(page);
   await expect(page.getByRole("heading", { level: 1, name: "Pedidos" })).toBeVisible();
-  await expect(page.getByRole("banner")).toContainText("Pizzaria Demo");
-  await expect(page.getByRole("navigation", { name: "Painel" }).getByRole("link", { name: "Ver cardápio" })).toHaveAttribute(
-    "href",
-    "/pizzaria-demo",
-  );
+  await expect(page.locator('[data-slot="sidebar"]')).toContainText("Pizzaria Demo");
+  const nav = page.getByRole("navigation", { name: "Painel" });
+  await expect(nav.getByRole("link", { name: "Pedidos" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Ver cardápio" })).toHaveAttribute("href", "/pizzaria-demo");
+
+  await nav.getByRole("link", { name: "Adicionais" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Adicionais" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Adicionais" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Produtos" })).not.toHaveAttribute("aria-current", "page");
 });
 
 test("login respeita next interno e ignora next externo", async ({ page }) => {

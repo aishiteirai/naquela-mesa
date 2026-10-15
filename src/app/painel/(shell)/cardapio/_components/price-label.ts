@@ -1,4 +1,4 @@
-import { startingPriceCents, type EditorProduct } from "@/modules/catalog";
+import { startingPriceCents, type EditorProduct } from "@/modules/catalog/client";
 import { formatBRL } from "@/shared/money";
 
 export function editorPriceLabel(product: EditorProduct): string {
