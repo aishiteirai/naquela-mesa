@@ -37,6 +37,8 @@ const HEADING_FONTS: Record<StoreTheme["font"], string> = {
 // e os títulos dentro da loja usarem a marca dela.
 export function themeCssVariables(theme: StoreTheme) {
   const primaryForeground = readableTextColor(theme.primary);
+  // shadcn desenha o foco em ring/50; uma cor primária clara ficaria quase invisível sobre o branco,
+  // então o anel só usa a primária quando ela é escura (texto branco).
   return {
     "--brand-primary": theme.primary,
     "--brand-primary-foreground": primaryForeground,
@@ -44,7 +46,7 @@ export function themeCssVariables(theme: StoreTheme) {
     "--brand-secondary-foreground": readableTextColor(theme.secondary),
     "--primary": theme.primary,
     "--primary-foreground": primaryForeground,
-    "--ring": theme.primary,
+    "--ring": primaryForeground === "#FFFFFF" ? theme.primary : "#000000",
     "--heading-font": HEADING_FONTS[theme.font],
   };
 }

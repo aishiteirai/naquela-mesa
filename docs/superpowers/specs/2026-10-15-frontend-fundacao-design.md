@@ -42,13 +42,14 @@ Sem mudança de regras de negócio ou backend, exceto o que a identidade da loja
 O código atual já tem a base: `src/modules/stores/theme.ts` exporta `readableTextColor(hex)` (luminância relativa WCAG, retorna `#000000`/`#FFFFFF`, testado) e `themeCssVariables(theme)`, aplicado por `style` inline num wrapper em `src/app/[slug]/page.tsx` e `src/app/[slug]/sacola/page.tsx`. As telas atuais usam `--brand-primary(-foreground)` e `--brand-secondary(-foreground)`. A Fundação estende isso em vez de criar módulo novo:
 
 - `themeCssVariables(theme)` passa a emitir também:
-  - `--primary: theme.primary`, `--primary-foreground: readableTextColor(theme.primary)`, `--ring: theme.primary`;
+  - `--primary: theme.primary`, `--primary-foreground: readableTextColor(theme.primary)`, `--ring: theme.primary` se a primária for escura; `#000000` se for clara (anel de foco visível);
   - `--heading-font`: `var(--font-geist-sans)` se `sans`, `var(--font-lora)` se `serif`.
 - As chaves `--brand-*` continuam (telas atuais e E2E dependem delas); o subprojeto 2 remove `--brand-primary*` quando as telas usarem `bg-primary`.
 - Como o wrapper sobrescreve os tokens do próprio shadcn, todo componente (Button, Badge, anel de foco) dentro da loja sai na cor dela.
 - Cor inválida: o schema (`hexColor`, `#RRGGBB`) já valida ao ler a loja; `readableTextColor` mantém o `RangeError` atual.
 - Fica como está: wrapper por página (sem `[slug]/layout.tsx`, que exigiria Suspense extra por causa de `params` com `cacheComponents`). A página de acompanhamento do pedido não recebe tema agora — subprojeto 2.
 - A pré-visualização de tema no painel reaproveita `themeCssVariables` (tela fica para o subprojeto 3).
+- **Componentes em portal** (Dialog, Sheet, Select, DropdownMenu do shadcn) renderizam fora do wrapper da loja, direto no `<body>`, e perderiam as variáveis. Decisão: no subprojeto 2, as rotas da loja aplicam as mesmas variáveis também no `<html>` por um componente cliente pequeno (`StoreThemeRoot`, efeito que define as variáveis e as remove ao desmontar). Não implementado na Fundação porque o cardápio ainda não usa nenhum componente em portal.
 
 ### 3.3 Modo escuro
 

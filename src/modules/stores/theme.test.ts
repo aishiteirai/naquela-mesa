@@ -42,5 +42,6 @@ describe("themeCssVariables", () => {
     const vars = themeCssVariables({ primary: "#ffff00", secondary: "#F59E0B", font: "sans" });
     expect(vars["--primary-foreground"]).toBe("#000000");
     expect(vars["--brand-primary-foreground"]).toBe("#000000");
+    expect(vars["--ring"]).toBe("#000000");
   });
 });
