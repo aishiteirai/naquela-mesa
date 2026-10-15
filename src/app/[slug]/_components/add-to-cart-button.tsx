@@ -11,7 +11,7 @@ export function AddToCartButton({ productId, productName }: { productId: string;
         type="button"
         aria-label={`Adicionar ${productName}`}
         onClick={() => setOpen(true)}
-        className="rounded-full bg-(--brand-primary) px-4 py-1.5 text-sm font-semibold text-(--brand-primary-foreground)"
+        className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground"
       >
         Adicionar
       </button>

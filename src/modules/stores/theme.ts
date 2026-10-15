@@ -33,15 +33,13 @@ const HEADING_FONTS: Record<StoreTheme["font"], string> = {
   serif: "var(--font-lora)",
 };
 
-// --brand-* atendem as telas atuais; --primary/--ring/--heading-font fazem os componentes shadcn
-// e os títulos dentro da loja usarem a marca dela.
+// --primary/--ring/--heading-font fazem os componentes shadcn e os títulos dentro da loja usarem a marca dela;
+// --brand-secondary* atende acentos (selo de status, gradiente da capa).
 export function themeCssVariables(theme: StoreTheme) {
   const primaryForeground = readableTextColor(theme.primary);
   // shadcn desenha o foco em ring/50; uma cor primária clara ficaria quase invisível sobre o branco,
   // então o anel só usa a primária quando ela é escura (texto branco).
   return {
-    "--brand-primary": theme.primary,
-    "--brand-primary-foreground": primaryForeground,
     "--brand-secondary": theme.secondary,
     "--brand-secondary-foreground": readableTextColor(theme.secondary),
     "--primary": theme.primary,

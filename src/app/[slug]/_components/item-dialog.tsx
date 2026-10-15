@@ -224,7 +224,7 @@ export function ItemDialog({ productId, onClose }: { productId: string; onClose:
           type="button"
           onClick={addToCart}
           disabled={!("line" in priced)}
-          className="rounded bg-(--brand-primary) px-4 py-3 font-semibold text-(--brand-primary-foreground) disabled:opacity-50"
+          className="rounded bg-primary px-4 py-3 font-semibold text-primary-foreground disabled:opacity-50"
         >
           {"line" in priced ? `Adicionar · ${formatBRL(priced.line.totalCents)}` : "Adicionar"}
         </button>

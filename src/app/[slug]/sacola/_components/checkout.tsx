@@ -327,7 +327,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           type="button"
           onClick={confirm}
           disabled={pending || !quote}
-          className="rounded bg-(--brand-primary) px-4 py-3 font-semibold text-(--brand-primary-foreground) disabled:opacity-50"
+          className="rounded bg-primary px-4 py-3 font-semibold text-primary-foreground disabled:opacity-50"
         >
           Confirmar pedido
         </button>

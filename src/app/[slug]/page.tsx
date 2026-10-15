@@ -1,7 +1,6 @@
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { SLUG_PATTERN, themeCssVariables } from "@/modules/stores";
+import { SLUG_PATTERN } from "@/modules/stores";
 import { CartBar } from "./_components/cart-bar";
 import { CartProvider } from "./_components/cart-context";
 import { CategoryNav, categoryAnchor } from "./_components/category-nav";
@@ -10,6 +9,7 @@ import { OpenStatus } from "./_components/open-status";
 import { ProductCard } from "./_components/product-card";
 import { StoreFooter } from "./_components/store-footer";
 import { StoreHeader } from "./_components/store-header";
+import { StoreShell } from "./_components/store-shell";
 import { getStorePageData } from "./data";
 
 async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,7 +20,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
   const { store, menu } = data;
 
   return (
-    <div style={themeCssVariables(store.theme) as CSSProperties} className="flex flex-1 flex-col">
+    <StoreShell theme={store.theme}>
       <title>{`${store.name} | Naquela Mesa`}</title>
       <MenuProvider
         value={{
@@ -56,7 +56,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
           <CartBar slug={store.slug} />
         </CartProvider>
       </MenuProvider>
-    </div>
+    </StoreShell>
   );
 }
 

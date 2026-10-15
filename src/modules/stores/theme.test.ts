@@ -21,8 +21,6 @@ describe("readableTextColor", () => {
 describe("themeCssVariables", () => {
   it("gera variáveis da marca e sobrescreve os tokens do shadcn", () => {
     expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" })).toEqual({
-      "--brand-primary": "#B91C1C",
-      "--brand-primary-foreground": "#FFFFFF",
       "--brand-secondary": "#F59E0B",
       "--brand-secondary-foreground": "#000000",
       "--primary": "#B91C1C",
@@ -41,7 +39,6 @@ describe("themeCssVariables", () => {
   it("primária clara ganha texto preto nos botões", () => {
     const vars = themeCssVariables({ primary: "#ffff00", secondary: "#F59E0B", font: "sans" });
     expect(vars["--primary-foreground"]).toBe("#000000");
-    expect(vars["--brand-primary-foreground"]).toBe("#000000");
     expect(vars["--ring"]).toBe("#000000");
   });
 });

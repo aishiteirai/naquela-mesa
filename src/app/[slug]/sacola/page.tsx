@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
-import { SLUG_PATTERN, themeCssVariables } from "@/modules/stores";
+import { SLUG_PATTERN } from "@/modules/stores";
 import { CartProvider } from "@/app/[slug]/_components/cart-context";
+import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { getStorePageData } from "@/app/[slug]/data";
 import { Checkout } from "./_components/checkout";
 
@@ -15,7 +15,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
   const { store, zones } = data;
 
   return (
-    <div style={themeCssVariables(store.theme) as CSSProperties} className="flex flex-1 flex-col">
+    <StoreShell theme={store.theme}>
       <title>{`Sacola | ${store.name}`}</title>
       <CartProvider slug={store.slug}>
         <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
@@ -34,7 +34,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
           />
         </main>
       </CartProvider>
-    </div>
+    </StoreShell>
   );
 }
 

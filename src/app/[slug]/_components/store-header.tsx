@@ -4,7 +4,7 @@ import type { Store } from "@/modules/stores";
 
 export function StoreHeader({ store, status }: { store: Store; status: ReactNode }) {
   return (
-    <header className="bg-(--brand-primary) text-(--brand-primary-foreground)">
+    <header className="bg-primary text-primary-foreground">
       {store.bannerUrl && (
         <div className="relative h-32 w-full sm:h-48">
           <Image src={store.bannerUrl} alt="" fill unoptimized className="object-cover" />

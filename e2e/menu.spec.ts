@@ -45,3 +45,14 @@ test("cardápio continua claro com o sistema em modo escuro", async ({ page }) =
   await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
   await expect(page.locator("body")).toHaveCSS("background-color", "lab(100 0 0)");
 });
+
+test("tema da loja vale no <html> (componentes em portal) e sai ao deixar a loja", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  const html = page.locator("html");
+  const primary = () => html.evaluate((element) => element.style.getPropertyValue("--primary"));
+  await expect.poll(primary).not.toBe("");
+
+  await page.getByRole("link", { name: "Política de privacidade" }).click();
+  await expect(page).toHaveURL(/\/privacidade$/);
+  await expect.poll(primary).toBe("");
+});

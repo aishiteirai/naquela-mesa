@@ -13,7 +13,7 @@ export function CartBar({ slug }: { slug: string }) {
       <Link
         href={`/${slug}/sacola`}
         aria-label="Ver sacola"
-        className="mx-auto flex max-w-3xl items-center justify-between rounded-lg bg-(--brand-primary) px-4 py-3 font-semibold text-(--brand-primary-foreground) shadow-lg"
+        className="mx-auto flex max-w-3xl items-center justify-between rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-lg"
       >
         <span>Ver sacola ({cart.count})</span>
         <span>{formatBRL(cart.estimatedSubtotalCents)}</span>
