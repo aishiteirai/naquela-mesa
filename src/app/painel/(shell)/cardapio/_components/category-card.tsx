@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { startingPriceCents, type EditorCategory } from "@/modules/catalog";
 import { formatBRL } from "@/shared/money";
-import { moveCategoryAction, moveProductAction } from "@/app/painel/cardapio/actions";
+import { moveCategoryAction, moveProductAction } from "@/app/painel/(shell)/cardapio/actions";
 import { CategoryForm } from "./category-form";
 import { MoveButtons } from "./move-buttons";
 import { SizesEditor } from "./sizes-editor";

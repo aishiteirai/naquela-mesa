@@ -7,7 +7,7 @@ import { formatCentsForInput } from "@/shared/money";
 import { FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { saveZonesAction } from "@/app/painel/loja/actions";
+import { saveZonesAction } from "@/app/painel/(shell)/loja/actions";
 
 type Row = { key: string; neighborhood: string; fee: string };
 

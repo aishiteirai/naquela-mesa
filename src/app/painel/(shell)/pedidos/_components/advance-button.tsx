@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import type { OrderStatus } from "@/modules/orders/client";
 import { idleState } from "@/app/_lib/action-state";
-import { advanceOrderAction } from "@/app/painel/pedidos/actions";
+import { advanceOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 
 export function AdvanceButton({ orderId, to, label, orderLabel, printUrl }: { orderId: string; to: OrderStatus; label: string; orderLabel: string; printUrl?: string }) {

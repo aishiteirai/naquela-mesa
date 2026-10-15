@@ -5,7 +5,7 @@ import type { EditorSize } from "@/modules/catalog";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { createSizeAction, deleteSizeAction, moveSizeAction, updateSizeAction } from "@/app/painel/cardapio/actions";
+import { createSizeAction, deleteSizeAction, moveSizeAction, updateSizeAction } from "@/app/painel/(shell)/cardapio/actions";
 
 function FlavorsSelect({ name, label, defaultValue }: { name: string; label: string; defaultValue: number }) {
   return (

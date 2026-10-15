@@ -8,7 +8,7 @@ import { ImageUploadField } from "@/app/_components/image-upload-field";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { saveProductAction } from "@/app/painel/cardapio/actions";
+import { saveProductAction } from "@/app/painel/(shell)/cardapio/actions";
 
 type Props = {
   category: Pick<EditorCategory, "id" | "name" | "sizes">;

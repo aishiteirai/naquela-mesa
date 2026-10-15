@@ -1,5 +1,5 @@
 import type { ManualStatus } from "@/modules/stores";
-import { setManualStatusAction } from "@/app/painel/loja/actions";
+import { setManualStatusAction } from "@/app/painel/(shell)/loja/actions";
 
 const OPTIONS: { value: ManualStatus; label: string }[] = [
   { value: "auto", label: "Automático" },

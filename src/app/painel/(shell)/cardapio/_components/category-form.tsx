@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { updateCategoryAction } from "@/app/painel/cardapio/actions";
+import { updateCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
 
 export function CategoryForm({ categoryId, name, active }: { categoryId: string; name: string; active: boolean }) {
   const [state, formAction] = useActionState(updateCategoryAction, idleState);

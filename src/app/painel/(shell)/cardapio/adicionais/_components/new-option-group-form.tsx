@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { createOptionGroupAction } from "@/app/painel/cardapio/adicionais/actions";
+import { createOptionGroupAction } from "@/app/painel/(shell)/cardapio/adicionais/actions";
 
 export function NewOptionGroupForm() {
   const [state, formAction] = useActionState(createOptionGroupAction, idleState);

@@ -7,7 +7,7 @@ import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-co
 import { ImageUploadField } from "@/app/_components/image-upload-field";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { saveProfileAction } from "@/app/painel/loja/actions";
+import { saveProfileAction } from "@/app/painel/(shell)/loja/actions";
 
 type Props = Pick<Store, "name" | "address" | "whatsappPhone" | "logoUrl" | "bannerUrl"> & { primary: string; secondary: string };
 

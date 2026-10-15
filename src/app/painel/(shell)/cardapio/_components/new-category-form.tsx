@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { createCategoryAction } from "@/app/painel/cardapio/actions";
+import { createCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
 
 export function NewCategoryForm() {
   const [state, formAction] = useActionState(createCategoryAction, idleState);

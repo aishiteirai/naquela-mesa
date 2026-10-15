@@ -6,7 +6,7 @@ import { formatCentsForInput } from "@/shared/money";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { saveOperationsAction } from "@/app/painel/loja/actions";
+import { saveOperationsAction } from "@/app/painel/(shell)/loja/actions";
 
 function Check({ name, label, defaultChecked }: { name: string; label: string; defaultChecked: boolean }) {
   return (

@@ -6,7 +6,7 @@ import type { StoreHour } from "@/modules/stores";
 import { FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { saveHoursAction } from "@/app/painel/loja/actions";
+import { saveHoursAction } from "@/app/painel/(shell)/loja/actions";
 
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 

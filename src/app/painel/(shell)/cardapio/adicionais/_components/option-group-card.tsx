@@ -6,7 +6,7 @@ import { formatCentsForInput } from "@/shared/money";
 import { FieldError, FormMessage, SubmitButton } from "@/app/_components/form-controls";
 import { inputClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { addOptionAction, updateOptionAction, updateOptionGroupAction } from "@/app/painel/cardapio/adicionais/actions";
+import { addOptionAction, updateOptionAction, updateOptionGroupAction } from "@/app/painel/(shell)/cardapio/adicionais/actions";
 
 function OptionRow({ option }: { option: MenuOption }) {
   const [state, formAction] = useActionState(updateOptionAction, idleState);

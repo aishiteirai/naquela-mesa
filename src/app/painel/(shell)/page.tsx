@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getQueueVersion, listQueue, type QueueOrder } from "@/modules/orders";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
-import { OnboardingChecklist } from "./_components/onboarding-checklist";
+import { OnboardingChecklist } from "@/app/painel/_components/onboarding-checklist";
 import { OrderCard } from "./pedidos/_components/order-card";
 import { QueueNoticeProvider } from "./pedidos/_components/queue-notice";
 import { QueuePoller } from "./pedidos/_components/queue-poller";

@@ -5,7 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { FieldError } from "@/app/_components/form-controls";
 import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
 import { idleState } from "@/app/_lib/action-state";
-import { cancelOrderAction } from "@/app/painel/pedidos/actions";
+import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 
 export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabel: string }) {
