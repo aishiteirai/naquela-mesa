@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { FieldError } from "@/app/_components/form-controls";
-import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
+import { Button } from "@/components/ui/button";
 import { idleState } from "@/app/_lib/action-state";
+import { TextField } from "@/app/painel/_components/form-fields";
 import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 
@@ -26,27 +26,23 @@ export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabe
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} aria-label={`Cancelar pedido ${orderLabel}`} className={secondaryButtonClass}>
+      <Button type="button" variant="ghost" onClick={() => setOpen(true)} aria-label={`Cancelar pedido ${orderLabel}`} className="text-destructive">
         Cancelar
-      </button>
+      </Button>
     );
   }
 
   return (
-    <form action={formAction} className="flex w-full flex-col gap-2">
+    <form action={formAction} className="flex w-full flex-col gap-2 rounded-lg border border-destructive/40 p-3">
       <input type="hidden" name="orderId" value={orderId} />
-      <label className="flex flex-col gap-1 text-sm">
-        Motivo do cancelamento
-        <input name="cancelReason" maxLength={200} className={inputClass} />
-      </label>
-      <FieldError state={state} name="cancelReason" />
+      <TextField label="Motivo do cancelamento" name="cancelReason" state={state} maxLength={200} autoFocus />
       <div className="flex gap-2">
-        <button type="submit" disabled={pending} className="rounded bg-red-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50">
+        <Button type="submit" variant="destructive" disabled={pending}>
           Confirmar cancelamento
-        </button>
-        <button type="button" onClick={() => setOpen(false)} className={secondaryButtonClass}>
+        </Button>
+        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
           Voltar
-        </button>
+        </Button>
       </div>
     </form>
   );

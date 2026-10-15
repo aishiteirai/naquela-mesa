@@ -10,7 +10,8 @@ import {
   type Period,
 } from "@/modules/orders";
 import { formatBRL } from "@/shared/money";
-import { secondaryButtonClass } from "@/app/_components/styles";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { PeriodFields } from "@/app/painel/_components/period-fields";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { firstParam } from "@/app/painel/_lib/search-params";
@@ -20,10 +21,12 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 function Indicator({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-      <dt className="text-sm text-neutral-700 dark:text-neutral-300">{label}</dt>
-      <dd className="text-2xl font-semibold tabular-nums">{value}</dd>
-    </div>
+    <Card size="sm">
+      <CardContent className="flex flex-col gap-1">
+        <dt className="text-sm text-muted-foreground">{label}</dt>
+        <dd className="text-2xl font-semibold tabular-nums">{value}</dd>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -33,7 +36,7 @@ async function Report({ storeId, timeZone, period }: { storeId: string; timeZone
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+      <p className="text-sm text-muted-foreground">
         {PERIOD_LABELS[period.preset]} · {formatPeriodRange(period)}
       </p>
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -42,13 +45,13 @@ async function Report({ storeId, timeZone, period }: { storeId: string; timeZone
         <Indicator label="Ticket médio" value={formatBRL(metrics.averageTicketCents)} />
         <Indicator label="Cancelamentos" value={String(metrics.cancelledCount)} />
       </dl>
-      <p className="text-xs text-neutral-700 dark:text-neutral-300">
+      <p className="text-xs text-muted-foreground">
         Faturamento, pedidos, ticket médio e gráficos consideram todos os pedidos, exceto os cancelados.
       </p>
       {empty ? (
-        <p>Nenhum pedido neste período.</p>
+        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">Nenhum pedido neste período.</p>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           <BarList
             title="Mais vendidos (top 10)"
             items={metrics.topProducts.map((product) => ({
@@ -99,21 +102,19 @@ async function Metrics({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <form aria-label="Período" className="flex flex-wrap items-end gap-3">
+      <form aria-label="Período" className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-3">
         <PeriodFields
           preset={result.ok ? result.period.preset : "personalizado"}
           from={result.ok ? result.period.from : (input.from ?? "")}
           to={result.ok ? result.period.to : (input.to ?? "")}
         />
-        <button type="submit" className={secondaryButtonClass}>
-          Aplicar
-        </button>
-        <p className="w-full text-xs text-neutral-700 dark:text-neutral-300">&quot;De&quot; e &quot;Até&quot; valem para o período Personalizado.</p>
+        <Button type="submit">Aplicar</Button>
+        <p className="w-full text-xs text-muted-foreground">&quot;De&quot; e &quot;Até&quot; valem para o período Personalizado.</p>
       </form>
       {result.ok ? (
         <Report storeId={store.id} timeZone={store.timezone} period={result.period} />
       ) : (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className="text-sm text-destructive">
           {result.message}
         </p>
       )}
@@ -125,7 +126,7 @@ export default function MetricasPage({ searchParams }: PageProps<"/painel/metric
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Métricas</h1>
-      <Suspense fallback={<p>Carregando métricas...</p>}>
+      <Suspense fallback={<p className="text-muted-foreground">Carregando métricas...</p>}>
         <Metrics searchParams={searchParams} />
       </Suspense>
     </div>

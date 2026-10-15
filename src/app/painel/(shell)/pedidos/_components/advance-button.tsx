@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import type { OrderStatus } from "@/modules/orders/client";
+import { Button } from "@/components/ui/button";
 import { idleState } from "@/app/_lib/action-state";
 import { advanceOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
@@ -28,14 +29,9 @@ export function AdvanceButton({ orderId, to, label, orderLabel, printUrl }: { or
     >
       <input type="hidden" name="orderId" value={orderId} />
       <input type="hidden" name="to" value={to} />
-      <button
-        type="submit"
-        disabled={pending}
-        aria-label={`${label} ${orderLabel}`}
-        className="rounded bg-neutral-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
-      >
+      <Button type="submit" disabled={pending} aria-label={`${label} ${orderLabel}`}>
         {label}
-      </button>
+      </Button>
     </form>
   );
 }

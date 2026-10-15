@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Badge } from "@/components/ui/badge";
 import { getQueueVersion, listQueue, type QueueOrder } from "@/modules/orders";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { OnboardingChecklist } from "@/app/painel/_components/onboarding-checklist";
@@ -26,11 +27,14 @@ async function Queue() {
         {COLUMNS.map((column) => {
           const columnOrders = orders.filter((order) => column.statuses.includes(order.status));
           return (
-            <section key={column.title} aria-label={column.title} className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold">
-                {column.title} <span className="text-neutral-700 dark:text-neutral-300">({columnOrders.length})</span>
+            <section key={column.title} aria-label={column.title} className="flex flex-col gap-3 rounded-xl bg-muted/50 p-3">
+              <h2 className="flex items-center gap-2 font-semibold">
+                {column.title}
+                <Badge variant="secondary" className="tabular-nums">
+                  {columnOrders.length}
+                </Badge>
               </h2>
-              {columnOrders.length === 0 && <p className="text-sm text-neutral-700 dark:text-neutral-300">Nenhum pedido.</p>}
+              {columnOrders.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Nenhum pedido.</p>}
               {columnOrders.map((order) => (
                 <OrderCard
                   key={order.id}
@@ -56,7 +60,7 @@ export default function PedidosPage() {
       <Suspense fallback={null}>
         <OnboardingChecklist />
       </Suspense>
-      <Suspense fallback={<p>Carregando pedidos...</p>}>
+      <Suspense fallback={<p className="text-muted-foreground">Carregando pedidos...</p>}>
         <Queue />
       </Suspense>
     </div>

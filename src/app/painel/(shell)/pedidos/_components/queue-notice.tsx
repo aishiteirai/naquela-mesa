@@ -1,6 +1,8 @@
 "use client";
 
+import { InfoIcon } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 
 const NOTICE_MS = 6_000;
 const NoticeContext = createContext<(message: string) => void>(() => {});
@@ -16,9 +18,10 @@ export function QueueNoticeProvider({ children }: { children: ReactNode }) {
   return (
     <NoticeContext value={show}>
       {notice && (
-        <p role="status" data-testid="queue-notice" className="rounded bg-amber-100 px-3 py-2 text-sm text-amber-950 dark:bg-amber-900 dark:text-amber-50">
-          {notice.text}
-        </p>
+        <Alert role="status" data-testid="queue-notice">
+          <InfoIcon />
+          <AlertTitle>{notice.text}</AlertTitle>
+        </Alert>
       )}
       {children}
     </NoticeContext>

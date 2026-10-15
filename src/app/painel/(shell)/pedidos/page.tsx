@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { listOrderHistory, ORDER_STATUSES, resolvePeriod, statusLabel, type OrderStatus, type Period } from "@/modules/orders";
-import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
+import { Button } from "@/components/ui/button";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/app/painel/_components/native-select";
 import { PeriodFields } from "@/app/painel/_components/period-fields";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { firstParam } from "@/app/painel/_lib/search-params";
-import { HistoryItem } from "./_components/history-item";
+import { HistoryList } from "./_components/history-list";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type Query = { status: OrderStatus | null; search: string | null };
@@ -36,31 +39,30 @@ async function Results({
   requestedPage: number;
 }) {
   const history = await listOrderHistory(storeId, { start: period.start, end: period.end, ...query, page: requestedPage });
+  const whenFormat = new Intl.DateTimeFormat("pt-BR", { timeZone, dateStyle: "short", timeStyle: "short" });
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        {history.total === 1 ? "1 pedido" : `${history.total} pedidos`}
-      </p>
+      <p className="text-sm text-muted-foreground">{history.total === 1 ? "1 pedido" : `${history.total} pedidos`}</p>
       {history.orders.length === 0 ? (
-        <p>Nenhum pedido encontrado.</p>
+        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">Nenhum pedido encontrado.</p>
       ) : (
-        history.orders.map((order) => <HistoryItem key={order.id} order={order} timeZone={timeZone} />)
+        <HistoryList rows={history.orders.map((order) => ({ order, when: whenFormat.format(new Date(order.createdAt)) }))} />
       )}
       {history.pageCount > 1 && (
         <nav aria-label="Paginação" className="flex items-center gap-3 text-sm">
           {history.page > 1 && (
-            <Link href={pageHref(period, query, history.page - 1)} className="underline">
-              Anterior
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={pageHref(period, query, history.page - 1)}>Anterior</Link>
+            </Button>
           )}
-          <span>
+          <span className="text-muted-foreground">
             Página {history.page} de {history.pageCount}
           </span>
           {history.page < history.pageCount && (
-            <Link href={pageHref(period, query, history.page + 1)} className="underline">
-              Próxima
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={pageHref(period, query, history.page + 1)}>Próxima</Link>
+            </Button>
           )}
         </nav>
       )}
@@ -81,35 +83,33 @@ async function History({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <form aria-label="Filtros" className="flex flex-wrap items-end gap-3">
+      <form aria-label="Filtros" className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-3">
         <PeriodFields
           preset={result.ok ? result.period.preset : "personalizado"}
           from={result.ok ? result.period.from : (input.from ?? "")}
           to={result.ok ? result.period.to : (input.to ?? "")}
         />
-        <label className="flex flex-col gap-1 text-sm">
-          Status
-          <select name="status" defaultValue={query.status ?? ""} className={inputClass}>
+        <Field className="w-auto">
+          <FieldLabel htmlFor="filtro-status">Status</FieldLabel>
+          <NativeSelect id="filtro-status" name="status" defaultValue={query.status ?? ""}>
             <option value="">Todos</option>
             {ORDER_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {statusLabel(status, "delivery")}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Buscar
-          <input type="search" name="q" defaultValue={query.search ?? ""} placeholder="Nº, nome ou telefone" maxLength={80} className={inputClass} />
-        </label>
-        <button type="submit" className={secondaryButtonClass}>
-          Filtrar
-        </button>
+          </NativeSelect>
+        </Field>
+        <Field className="w-auto">
+          <FieldLabel htmlFor="filtro-busca">Buscar</FieldLabel>
+          <Input id="filtro-busca" type="search" name="q" defaultValue={query.search ?? ""} placeholder="Nº, nome ou telefone" maxLength={80} />
+        </Field>
+        <Button type="submit">Filtrar</Button>
       </form>
       {result.ok ? (
         <Results storeId={store.id} timeZone={store.timezone} period={result.period} query={query} requestedPage={requestedPage} />
       ) : (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className="text-sm text-destructive">
           {result.message}
         </p>
       )}
@@ -121,7 +121,7 @@ export default function HistoricoPage({ searchParams }: PageProps<"/painel/pedid
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Histórico de pedidos</h1>
-      <Suspense fallback={<p>Carregando pedidos...</p>}>
+      <Suspense fallback={<p className="text-muted-foreground">Carregando pedidos...</p>}>
         <History searchParams={searchParams} />
       </Suspense>
     </div>

@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { BellRingIcon, WifiOffIcon } from "lucide-react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { createAlertSound } from "./alert-sound";
 
 const BASE_INTERVAL = 5_000;
@@ -182,16 +185,21 @@ export function QueuePoller({ initialVersion, initialReceived, initialTotal }: {
   return (
     <div className="flex flex-col gap-2">
       {offline && (
-        <p role="status" className="rounded bg-red-100 px-3 py-2 text-sm text-red-900 dark:bg-red-950 dark:text-red-100">
-          Sem conexão — tentando reconectar
-        </p>
+        <Alert variant="destructive" role="status">
+          <WifiOffIcon />
+          <AlertTitle>Sem conexão — tentando reconectar</AlertTitle>
+        </Alert>
       )}
       {started ? (
-        <p className="text-sm text-green-800 dark:text-green-300">Atendimento ativo: alerta sonoro ligado</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span aria-hidden="true" className="size-2 animate-pulse rounded-full bg-primary" />
+          Atendimento ativo: alerta sonoro ligado
+        </p>
       ) : (
-        <button type="button" onClick={start} className="self-start rounded bg-green-700 px-4 py-2 text-sm font-semibold text-white">
+        <Button type="button" size="lg" onClick={start} className="self-start">
+          <BellRingIcon />
           Iniciar atendimento
-        </button>
+        </Button>
       )}
     </div>
   );
