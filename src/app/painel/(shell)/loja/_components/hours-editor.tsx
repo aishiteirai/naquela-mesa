@@ -1,11 +1,15 @@
 "use client";
 
-import { uuid } from "@/shared/uuid";
+import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useActionState, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { FieldDescription } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { StoreHour } from "@/modules/stores";
-import { FormMessage, SubmitButton } from "@/app/_components/form-controls";
-import { inputClass, secondaryButtonClass } from "@/app/_components/styles";
+import { uuid } from "@/shared/uuid";
 import { idleState } from "@/app/_lib/action-state";
+import { FormMessage, SubmitButton } from "@/app/painel/_components/form-fields";
 import { saveHoursAction } from "@/app/painel/(shell)/loja/actions";
 
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -23,65 +27,68 @@ export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
   const payload = rows.map((row) => ({ weekday: row.weekday, opensAt: row.opensAt, closesAt: row.closesAt }));
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="hours" value={JSON.stringify(payload)} />
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        Se o horário de fechar for menor que o de abrir, o turno vira a meia-noite (ex.: 18:00 às 00:30).
-      </p>
-      <ul className="flex flex-col gap-2">
-        {rows.map((row, index) => (
-          <li key={row.key} className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="sr-only">Dia do turno {index + 1}</span>
-              <select
-                aria-label={`Dia do turno ${index + 1}`}
-                value={row.weekday}
-                onChange={(event) => update(row.key, { weekday: Number(event.target.value) })}
-                className={inputClass}
+      <FieldDescription>Se o horário de fechar for menor que o de abrir, o turno vira a meia-noite (ex.: 18:00 às 00:30).</FieldDescription>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum turno cadastrado.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {rows.map((row, index) => (
+            <li key={row.key} className="flex flex-wrap items-center gap-2">
+              <Select value={String(row.weekday)} onValueChange={(value) => update(row.key, { weekday: Number(value) })}>
+                <SelectTrigger aria-label={`Dia do turno ${index + 1}`} className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEKDAYS.map((day, weekday) => (
+                    <SelectItem key={day} value={String(weekday)}>
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="time"
+                aria-label={`Abre turno ${index + 1}`}
+                value={row.opensAt}
+                onChange={(event) => update(row.key, { opensAt: event.target.value })}
+                className="w-28"
+              />
+              <span className="text-sm text-muted-foreground">às</span>
+              <Input
+                type="time"
+                aria-label={`Fecha turno ${index + 1}`}
+                value={row.closesAt}
+                onChange={(event) => update(row.key, { closesAt: event.target.value })}
+                className="w-28"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Remover turno ${index + 1}`}
+                onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}
               >
-                {WEEKDAYS.map((day, weekday) => (
-                  <option key={day} value={weekday}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <input
-              type="time"
-              aria-label={`Abre turno ${index + 1}`}
-              value={row.opensAt}
-              onChange={(event) => update(row.key, { opensAt: event.target.value })}
-              className={inputClass}
-            />
-            <input
-              type="time"
-              aria-label={`Fecha turno ${index + 1}`}
-              value={row.closesAt}
-              onChange={(event) => update(row.key, { closesAt: event.target.value })}
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}
-              className={secondaryButtonClass}
-            >
-              Remover turno {index + 1}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="flex gap-2">
-        <button
+                <Trash2Icon />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button
           type="button"
+          variant="outline"
           onClick={() => setRows((current) => [...current, { key: uuid(), weekday: 1, opensAt: "18:00", closesAt: "23:00" }])}
-          className={secondaryButtonClass}
         >
+          <PlusIcon />
           Adicionar turno
-        </button>
+        </Button>
         <SubmitButton>Salvar horários</SubmitButton>
       </div>
       {state.status === "error" && (
-        <ul className="text-sm text-red-700 dark:text-red-400">
+        <ul role="alert" className="text-sm text-destructive">
           {Object.entries(state.fieldErrors).map(([field, message]) => (
             <li key={field}>{message}</li>
           ))}

@@ -52,7 +52,7 @@ export async function saveProfileAction(_prev: ActionState, form: FormData): Pro
         name: text(form, "name"),
         address: text(form, "address") || null,
         whatsappPhone: text(form, "whatsappPhone"),
-        theme: { primary: text(form, "primary"), secondary: text(form, "secondary") },
+        theme: { primary: text(form, "primary"), secondary: text(form, "secondary"), font: form.get("font") === "serif" ? "serif" : "sans" },
         logoUrl: text(form, "logoUrl") || null,
         bannerUrl: text(form, "bannerUrl") || null,
       }),

@@ -1,49 +1,71 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDeliveryZones } from "@/modules/stores";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { HoursEditor } from "./_components/hours-editor";
 import { OperationsForm } from "./_components/operations-form";
 import { ProfileForm } from "./_components/profile-form";
+import { SettingsTabs } from "./_components/settings-tabs";
 import { StatusButtons } from "./_components/status-buttons";
 import { ZonesEditor } from "./_components/zones-editor";
 
-const sectionClass = "flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800";
+function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+  return (
+    <Card role="region" aria-label={title}>
+      <CardHeader>
+        <CardTitle>
+          <h2>{title}</h2>
+        </CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
 
 async function StoreSettings() {
   const { store } = await requireStoreAccess();
   const zones = await getDeliveryZones(store.id);
 
   return (
-    <div className="flex flex-col gap-6">
-      <section aria-label="Aparência" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Aparência</h2>
-        <ProfileForm
-          name={store.name}
-          address={store.address}
-          whatsappPhone={store.whatsappPhone}
-          logoUrl={store.logoUrl}
-          bannerUrl={store.bannerUrl}
-          primary={store.theme.primary.toLowerCase()}
-          secondary={store.theme.secondary.toLowerCase()}
-        />
-      </section>
-
-      <section aria-label="Funcionamento" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Funcionamento</h2>
-        <StatusButtons current={store.manualStatus} />
-        <HoursEditor initialHours={store.hours} />
-      </section>
-
-      <section aria-label="Entrega, retirada e pagamento" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Entrega, retirada e pagamento</h2>
-        <OperationsForm features={store.features} rules={store.rules} paymentMethods={store.paymentMethods} />
-      </section>
-
-      <section aria-label="Bairros atendidos" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Bairros atendidos</h2>
-        <ZonesEditor initialZones={zones} />
-      </section>
-    </div>
+    <SettingsTabs
+      panels={{
+        aparencia: (
+          <Section title="Aparência" description="Como a loja aparece no cardápio. A prévia muda enquanto você edita.">
+            <ProfileForm
+              name={store.name}
+              address={store.address}
+              whatsappPhone={store.whatsappPhone}
+              logoUrl={store.logoUrl}
+              bannerUrl={store.bannerUrl}
+              primary={store.theme.primary.toLowerCase()}
+              secondary={store.theme.secondary.toLowerCase()}
+              font={store.theme.font}
+            />
+          </Section>
+        ),
+        horarios: (
+          <>
+            <Section title="Status agora" description="Automático segue os horários abaixo. Abrir/Fechar agora vale até você voltar ao automático.">
+              <StatusButtons current={store.manualStatus} />
+            </Section>
+            <Section title="Horários de funcionamento">
+              <HoursEditor initialHours={store.hours} />
+            </Section>
+          </>
+        ),
+        pedidos: (
+          <>
+            <Section title="Entrega, retirada e pagamento">
+              <OperationsForm features={store.features} rules={store.rules} paymentMethods={store.paymentMethods} />
+            </Section>
+            <Section title="Bairros atendidos">
+              <ZonesEditor initialZones={zones} />
+            </Section>
+          </>
+        ),
+      }}
+    />
   );
 }
 
@@ -51,7 +73,7 @@ export default function LojaPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Configurações da loja</h1>
-      <Suspense fallback={<p>Carregando...</p>}>
+      <Suspense fallback={<p className="text-muted-foreground">Carregando...</p>}>
         <StoreSettings />
       </Suspense>
     </div>
