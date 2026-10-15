@@ -4,6 +4,7 @@ import { SLUG_PATTERN } from "@/modules/stores";
 import { CartBar } from "./_components/cart-bar";
 import { CartProvider } from "./_components/cart-context";
 import { CategoryNav, categoryAnchor } from "./_components/category-nav";
+import { ItemParamController } from "./_components/item-param-controller";
 import { MenuProvider } from "./_components/menu-provider";
 import { OpenStatus } from "./_components/open-status";
 import { ProductCard } from "./_components/product-card";
@@ -53,6 +54,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
             ))}
           </main>
           <StoreFooter />
+          <ItemParamController />
           <CartBar slug={store.slug} />
         </CartProvider>
       </MenuProvider>

@@ -56,3 +56,29 @@ test("tema da loja vale no <html> (componentes em portal) e sai ao deixar a loja
   await expect(page).toHaveURL(/\/privacidade$/);
   await expect.poll(primary).toBe("");
 });
+
+test("item abre com ?item= na URL e o voltar do navegador fecha", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  await page.getByRole("button", { name: "Adicionar Coca-Cola 2L" }).click();
+  const dialog = page.getByRole("dialog", { name: "Coca-Cola 2L" });
+  await expect(dialog).toBeVisible();
+  await expect(page).toHaveURL(/\?item=/);
+  const itemUrl = page.url();
+
+  await page.goBack();
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/\/pizzaria-demo$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Pizzaria Demo" })).toBeVisible();
+
+  await page.goto(itemUrl);
+  await expect(page.getByRole("dialog", { name: "Coca-Cola 2L" })).toBeVisible();
+  await page.getByRole("button", { name: "Voltar ao cardápio" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/pizzaria-demo$/);
+});
+
+test("?item= de produto inexistente não abre nada e limpa a URL", async ({ page }) => {
+  await page.goto("/pizzaria-demo?item=nao-existe");
+  await expect(page).toHaveURL(/\/pizzaria-demo$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

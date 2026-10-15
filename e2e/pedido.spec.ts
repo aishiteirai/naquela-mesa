@@ -30,7 +30,7 @@ test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompan
   await page.getByRole("button", { name: "Adicionar Calabresa" }).click();
   const dialog = page.getByRole("dialog", { name: "Calabresa" });
   await dialog.getByRole("radio", { name: /^Grande/ }).check();
-  await dialog.getByLabel("Segundo sabor (opcional)").selectOption({ label: "Mussarela" });
+  await dialog.getByRole("radio", { name: "Mussarela", exact: true }).check();
   await dialog.getByRole("radio", { name: /^Catupiry/ }).check();
   await expect(dialog.getByRole("button", { name: /^Adicionar ·/ })).toHaveText(/R\$\s64,90/);
   await dialog.getByRole("button", { name: /^Adicionar ·/ }).click();
