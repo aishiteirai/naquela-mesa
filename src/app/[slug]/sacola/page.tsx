@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { SLUG_PATTERN } from "@/modules/stores";
@@ -18,14 +17,11 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
     <StoreShell theme={store.theme}>
       <title>{`Sacola | ${store.name}`}</title>
       <CartProvider slug={store.slug}>
-        <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
-          <Link href={`/${store.slug}`} className="text-sm underline">
-            ← Voltar ao cardápio
-          </Link>
-          <h1 className="text-2xl font-semibold">Sua sacola</h1>
+        <main className="flex flex-1 flex-col">
           <Checkout
             store={{
               slug: store.slug,
+              address: store.address,
               features: { delivery: store.features.delivery, pickup: store.features.pickup, dineIn: store.features.dineIn },
               paymentMethods: store.paymentMethods,
               deliveryFee: store.rules.deliveryFee,
@@ -40,7 +36,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
 
 export default function SacolaPage({ params }: PageProps<"/[slug]/sacola">) {
   return (
-    <Suspense fallback={<p className="p-6">Carregando sacola...</p>}>
+    <Suspense fallback={<p className="p-6 text-muted-foreground">Carregando sacola...</p>}>
       <CheckoutContent params={params} />
     </Suspense>
   );
