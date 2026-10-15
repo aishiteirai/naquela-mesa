@@ -76,6 +76,16 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   const [placed, setPlaced] = useState<Placed | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const firstStepRender = useRef(true);
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    headingRef.current?.focus();
+  }, [step]);
 
   // Recarregar no meio do checkout começa de novo: os campos das etapas anteriores estão vazios.
   useEffect(() => {
@@ -88,6 +98,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     const current = stepRef.current;
     if (target === current) return;
     // Avançar empilha uma entrada (?etapa=N); voltar desempilha, então o voltar do celular anda junto.
+    stepRef.current = target;
     if (target > current) window.history.pushState(null, "", `?etapa=${target}`);
     else window.history.go(target - current);
   }
@@ -134,6 +145,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   }
 
   function review() {
+    if (pending) return;
     const built = buildPayload(null);
     if ("error" in built) return handleError(built.error);
     startTransition(async () => {
@@ -212,7 +224,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
               </Link>
             </Button>
           )}
-          <h1 className="flex-1 text-lg font-semibold">{CHECKOUT_STEPS[step - 1]}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="flex-1 text-lg font-semibold outline-none">{CHECKOUT_STEPS[step - 1]}</h1>
           <span className="text-sm text-muted-foreground">{step} de 4</span>
         </div>
         <div aria-hidden="true" className="mx-auto flex max-w-2xl gap-1 px-4 pb-3">
@@ -273,9 +285,9 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       <footer className="sticky bottom-0 border-t bg-background">
         <div className="mx-auto flex max-w-2xl items-center gap-4 px-4 py-3">
           <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">{quote ? "Total" : "Subtotal"}</span>
-            <span data-testid={quote ? "quote-total" : undefined} className="font-semibold">
-              {formatBRL(quote ? quote.totalCents : cart.estimatedSubtotalCents)}
+            <span className="text-xs text-muted-foreground">{step === 4 && quote ? "Total" : "Subtotal"}</span>
+            <span data-testid={step === 4 && quote ? "quote-total" : undefined} className="font-semibold">
+              {formatBRL(step === 4 && quote ? quote.totalCents : cart.estimatedSubtotalCents)}
             </span>
           </div>
           {step < 4 ? (

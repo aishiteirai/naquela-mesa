@@ -21,6 +21,7 @@ function urlWithItem(productId: string | null): string {
 }
 
 export function openItem(productId: string): void {
+  if (new URL(window.location.href).searchParams.get(ITEM_PARAM) === productId) return;
   pushedByMenu = true;
   window.history.pushState(null, "", urlWithItem(productId));
 }

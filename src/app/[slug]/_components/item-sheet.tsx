@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ArrowLeftIcon, MinusIcon, PlusIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -78,8 +78,11 @@ export function ItemSheet({ productId, onClose }: { productId: string; onClose: 
     });
   }
 
+  const added = useRef(false);
+
   function addToCart() {
-    if (!("line" in priced)) return;
+    if (added.current || !("line" in priced)) return;
+    added.current = true;
     cart.add({ input, label: describeLine(priced.line), unitPriceCents: priced.line.unitPriceCents });
     toast.success(`${product.name} adicionado à sacola`);
     onClose();

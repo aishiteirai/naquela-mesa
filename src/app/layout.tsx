@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
-        {/* Fora do provider de tema: cores vêm dos tokens (--popover etc.), que já seguem o modo escuro no painel. */}
+        {/* Toasts sempre claros (tema forçado), com cores dos tokens (--popover etc.). */}
         {/* Toasts no topo para nunca cobrir os botões fixos de baixo (barra da sacola, checkout, rodapé do item). */}
         <Toaster theme="light" position="top-center" />
       </body>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { categoryAnchor } from "@/app/[slug]/_lib/anchors";
 
@@ -27,7 +27,12 @@ export function CategoryNav({ categories }: { categories: NavCategory[] }) {
     return () => observer.disconnect();
   }, [categories]);
 
+  const firstScroll = useRef(true);
   useEffect(() => {
+    if (firstScroll.current) {
+      firstScroll.current = false;
+      return;
+    }
     if (!active) return;
     document.querySelector(`[data-category-tab="${active}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [active]);

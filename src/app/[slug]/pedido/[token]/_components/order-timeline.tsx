@@ -47,6 +47,9 @@ export function OrderTimeline({ fulfillment, status }: { fulfillment: Fulfillmen
             aria-current={step.state === "current" ? "step" : undefined}
           >
             {statusLabel(step.status, fulfillment)}
+            <span className="sr-only">
+              {step.state === "done" ? " — concluído" : step.state === "current" ? " — etapa atual" : " — próxima"}
+            </span>
           </p>
         </li>
       ))}

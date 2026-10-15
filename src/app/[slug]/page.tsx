@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,14 @@ import { categoryAnchor } from "./_lib/anchors";
 import { priceLabel } from "./_lib/price-label";
 import { getStorePageData } from "./data";
 
+export async function generateMetadata({ params }: PageProps<"/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
+  const data = await getStorePageData(slug);
+  if (!data) return {};
+  return { title: `${data.store.name} | Naquela Mesa` };
+}
+
 async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) notFound();
@@ -25,7 +34,6 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
 
   return (
     <StoreShell theme={store.theme}>
-      <title>{`${store.name} | Naquela Mesa`}</title>
       <MenuProvider
         value={{
           menu,

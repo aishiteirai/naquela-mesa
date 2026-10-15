@@ -23,7 +23,7 @@ export function StoreHeader({ store, status }: { store: Store; status: ReactNode
           )}
         </div>
         <div className="flex min-w-0 flex-col gap-0.5 py-3">
-          <h1 className="truncate text-2xl font-bold">{store.name}</h1>
+          <h1 className="line-clamp-2 text-2xl font-bold">{store.name}</h1>
           {store.address && <p className="truncate text-sm text-muted-foreground">{store.address}</p>}
         </div>
       </div>

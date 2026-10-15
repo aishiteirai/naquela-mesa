@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -20,6 +21,16 @@ import { AutoRefresh } from "./_components/auto-refresh";
 import { OrderTimeline } from "./_components/order-timeline";
 
 const FINAL_STATUSES = new Set(["completed", "cancelled"]);
+
+const NO_INDEX = { index: false, follow: false } as const;
+
+export async function generateMetadata({ params }: PageProps<"/[slug]/pedido/[token]">): Promise<Metadata> {
+  const { token } = await params;
+  await connection();
+  const order = await getOrderTracking(token);
+  if (!order) return { robots: NO_INDEX };
+  return { title: `Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`, robots: NO_INDEX };
+}
 
 async function Tracking({
   params,
@@ -45,8 +56,6 @@ async function Tracking({
   return (
     <StoreShell theme={order.store.theme}>
       <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-6">
-        <title>{`Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`}</title>
-        <meta name="robots" content="noindex, nofollow" />
         {!FINAL_STATUSES.has(order.status) && <AutoRefresh intervalMs={10_000} />}
 
         <div className="flex items-center gap-3">

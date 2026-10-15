@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { SLUG_PATTERN } from "@/modules/stores";
@@ -5,6 +6,14 @@ import { CartProvider } from "@/app/[slug]/_components/cart-context";
 import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { getStorePageData } from "@/app/[slug]/data";
 import { Checkout } from "./_components/checkout";
+
+export async function generateMetadata({ params }: PageProps<"/[slug]/sacola">): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
+  const data = await getStorePageData(slug);
+  if (!data) return {};
+  return { title: `Sacola | ${data.store.name}` };
+}
 
 async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -15,7 +24,6 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
 
   return (
     <StoreShell theme={store.theme}>
-      <title>{`Sacola | ${store.name}`}</title>
       <CartProvider slug={store.slug}>
         <main className="flex flex-1 flex-col">
           <Checkout
