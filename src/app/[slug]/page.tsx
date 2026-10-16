@@ -44,31 +44,32 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
       >
         <CartProvider key={store.slug} slug={store.slug}>
           <ItemSheetProvider>
-          <StoreHeader
-            store={store}
-            status={
-              <Suspense fallback={<Badge variant="secondary">Verificando horário...</Badge>}>
-                <OpenStatus store={store} />
-              </Suspense>
-            }
-          />
-          <CategoryNav categories={menu.categories.map(({ id, name }) => ({ id, name }))} />
-          <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-4">
-            {menu.categories.map((category) => (
-              <section key={category.id} id={categoryAnchor(category.id)} aria-labelledby={`${categoryAnchor(category.id)}-title`} className="scroll-mt-16">
-                <h2 id={`${categoryAnchor(category.id)}-title`} className="text-xl font-bold">
-                  {category.name}
-                </h2>
-                <div className="divide-y sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0">
-                  {category.products.map((product) => (
-                    <ProductRow key={product.id} product={product} price={priceLabel(product)} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </main>
-          <StoreFooter />
-                    <CartBar slug={store.slug} />
+            <StoreHeader
+              store={store}
+              status={
+                <Suspense fallback={<Badge variant="secondary">Verificando horário...</Badge>}>
+                  <OpenStatus store={store} />
+                </Suspense>
+              }
+            />
+            <CategoryNav categories={menu.categories.map(({ id, name }) => ({ id, name }))} />
+            <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-4">
+              {/* scroll-mt-16 (64px): maior que a barra de abas sticky (~57px) e dentro do limiar de category-nav (navBottom + 16px). */}
+              {menu.categories.map((category) => (
+                <section key={category.id} id={categoryAnchor(category.id)} aria-labelledby={`${categoryAnchor(category.id)}-title`} className="scroll-mt-16">
+                  <h2 id={`${categoryAnchor(category.id)}-title`} className="text-xl font-bold">
+                    {category.name}
+                  </h2>
+                  <div className="divide-y sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0">
+                    {category.products.map((product) => (
+                      <ProductRow key={product.id} product={product} price={priceLabel(product)} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </main>
+            <StoreFooter />
+            <CartBar slug={store.slug} />
           </ItemSheetProvider>
         </CartProvider>
       </MenuProvider>

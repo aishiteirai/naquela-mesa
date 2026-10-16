@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Painel/modal controlado por parâmetros da URL (?item=, ?produto=/?novo=).
+ * Painel/modal controlado por parâmetros da URL (?produto=/?novo= do painel).
  * Abrir empilha uma entrada no histórico (o voltar do navegador fecha); aberto por link direto,
  * fechar só limpa os parâmetros. `clearKeys` são os parâmetros que o fechar remove.
  */

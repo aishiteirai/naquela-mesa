@@ -2,7 +2,7 @@
 
 import { createUrlOverlay, replaceParams } from "@/lib/url-overlay";
 
-// Painel lateral do produto controlado pela URL (?produto= / ?novo=), como o ?item= do cardápio público.
+// Painel lateral do produto controlado pela URL (?produto= / ?novo=).
 const overlay = createUrlOverlay(["produto", "novo"]);
 
 /** Troca a categoria selecionada sem nova entrada no histórico. */

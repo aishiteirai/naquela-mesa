@@ -18,7 +18,9 @@ export function CategoryNav({ categories }: { categories: NavCategory[] }) {
     const first = categories[0];
     const last = categories[categories.length - 1];
     if (suspended.current || !first || !last) return;
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+    const { scrollHeight } = document.documentElement;
+    // Só vale se a página rola de fato (sem scroll, "estar no fim" é trivial).
+    if (scrollHeight > window.innerHeight + 2 && window.innerHeight + window.scrollY >= scrollHeight - 2) {
       setActive(last.id);
       return;
     }

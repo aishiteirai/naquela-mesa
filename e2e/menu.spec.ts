@@ -48,6 +48,18 @@ test("aba ativa acompanha o scroll até o fim e de volta ao topo", async ({ page
   await expect(nav.getByRole("button", { name: "Pizzas Salgadas" })).toHaveAttribute("aria-current", "true");
 });
 
+test("página sem scroll mantém a primeira aba ativa", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 4000 });
+  await page.goto("/pizzaria-demo");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
+  // Dá tempo da hidratação rodar o cálculo da aba ativa antes de afirmar.
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const nav = page.getByRole("navigation", { name: "Categorias" });
+  await expect(nav.getByRole("button", { name: "Pizzas Salgadas" })).toHaveAttribute("aria-current", "true");
+  await expect(nav.getByRole("button", { name: "Sobremesas" })).not.toHaveAttribute("aria-current", "true");
+});
+
 test("slug inexistente mostra loja não encontrada", async ({ page }) => {
   await page.goto("/loja-que-nao-existe");
   await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();
