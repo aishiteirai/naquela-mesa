@@ -23,3 +23,10 @@ test("tema escuro no painel persiste, imprime claro e não vaza para o login", a
   await expect(html).not.toHaveClass(/\bdark\b/);
   await expect(page.locator("body")).toHaveCSS("background-color", LIGHT_BACKGROUND);
 });
+
+test("painel usa a primária Naquela por padrão", async ({ page }) => {
+  await loginAsOwner(page, "/painel");
+  await expect(page.locator("[data-panel-theme]")).toHaveAttribute("data-panel-theme", "naquela");
+  // #B5481C
+  await expect(page.getByRole("button", { name: "Iniciar atendimento" })).toHaveCSS("background-color", "rgb(181, 72, 28)");
+});

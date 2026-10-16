@@ -12,6 +12,11 @@
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-primary-hover: var(--primary-hover);
+  --color-tint: var(--tint);
+  --color-ok: var(--ok);
+  --color-ok-foreground: var(--ok-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -140,6 +145,98 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+  }
+}
+
+/* Tema do painel (spec §3). Só vale dentro de [data-panel-theme]; login, admin, cardápio e impressão ficam como estão. */
+[data-panel-theme="naquela"] {
+  --background: #ffffff;
+  --foreground: #3b2a20;
+  --card: #ffffff;
+  --card-foreground: #3b2a20;
+  --popover: #ffffff;
+  --popover-foreground: #3b2a20;
+  --muted: #f6eadb;
+  --muted-foreground: #6e5644;
+  --secondary: #f6eadb;
+  --secondary-foreground: #3b2a20;
+  --accent: #ebdcc8;
+  --accent-foreground: #3b2a20;
+  --border: #ebdcc8;
+  --input: #ebdcc8;
+  --primary: #b5481c;
+  --primary-foreground: #ffffff;
+  --ring: #b5481c;
+  --chart-1: #b5481c;
+  --chart-2: #e9a27a;
+  --primary-hover: #8a3a17;
+  --brand: #d9622b;
+  --tint: #fdf5ee;
+  --ok: #f6eadb;
+  --ok-foreground: #8a3a17;
+  --sidebar: #f6eadb;
+  --sidebar-foreground: #3b2a20;
+  --sidebar-primary: #b5481c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebdcc8;
+  --sidebar-accent-foreground: #3b2a20;
+  --sidebar-border: #ebdcc8;
+  --sidebar-ring: #b5481c;
+}
+
+/* "Cores da loja": a primária vem inline (panelThemeVariables); aqui só os extras e os padrões neutros. */
+[data-panel-theme="loja"] {
+  --brand: #d9622b;
+  --ok: #f5f5f5;
+  --ok-foreground: #404040;
+  --tint-pct: 8%;
+  --tint-base: white;
+  --accent-loja: var(--tint);
+}
+
+@media screen {
+  .dark [data-panel-theme="naquela"] {
+    --background: #1c1410;
+    --foreground: #f6eadb;
+    --card: #261c16;
+    --card-foreground: #f6eadb;
+    --popover: #261c16;
+    --popover-foreground: #f6eadb;
+    --muted: #2e231c;
+    --muted-foreground: #c9b49c;
+    --secondary: #2e231c;
+    --secondary-foreground: #f6eadb;
+    --accent: #3d2f25;
+    --accent-foreground: #f6eadb;
+    --border: #3d2f25;
+    --input: #3d2f25;
+    --primary: #d9622b;
+    --primary-foreground: #ffffff;
+    --ring: #d9622b;
+    --chart-1: #d9622b;
+    --chart-2: #e9a27a;
+    --primary-hover: #e9a27a;
+    --brand: #e9a27a;
+    --tint: #33241b;
+    --ok: #2e231c;
+    --ok-foreground: #e9a27a;
+    --sidebar: #2e231c;
+    --sidebar-foreground: #f6eadb;
+    --sidebar-primary: #d9622b;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #3d2f25;
+    --sidebar-accent-foreground: #f6eadb;
+    --sidebar-border: #3d2f25;
+    --sidebar-ring: #d9622b;
+  }
+
+  .dark [data-panel-theme="loja"] {
+    --brand: #e9a27a;
+    --ok: #262626;
+    --ok-foreground: #d4d4d4;
+    --tint-pct: 18%;
+    --tint-base: var(--background);
+    --accent-loja: oklch(0.269 0 0);
   }
 }
 

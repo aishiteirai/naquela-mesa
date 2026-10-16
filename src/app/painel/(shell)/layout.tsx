@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { PanelSidebar } from "@/app/painel/_components/panel-sidebar";
 import { PageTitle } from "@/app/painel/_components/page-title";
 import { SupportBanner } from "@/app/painel/_components/support-banner";
+import { PanelThemeRoot } from "@/app/painel/_components/panel-theme-root";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
+import { panelThemeVariables } from "@/app/painel/_lib/panel-theme";
 
 // Mesmo cookie que o SidebarProvider grava ao recolher/abrir no desktop.
 const SIDEBAR_COOKIE = "sidebar_state";
@@ -15,6 +17,10 @@ async function Shell({ children }: { children: ReactNode }) {
   const [{ store, user }, cookieStore] = await Promise.all([requireStoreAccess(), cookies()]);
 
   return (
+    <PanelThemeRoot
+      palette={store.theme.panelColors === "store" ? "loja" : "naquela"}
+      storeStyle={panelThemeVariables({ ...store.theme, panelColors: "store" })}
+    >
     <TooltipProvider>
     <SidebarProvider defaultOpen={cookieStore.get(SIDEBAR_COOKIE)?.value !== "false"}>
       <PanelSidebar storeName={store.name} storeSlug={store.slug} logoUrl={store.logoUrl} />
@@ -29,6 +35,7 @@ async function Shell({ children }: { children: ReactNode }) {
       </SidebarInset>
     </SidebarProvider>
     </TooltipProvider>
+    </PanelThemeRoot>
   );
 }
 
