@@ -15,6 +15,7 @@ import { StoreHeader } from "./_components/store-header";
 import { StoreShell } from "./_components/store-shell";
 import { categoryAnchor } from "./_lib/anchors";
 import { priceLabel } from "./_lib/price-label";
+import { storeInfo } from "./_lib/store-info";
 import { getStorePageData } from "./data";
 
 export async function generateMetadata({ params }: PageProps<"/[slug]">): Promise<Metadata> {
@@ -30,7 +31,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) notFound();
   const data = await getStorePageData(slug);
   if (!data) notFound();
-  const { store, menu } = data;
+  const { store, menu, zones } = data;
 
   return (
     <StoreShell theme={store.theme}>
@@ -46,6 +47,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
           <ItemSheetProvider>
             <StoreHeader
               store={store}
+              info={storeInfo({ features: store.features, rules: store.rules, zones })}
               status={
                 <Suspense fallback={<Badge variant="secondary">Verificando horário...</Badge>}>
                   <OpenStatus store={store} />

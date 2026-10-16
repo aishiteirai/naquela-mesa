@@ -6,6 +6,9 @@ test("cardápio público da Pizzaria Demo", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Pizzaria Demo" })).toBeVisible();
   await expect(page).toHaveTitle("Pizzaria Demo | Naquela Mesa");
   await expect(page.getByTestId("open-status")).toHaveText(/^(Aberto agora|Fechado no momento|Abre .+ às \d\d:\d\d)$/);
+  await expect(page.getByTestId("store-info")).toHaveText(
+    /^Entrega ~45 min · Taxa R\$\s6,00 · Retirada ~30 min · Pedido mínimo R\$\s30,00$/,
+  );
 
   const nav = page.getByRole("navigation", { name: "Categorias" });
   await expect(nav.getByRole("button")).toHaveText(["Pizzas Salgadas", "Pizzas Doces", "Bebidas", "Sobremesas"]);
@@ -42,8 +45,11 @@ test("aba da última categoria fica ativa mesmo com seção curta", async ({ pag
 test("aba ativa acompanha o scroll até o fim e de volta ao topo", async ({ page }) => {
   await page.goto("/pizzaria-demo");
   const nav = page.getByRole("navigation", { name: "Categorias" });
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  await expect(nav.getByRole("button", { name: "Sobremesas" })).toHaveAttribute("aria-current", "true");
+  // A página ainda pode crescer logo após carregar (conteúdo em streaming, fontes): rola de novo até estabilizar no fim.
+  await expect(async () => {
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(nav.getByRole("button", { name: "Sobremesas" })).toHaveAttribute("aria-current", "true", { timeout: 1_000 });
+  }).toPass();
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(nav.getByRole("button", { name: "Pizzas Salgadas" })).toHaveAttribute("aria-current", "true");
 });

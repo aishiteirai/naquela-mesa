@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { Store } from "@/modules/stores";
 
-export function StoreHeader({ store, status }: { store: Store; status: ReactNode }) {
+export function StoreHeader({ store, status, info }: { store: Store; status: ReactNode; info: string[] }) {
   return (
     <header className="bg-background">
       <div className="relative mx-auto h-28 w-full max-w-5xl overflow-hidden sm:h-40 sm:rounded-b-2xl">
@@ -30,6 +30,17 @@ export function StoreHeader({ store, status }: { store: Store; status: ReactNode
             {store.address && <p className="min-w-0 truncate text-sm text-muted-foreground">{store.address}</p>}
             {status}
           </div>
+          {info.length > 0 && (
+            <p data-testid="store-info" className="text-sm text-muted-foreground">
+              {/* Cada item fica inteiro; a linha só quebra entre um item e outro. */}
+              {info.map((item, index) => (
+                <span key={item}>
+                  {index > 0 && " · "}
+                  <span className="whitespace-nowrap">{item}</span>
+                </span>
+              ))}
+            </p>
+          )}
         </div>
       </div>
     </header>
