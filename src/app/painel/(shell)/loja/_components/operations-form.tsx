@@ -42,8 +42,11 @@ export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, 
   const feeId = useId();
   const fixedCents = rules.deliveryFee.strategy === "fixed" ? rules.deliveryFee.fixedCents : 0;
 
+  // React reseta o <form> após a action e os controles Radix voltam ao valor do mount: a key remonta com o valor salvo.
+  const savedKey = JSON.stringify({ features, rules, paymentMethods });
+
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-6">
+    <form key={savedKey} action={formAction} className="flex max-w-xl flex-col gap-6">
       <FieldSet>
         <FieldLegend variant="label">Tipos de pedido</FieldLegend>
         <FieldGroup className="gap-3">

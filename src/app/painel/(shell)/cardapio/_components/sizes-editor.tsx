@@ -33,7 +33,8 @@ function SizeRow({ size, isFirst, isLast }: { size: EditorSize; isFirst: boolean
 
   return (
     <li className="flex flex-col gap-3 rounded-lg border p-3">
-      <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      {/* key: o reset do <form> após a action faria o Select voltar ao valor do mount; remonta com o valor salvo. */}
+      <form key={`${size.name}:${size.maxFlavors}`} action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <input type="hidden" name="sizeId" value={size.id} />
         <TextField label="Tamanho" name="name" state={state} defaultValue={size.name} required maxLength={80} />
         <FlavorsSelect label="Sabores" defaultValue={size.maxFlavors} />
