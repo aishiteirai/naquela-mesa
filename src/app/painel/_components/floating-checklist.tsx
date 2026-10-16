@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
-import { CircleCheckIcon, CircleIcon, XIcon } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckIcon, CircleIcon, XIcon } from "lucide-react";
 import type { ChecklistItem } from "@/modules/onboarding";
 import { CHECKLIST_DISMISS_KEY, shouldShowChecklist } from "@/app/painel/_lib/checklist-visibility";
 
@@ -36,6 +36,8 @@ function dismiss(sessionId: string) {
 export function FloatingChecklist({ sessionId, items }: { sessionId: string; items: ChecklistItem[] }) {
   // null no servidor e na hidratação: o card só monta depois de ler o storage, sem piscar.
   const dismissedFor = useSyncExternalStore<string | null>(subscribe, readDismissed, () => null);
+  // Começa recolhido (título, contagem e barra): aberto, o card cobriria listas e botões do painel, sobretudo no celular.
+  const [expanded, setExpanded] = useState(false);
   const done = items.filter((item) => item.done).length;
   const pending = items.length - done;
 
@@ -57,6 +59,16 @@ export function FloatingChecklist({ sessionId, items }: { sessionId: string; ite
         </div>
         <button
           type="button"
+          aria-label={expanded ? "Recolher primeiros passos" : "Ver primeiros passos"}
+          aria-expanded={expanded}
+          aria-controls="primeiros-passos-lista"
+          onClick={() => setExpanded((value) => !value)}
+          className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent"
+        >
+          {expanded ? <ChevronDownIcon aria-hidden="true" className="size-4" /> : <ChevronUpIcon aria-hidden="true" className="size-4" />}
+        </button>
+        <button
+          type="button"
           aria-label="Fechar primeiros passos"
           onClick={() => dismiss(sessionId)}
           className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent"
@@ -67,7 +79,7 @@ export function FloatingChecklist({ sessionId, items }: { sessionId: string; ite
       <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-muted">
         <div className="h-full bg-primary" style={{ width: `${(done / items.length) * 100}%` }} />
       </div>
-      <ul className="mt-0.5 flex flex-col gap-2">
+      <ul id="primeiros-passos-lista" hidden={!expanded} className="mt-0.5 flex flex-col gap-2">
         {items.map((item) => (
           <li key={item.key}>
             {item.done ? (
@@ -84,7 +96,7 @@ export function FloatingChecklist({ sessionId, items }: { sessionId: string; ite
           </li>
         ))}
       </ul>
-      <p className="mt-1 text-xs text-muted-foreground">Fechou? Ele volta no próximo login até tudo ficar pronto.</p>
+      <p hidden={!expanded} className="mt-1 text-xs text-muted-foreground">Fechou? Ele volta no próximo login até tudo ficar pronto.</p>
     </section>
   );
 }

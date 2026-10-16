@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export type CheckoutStore = {
   features: { delivery: boolean; pickup: boolean; dineIn: boolean };
   paymentMethods: { cash: boolean; cardOnDelivery: boolean; pixKey: string | null };
   deliveryFee: { strategy: "fixed"; fixedCents: number } | { strategy: "by_neighborhood" };
+  minOrderCents: number;
   zones: { neighborhood: string; feeCents: number }[];
 };
 
@@ -87,6 +89,11 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     window.scrollTo({ top: 0 });
     headingRef.current?.focus();
   }, [step]);
+
+  // Os avisos de "adicionado à sacola" ficam no topo e cobririam o cabeçalho das etapas.
+  useEffect(() => {
+    toast.dismiss();
+  }, []);
 
   // Recarregar no meio do checkout começa de novo: os campos das etapas anteriores estão vazios.
   useEffect(() => {
@@ -211,6 +218,8 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     );
   }
 
+  // Estimativa no cliente para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
+  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - cart.estimatedSubtotalCents) : 0;
   const fieldError = (path: string) => error?.fieldErrors[path];
   const invalidateQuote = () => setQuote(null);
 
@@ -250,6 +259,13 @@ export function Checkout({ store }: { store: CheckoutStore }) {
 
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
         <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} onCartChange={invalidateQuote} />
+        {step === 1 && missingForMinCents > 0 && (
+          <Alert data-testid="min-order-notice">
+            <AlertDescription>
+              Pedido mínimo de {formatBRL(store.minOrderCents)} (sem a entrega). Faltam {formatBRL(missingForMinCents)}.
+            </AlertDescription>
+          </Alert>
+        )}
         <DeliveryStep
           ref={(element) => { fieldsets.current[1] = element; }}
           hidden={step !== 2}
@@ -305,7 +321,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
             </span>
           </div>
           {step < 4 ? (
-            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0}>
+            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && missingForMinCents > 0)}>
               Continuar
             </Button>
           ) : quote ? (

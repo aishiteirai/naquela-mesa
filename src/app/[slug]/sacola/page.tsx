@@ -33,6 +33,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
               features: { delivery: store.features.delivery, pickup: store.features.pickup, dineIn: store.features.dineIn },
               paymentMethods: store.paymentMethods,
               deliveryFee: store.rules.deliveryFee,
+              minOrderCents: store.rules.minOrderCents,
               zones: zones.map(({ neighborhood, feeCents }) => ({ neighborhood, feeCents })),
             }}
           />

@@ -3,7 +3,7 @@
 import { uuid } from "@/shared/uuid";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { MAX_ITEM_QUANTITY } from "@/modules/orders/client";
-import { parseStoredCart, type CartLine } from "./cart-storage";
+import { addCartLine, parseStoredCart, type CartLine } from "./cart-storage";
 
 export type { CartLine };
 
@@ -54,7 +54,7 @@ export function CartProvider({ slug, children }: { slug: string; children: React
   }, [lines, ready, slug]);
 
   const add = useCallback((line: Omit<CartLine, "key">) => {
-    setLines((current) => [...current, { ...line, key: uuid() }]);
+    setLines((current) => addCartLine(current, { ...line, key: uuid() }));
   }, []);
 
   const setQuantity = useCallback((key: string, quantity: number) => {

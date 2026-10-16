@@ -54,7 +54,8 @@ async function Shell({ children }: { children: ReactNode }) {
                 <Separator orientation="vertical" className="mr-1 data-vertical:h-4 data-vertical:self-center" />
                 <PageTitle />
               </div>
-              <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</div>
+              {/* pb-28: o card flutuante de primeiros passos não cobre a última linha das listas. */}
+              <div className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-28">{children}</div>
             </SidebarInset>
             <Suspense fallback={null}>
               <OnboardingChecklist />

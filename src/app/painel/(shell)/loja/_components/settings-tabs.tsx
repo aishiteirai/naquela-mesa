@@ -17,7 +17,8 @@ export function SettingsTabs({ panels }: { panels: Record<SettingsTab, ReactNode
 
   return (
     <Tabs value={tab} onValueChange={selectTab} className="gap-6">
-      <TabsList className="w-full sm:w-fit">
+      {/* No celular as três abas não cabem: a barra rola na horizontal em vez de cortar o texto. */}
+      <TabsList className="w-full max-w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit">
         {SETTINGS_TABS.map(([value, label]) => (
           <TabsTrigger key={value} value={value}>
             {label}

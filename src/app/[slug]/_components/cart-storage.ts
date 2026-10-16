@@ -38,3 +38,18 @@ export function parseStoredCart(raw: string | null): CartLine[] {
     return [];
   }
 }
+
+// Mesmo produto, tamanho, sabores, adicionais e observação: é o mesmo item (só muda a quantidade).
+function sameItem(a: CartItemInput, b: CartItemInput): boolean {
+  return JSON.stringify({ ...a, quantity: 0 }) === JSON.stringify({ ...b, quantity: 0 });
+}
+
+/** Adiciona um item à sacola; se já existe uma linha igual, soma a quantidade (até o máximo por item). */
+export function addCartLine(lines: CartLine[], line: CartLine): CartLine[] {
+  const existing = lines.find((current) => sameItem(current.input, line.input));
+  if (!existing) return [...lines, line];
+  const quantity = Math.min(existing.input.quantity + line.input.quantity, MAX_ITEM_QUANTITY);
+  return lines.map((current) =>
+    current === existing ? { ...current, unitPriceCents: line.unitPriceCents, input: { ...current.input, quantity } } : current,
+  );
+}
