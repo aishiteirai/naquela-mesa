@@ -258,3 +258,30 @@
     font-family: var(--heading-font);
   }
 }
+
+/* Landing: a comanda "sai da impressora" uma vez ao abrir a página (só com movimento permitido). */
+@keyframes nm-print {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-12px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes nm-ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20%,
+  60% {
+    transform: rotate(-14deg);
+  }
+  40%,
+  80% {
+    transform: rotate(14deg);
+  }
+}
