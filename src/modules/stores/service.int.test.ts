@@ -22,7 +22,7 @@ describe("stores service", () => {
 
     const store = await getStoreBySlug("pizzaria-teste");
 
-    expect(store?.theme).toEqual({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" });
+    expect(store?.theme).toEqual({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans", panelColors: "naquela" });
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });
@@ -41,7 +41,7 @@ describe("stores service", () => {
       manualStatus: "auto",
       hours: [],
     });
-    expect(store?.theme).toEqual({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" });
+    expect(store?.theme).toEqual({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans", panelColors: "naquela" });
     expect(store?.features).toMatchObject({ delivery: true, pickup: true, dineIn: false, halfAndHalf: true });
     expect(store?.rules).toMatchObject({ minOrderCents: 0, halfPriceRule: "highest", deliveryFee: { strategy: "fixed", fixedCents: 0 } });
     expect(store?.paymentMethods).toEqual({ cash: true, cardOnDelivery: true, pixKey: null });

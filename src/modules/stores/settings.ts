@@ -22,6 +22,7 @@ export const storeThemeSchema = z.object({
   primary: hexColor.default("#B91C1C"),
   secondary: hexColor.default("#F59E0B"),
   font: z.enum(["sans", "serif"]).default("sans"),
+  panelColors: z.enum(["naquela", "store"]).default("naquela"),
 });
 
 export const storeFeaturesSchema = z.object({

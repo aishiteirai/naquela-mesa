@@ -1,6 +1,8 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { pool } from "@/shared/db/client";
+import { db, pool } from "@/shared/db/client";
 import { createStore, deleteStoreBySlug, getStoreById, replaceStoreHours } from "./service";
+import { stores } from "./schema";
 import {
   getDeliveryZones,
   replaceDeliveryZones,
@@ -47,17 +49,44 @@ describe("store settings service", () => {
       whatsappPhone: "+5511977776666",
       logoUrl: profile.logoUrl,
       bannerUrl: null,
-      theme: { primary: "#1d4ed8", secondary: "#facc15" },
+      theme: { primary: "#1d4ed8", secondary: "#facc15", panelColors: "naquela" },
     });
   });
 
   it("fonte serif persiste e mantém as cores; sem fonte, a salva continua", async () => {
     const storeId = await newStore("loja-a");
     await updateStoreProfile(storeId, { ...profile, theme: { ...profile.theme, font: "serif" } });
-    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#1d4ed8", secondary: "#facc15", font: "serif" });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#1d4ed8", secondary: "#facc15", font: "serif", panelColors: "naquela" });
 
     await updateStoreProfile(storeId, { ...profile, theme: { primary: "#000000", secondary: "#ffffff" } });
-    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#000000", secondary: "#ffffff", font: "serif" });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#000000", secondary: "#ffffff", font: "serif", panelColors: "naquela" });
+  });
+
+  it("cores do painel: padrão naquela, salva store e preserva quando omitido", async () => {
+    const storeId = await newStore("loja-a");
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("naquela");
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B", panelColors: "store" } });
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("store");
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B" } });
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("store");
+  });
+
+  it("cores do painel: valor inválido é rejeitado", async () => {
+    const storeId = await newStore("loja-a");
+    await expect(
+      updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B", panelColors: "roxo" as never } }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+
+  it("loja com tema antigo (sem panelColors) lê como naquela", async () => {
+    const storeId = await newStore("loja-a");
+    await db
+      .update(stores)
+      .set({ theme: { primary: "#B91C1C", secondary: "#F59E0B", font: "sans" } as never })
+      .where(eq(stores.id, storeId));
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("naquela");
   });
 
   it.each([

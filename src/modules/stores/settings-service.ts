@@ -24,7 +24,12 @@ function parse<T extends z.ZodType>(schema: T, input: unknown): z.infer<T> {
 const storeProfileInputSchema = createStoreInputSchema
   .pick({ name: true, address: true, whatsappPhone: true, logoUrl: true, bannerUrl: true })
   // Fonte opcional: sem ela, o merge com o tema atual mantém a fonte salva.
-  .extend({ theme: storeThemeSchema.pick({ primary: true, secondary: true }).extend({ font: storeThemeSchema.shape.font.unwrap().optional() }) });
+  .extend({
+    theme: storeThemeSchema.pick({ primary: true, secondary: true }).extend({
+      font: storeThemeSchema.shape.font.unwrap().optional(),
+      panelColors: storeThemeSchema.shape.panelColors.unwrap().optional(),
+    }),
+  });
 
 export type StoreProfileInput = z.input<typeof storeProfileInputSchema>;
 
