@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { categoryAnchor } from "@/app/[slug]/_lib/anchors";
 
@@ -9,65 +9,59 @@ type NavCategory = { id: string; name: string };
 export function CategoryNav({ categories }: { categories: NavCategory[] }) {
   const [active, setActive] = useState(categories[0]?.id ?? null);
   const suspended = useRef(false);
-  const suspendTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const sections = categories
-      .map((category) => document.getElementById(categoryAnchor(category.id)))
-      .filter((element): element is HTMLElement => element !== null);
-    // A seção mais alta que cruza a faixa logo abaixo das abas é a ativa.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (suspended.current) return;
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (visible) setActive(visible.target.id.replace(categoryAnchor(""), ""));
-      },
-      { rootMargin: "-64px 0px -60% 0px" },
-    );
-    for (const section of sections) observer.observe(section);
-    return () => observer.disconnect();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Aba ativa calculada só pela posição de scroll: fim da página => última;
+  // senão a última seção cujo topo já passou da barra de abas; senão a primeira.
+  const computeActive = useCallback(() => {
+    const first = categories[0];
+    const last = categories[categories.length - 1];
+    if (suspended.current || !first || !last) return;
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+      setActive(last.id);
+      return;
+    }
+    const navBottom = navRef.current?.getBoundingClientRect().bottom ?? 0;
+    let current = first.id;
+    for (const category of categories) {
+      const section = document.getElementById(categoryAnchor(category.id));
+      if (section && section.getBoundingClientRect().top <= navBottom + 16) current = category.id;
+    }
+    setActive(current);
   }, [categories]);
 
-  // No fim da página a última categoria vence (seções curtas nunca chegam à faixa do observer).
   useEffect(() => {
-    const last = categories[categories.length - 1]?.id;
-    if (!last) return;
     let frame = 0;
-    const check = () => {
-      frame = 0;
-      if (suspended.current) return;
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) setActive(last);
+    const schedule = () => {
+      if (!frame) {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          computeActive();
+        });
+      }
     };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(check);
+    // Entrada do usuário (roda, toque, teclado, arrastar a barra) encerra a "fixação" da aba clicada.
+    const release = () => {
+      suspended.current = false;
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) window.addEventListener(type, release, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) window.removeEventListener(type, release);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [categories]);
+  }, [computeActive]);
 
-  useEffect(
-    () => () => {
-      if (suspendTimer.current) clearTimeout(suspendTimer.current);
-    },
-    [],
-  );
-
+  // A aba clicada fica fixa até o usuário mexer no scroll (seções curtas no fim da página
+  // não alinham ao topo, e o cálculo por posição escolheria outra aba).
   function goTo(categoryId: string) {
     setActive(categoryId);
     suspended.current = true;
-    if (suspendTimer.current) clearTimeout(suspendTimer.current);
-    const resume = () => {
-      suspended.current = false;
-      window.removeEventListener("scrollend", resume);
-      if (suspendTimer.current) clearTimeout(suspendTimer.current);
-    };
-    if ("onscrollend" in window) window.addEventListener("scrollend", resume, { once: true });
-    suspendTimer.current = setTimeout(resume, 1000);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById(categoryAnchor(categoryId))?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }
@@ -83,7 +77,7 @@ export function CategoryNav({ categories }: { categories: NavCategory[] }) {
   }, [active]);
 
   return (
-    <nav aria-label="Categorias" className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
+    <nav ref={navRef} aria-label="Categorias" className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
       <ul className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
         {categories.map((category) => (
           <li key={category.id} className="shrink-0">

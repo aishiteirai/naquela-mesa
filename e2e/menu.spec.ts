@@ -39,6 +39,15 @@ test("aba da última categoria fica ativa mesmo com seção curta", async ({ pag
   await expect(page.getByRole("heading", { level: 2, name: "Sobremesas" })).toBeInViewport();
 });
 
+test("aba ativa acompanha o scroll até o fim e de volta ao topo", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  const nav = page.getByRole("navigation", { name: "Categorias" });
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(nav.getByRole("button", { name: "Sobremesas" })).toHaveAttribute("aria-current", "true");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(nav.getByRole("button", { name: "Pizzas Salgadas" })).toHaveAttribute("aria-current", "true");
+});
+
 test("slug inexistente mostra loja não encontrada", async ({ page }) => {
   await page.goto("/loja-que-nao-existe");
   await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();

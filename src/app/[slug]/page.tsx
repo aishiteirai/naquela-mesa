@@ -55,7 +55,7 @@ async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {
           <CategoryNav categories={menu.categories.map(({ id, name }) => ({ id, name }))} />
           <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-4">
             {menu.categories.map((category) => (
-              <section key={category.id} id={categoryAnchor(category.id)} aria-labelledby={`${categoryAnchor(category.id)}-title`} className="scroll-mt-20">
+              <section key={category.id} id={categoryAnchor(category.id)} aria-labelledby={`${categoryAnchor(category.id)}-title`} className="scroll-mt-16">
                 <h2 id={`${categoryAnchor(category.id)}-title`} className="text-xl font-bold">
                   {category.name}
                 </h2>
