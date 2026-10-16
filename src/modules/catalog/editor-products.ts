@@ -27,19 +27,31 @@ const productInputSchema = z.object({
 
 export type ProductInput = z.input<typeof productInputSchema>;
 
-const optionGroupInputSchema = z
-  .object({
-    name: nameSchema,
-    minSelect: z.number().int().min(0, "mínimo inválido").max(50, "máximo de 50"),
-    maxSelect: z.number().int().min(1, "máximo deve ser ao menos 1").max(50, "máximo de 50"),
-  })
-  .refine((group) => group.minSelect <= group.maxSelect, { message: "mínimo maior que máximo", path: ["minSelect"] });
+const optionGroupFields = z.object({
+  name: nameSchema,
+  minSelect: z.number().int().min(0, "mínimo inválido").max(50, "máximo de 50"),
+  maxSelect: z.number().int().min(1, "máximo deve ser ao menos 1").max(50, "máximo de 50"),
+});
+
+const minNotAboveMax: { message: string; path: PropertyKey[] } = { message: "mínimo maior que máximo", path: ["minSelect"] };
+
+const optionGroupInputSchema = optionGroupFields.refine((group) => group.minSelect <= group.maxSelect, minNotAboveMax);
 
 export type OptionGroupInput = z.input<typeof optionGroupInputSchema>;
 
 const optionInputSchema = z.object({ name: nameSchema, priceCents: cents, available: z.boolean() });
 
 export type OptionInput = z.input<typeof optionInputSchema>;
+
+const saveOptionGroupInputSchema = optionGroupFields
+  .extend({
+    options: z
+      .array(optionInputSchema.extend({ id: z.uuid().optional() }))
+      .max(100, "máximo de 100 opções"),
+  })
+  .refine((group) => group.minSelect <= group.maxSelect, minNotAboveMax);
+
+export type SaveOptionGroupInput = z.input<typeof saveOptionGroupInputSchema>;
 
 function invalid(path: string, message: string): DomainError {
   return new DomainError("VALIDATION", { issues: [{ path, message }] });
@@ -248,5 +260,56 @@ export async function setOptionAvailability(storeId: string, optionId: string, a
     .set({ available })
     .where(and(eq(options.id, optionId), eq(options.storeId, storeId)))
     .returning({ id: options.id });
+  if (updated.length === 0) throw notFound();
+}
+
+/** Grava grupo e opções numa transação: cria (groupId null) ou atualiza, e insere opções sem `id`. */
+export async function saveOptionGroup(storeId: string, groupId: string | null, input: SaveOptionGroupInput): Promise<{ id: string }> {
+  const { options: optionList, ...group } = parseInput(saveOptionGroupInputSchema, input);
+  return db.transaction(async (tx) => {
+    let id = groupId;
+    if (id === null) {
+      const [last] = await tx
+        .select({ position: max(optionGroups.position) })
+        .from(optionGroups)
+        .where(eq(optionGroups.storeId, storeId));
+      const [row] = await tx
+        .insert(optionGroups)
+        .values({ storeId, ...group, position: (last?.position ?? -1) + 1 })
+        .returning({ id: optionGroups.id });
+      id = row!.id;
+    } else {
+      const updated = await tx
+        .update(optionGroups)
+        .set(group)
+        .where(and(eq(optionGroups.id, id), eq(optionGroups.storeId, storeId)))
+        .returning({ id: optionGroups.id });
+      if (updated.length === 0) throw notFound();
+    }
+
+    const [last] = await tx.select({ position: max(options.position) }).from(options).where(eq(options.groupId, id));
+    let position = (last?.position ?? -1) + 1;
+    for (const { id: optionId, ...data } of optionList) {
+      if (optionId) {
+        const updated = await tx
+          .update(options)
+          .set(data)
+          .where(and(eq(options.id, optionId), eq(options.groupId, id), eq(options.storeId, storeId)))
+          .returning({ id: options.id });
+        if (updated.length === 0) throw notFound();
+      } else {
+        await tx.insert(options).values({ storeId, groupId: id, ...data, position: position++ });
+      }
+    }
+    return { id };
+  });
+}
+
+export async function setProductActive(storeId: string, productId: string, active: boolean): Promise<void> {
+  const updated = await db
+    .update(products)
+    .set({ active })
+    .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
+    .returning({ id: products.id });
   if (updated.length === 0) throw notFound();
 }
