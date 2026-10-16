@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -16,13 +15,10 @@ type Props = {
 
 /** Painel lateral de edição (tela cheia no celular). Fecha pelo X, Esc, clique fora ou voltar do navegador. */
 export function ProductSheet({ category, product, optionGroups }: Props) {
-  const router = useRouter();
-
   const onSaved = useCallback(() => {
     closeProductPanel();
     toast.success("Produto salvo");
-    router.refresh();
-  }, [router]);
+  }, []);
 
   return (
     <Sheet open onOpenChange={(open) => !open && closeProductPanel()}>

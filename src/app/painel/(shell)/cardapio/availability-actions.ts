@@ -7,30 +7,35 @@ import { storeMenuTag } from "@/modules/stores";
 import { isDomainError } from "@/shared/errors";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 
-async function toggle(work: (storeId: string) => Promise<void>): Promise<void> {
+export type AvailabilityResult = { ok: boolean };
+
+// ok=false: id inválido ou item de outra loja/removido (nada foi alterado).
+async function toggle(work: (storeId: string) => Promise<boolean>): Promise<AvailabilityResult> {
   const { store } = await requireStoreAccess();
   try {
-    await work(store.id);
+    if (!(await work(store.id))) return { ok: false };
   } catch (error) {
-    // Item de outra loja ou removido: nada a fazer; a tela recarrega com o estado real.
-    if (isDomainError(error) && error.code === "NOT_FOUND") return;
+    if (isDomainError(error) && error.code === "NOT_FOUND") return { ok: false };
     throw error;
   }
   updateTag(storeMenuTag(store.slug));
+  return { ok: true };
 }
 
-export async function toggleProductAvailabilityAction(form: FormData): Promise<void> {
-  await toggle(async (storeId) => {
+export async function toggleProductAvailabilityAction(form: FormData): Promise<AvailabilityResult> {
+  return toggle(async (storeId) => {
     const id = z.uuid().safeParse(String(form.get("productId")));
-    if (!id.success) return;
+    if (!id.success) return false;
     await setProductAvailability(storeId, id.data, form.get("available") === "true");
+    return true;
   });
 }
 
-export async function toggleOptionAvailabilityAction(form: FormData): Promise<void> {
-  await toggle(async (storeId) => {
+export async function toggleOptionAvailabilityAction(form: FormData): Promise<AvailabilityResult> {
+  return toggle(async (storeId) => {
     const id = z.uuid().safeParse(String(form.get("optionId")));
-    if (!id.success) return;
+    if (!id.success) return false;
     await setOptionAvailability(storeId, id.data, form.get("available") === "true");
+    return true;
   });
 }

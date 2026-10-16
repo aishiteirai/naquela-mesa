@@ -1,2 +1,2 @@
 // API de navegador: só funções puras (nada de banco).
-export { readableTextColor } from "./theme";
+export { HEADING_FONTS, readableTextColor } from "./theme";

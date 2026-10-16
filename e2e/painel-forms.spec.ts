@@ -48,9 +48,9 @@ test("tamanhos: seletor de sabores mantém o valor salvo e não reverte ao renom
     await page.getByRole("region", { name: "Pizzas Salgadas" }).getByRole("button", { name: "Tamanhos" }).click();
     const sheet = page.getByRole("dialog", { name: /Tamanhos/ });
     const row = sheet.getByRole("listitem").filter({ has: page.getByLabel("Tamanho", { exact: true }) }).first();
-    return { sheet, row };
+    return { row };
   };
-  let { sheet, row } = await open();
+  let { row } = await open();
   await expect(row.getByLabel("Tamanho", { exact: true })).toHaveValue("Broto");
   const flavors = row.getByRole("combobox");
   await expect(flavors).toContainText("1 sabor");
@@ -63,7 +63,7 @@ test("tamanhos: seletor de sabores mantém o valor salvo e não reverte ao renom
   await row.getByLabel("Tamanho", { exact: true }).fill("Brotinho");
   await saveAndWait(page, row.getByRole("button", { name: "Salvar tamanho" }));
   await page.reload();
-  ({ sheet, row } = await open());
+  ({ row } = await open());
   await expect(row.getByLabel("Tamanho", { exact: true })).toHaveValue("Brotinho");
   await expect(row.getByRole("combobox")).toContainText("até 2 sabores");
 

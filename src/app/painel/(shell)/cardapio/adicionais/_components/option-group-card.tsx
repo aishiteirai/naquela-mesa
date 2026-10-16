@@ -31,8 +31,9 @@ function OptionRow({ option, onEdit }: { option: MenuOption; onEdit: () => void 
     startTransition(async () => {
       setOptimisticAvailable(next);
       try {
-        await toggleOptionAvailabilityAction(form);
-        toast.success(`${option.name} marcada como ${next ? "disponível" : "esgotada"}`);
+        const result = await toggleOptionAvailabilityAction(form);
+        if (result.ok) toast.success(`${option.name} marcada como ${next ? "disponível" : "esgotada"}`);
+        else toast.error("Não foi possível atualizar; recarregue a página.");
       } catch {
         toast.error(`Não foi possível atualizar ${option.name}.`);
       }

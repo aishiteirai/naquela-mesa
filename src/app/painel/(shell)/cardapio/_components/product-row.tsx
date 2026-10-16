@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import type { EditorProduct } from "@/modules/catalog";
+import { priceLabel } from "@/app/[slug]/_lib/price-label";
 import { moveProductAction } from "@/app/painel/(shell)/cardapio/actions";
 import { toggleProductAvailabilityAction } from "@/app/painel/(shell)/cardapio/availability-actions";
 import { openProduct } from "./menu-url";
-import { editorPriceLabel } from "./price-label";
 
 function formWith(fields: Record<string, string>): FormData {
   const form = new FormData();
@@ -28,8 +28,9 @@ export function ProductRow({ product, isFirst, isLast }: { product: EditorProduc
     startTransition(async () => {
       setOptimisticAvailable(next);
       try {
-        await toggleProductAvailabilityAction(formWith({ productId: product.id, available: String(next) }));
-        toast.success(`${product.name} marcada como ${next ? "disponível" : "esgotada"}`);
+        const result = await toggleProductAvailabilityAction(formWith({ productId: product.id, available: String(next) }));
+        if (result.ok) toast.success(`${product.name} marcada como ${next ? "disponível" : "esgotada"}`);
+        else toast.error("Não foi possível atualizar; recarregue a página.");
       } catch {
         toast.error(`Não foi possível atualizar ${product.name}.`);
       }
@@ -62,7 +63,7 @@ export function ProductRow({ product, isFirst, isLast }: { product: EditorProduc
             <span className="truncate font-medium">{product.name}</span>
             {!product.active && <Badge variant="secondary">Inativo</Badge>}
           </span>
-          <span className="text-sm text-muted-foreground">{editorPriceLabel(product)}</span>
+          <span className="text-sm text-muted-foreground">{priceLabel(product) ?? "sem preço"}</span>
         </span>
       </button>
       <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">

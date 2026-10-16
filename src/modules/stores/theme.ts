@@ -28,7 +28,7 @@ export function readableTextColor(hex: string): typeof BLACK | typeof WHITE {
 }
 
 // Fontes carregadas no layout raiz (next/font) e expostas como CSS vars no <html>.
-const HEADING_FONTS: Record<StoreTheme["font"], string> = {
+export const HEADING_FONTS: Record<StoreTheme["font"], string> = {
   sans: "var(--font-geist-sans)",
   serif: "var(--font-lora)",
 };

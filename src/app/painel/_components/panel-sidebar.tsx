@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   ChartColumnIcon,
   ClipboardListIcon,
@@ -29,7 +29,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { authClient } from "@/modules/auth/client";
+import { useSignOut } from "@/app/_components/sign-out-button";
 import { isNavItemActive, PANEL_NAV } from "@/app/painel/_lib/nav";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -45,18 +45,12 @@ type Props = { storeName: string; storeSlug: string; logoUrl: string | null };
 
 export function PanelSidebar({ storeName, storeSlug, logoUrl }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
+  const signOut = useSignOut();
   const { isMobile, setOpenMobile } = useSidebar();
 
   // Na gaveta do celular, navegar fecha o menu.
   function closeOnMobile() {
     if (isMobile) setOpenMobile(false);
-  }
-
-  async function signOut() {
-    await authClient.signOut();
-    router.push("/login");
-    router.refresh();
   }
 
   return (

@@ -4,7 +4,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,12 +23,15 @@ import { OrderTimeline } from "./_components/order-timeline";
 
 const FINAL_STATUSES = new Set(["completed", "cancelled"]);
 
+// generateMetadata e a página leem o mesmo pedido: uma consulta só por requisição.
+const readOrder = cache((token: string) => getOrderTracking(token));
+
 const NO_INDEX = { index: false, follow: false } as const;
 
 export async function generateMetadata({ params }: PageProps<"/[slug]/pedido/[token]">): Promise<Metadata> {
   const { token } = await params;
   await connection();
-  const order = await getOrderTracking(token);
+  const order = await readOrder(token);
   if (!order) return { robots: NO_INDEX };
   return { title: `Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`, robots: NO_INDEX };
 }
@@ -40,7 +43,7 @@ async function Tracking({
 }) {
   const { slug, token } = await params;
   await connection();
-  const order = await getOrderTracking(token);
+  const order = await readOrder(token);
   if (!order || order.store.slug !== slug) notFound();
 
   const path = `/${slug}/pedido/${token}`;

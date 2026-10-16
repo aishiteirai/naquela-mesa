@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { readableTextColor } from "@/modules/stores/client";
+import { HEADING_FONTS, readableTextColor } from "@/modules/stores/client";
 
 type Props = {
   name: string;
@@ -10,10 +10,9 @@ type Props = {
   font: "sans" | "serif";
 };
 
-const HEADING_FONTS = { sans: "var(--font-geist-sans)", serif: "var(--font-lora)" } as const;
-
-// Mini-celular com o topo do cardápio. O cardápio público é sempre claro, então a prévia usa
-// fundo branco fixo (não os tokens do painel, que podem estar no modo escuro).
+// Mini-celular com o topo do cardápio. A prévia mostra sempre o tema claro da loja, com
+// fundo branco fixo (não os tokens do painel, que podem estar no modo escuro, e sem depender
+// da chave claro/escuro do cardápio público).
 export function ThemePreview({ name, logoUrl, bannerUrl, primary, secondary, font }: Props) {
   const onPrimary = readableTextColor(primary);
   const heading = { fontFamily: HEADING_FONTS[font] };
