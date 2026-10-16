@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { getInvite } from "@/modules/stores";
+import { AccountCard } from "@/app/_components/account-card";
 import { acceptInviteAction } from "./actions";
 import { AcceptForm } from "./_components/accept-form";
 
@@ -12,31 +13,23 @@ async function Invite({ params }: { params: Promise<{ token: string }> }) {
   const invite = await getInvite(token);
 
   if (!invite) {
-    return (
-      <>
-        <h1 className="text-2xl font-semibold">Link inválido ou expirado.</h1>
-        <p className="text-neutral-700 dark:text-neutral-300">Peça um novo link ao suporte do Naquela Mesa.</p>
-      </>
-    );
+    return <AccountCard title="Link inválido ou expirado." description="Peça um novo link ao suporte do Naquela Mesa." />;
   }
 
   return (
-    <>
-      <h1 className="text-2xl font-semibold">Acesso à {invite.storeName}</h1>
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        {invite.hasAccount ? "Defina uma nova senha para entrar no painel." : "Crie sua senha para entrar no painel da loja."}
-      </p>
+    <AccountCard
+      title={`Acesso à ${invite.storeName}`}
+      description={invite.hasAccount ? "Defina uma nova senha para entrar no painel." : "Crie sua senha para entrar no painel da loja."}
+    >
       <AcceptForm action={acceptInviteAction.bind(null, token)} email={invite.email} hasAccount={invite.hasAccount} />
-    </>
+    </AccountCard>
   );
 }
 
 export default function ConvitePage({ params }: PageProps<"/convite/[token]">) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 p-6">
-      <Suspense fallback={<p>Carregando...</p>}>
-        <Invite params={params} />
-      </Suspense>
-    </main>
+    <Suspense fallback={<main className="min-h-dvh bg-muted/40" />}>
+      <Invite params={params} />
+    </Suspense>
   );
 }

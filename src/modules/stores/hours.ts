@@ -1,7 +1,7 @@
 import type { ManualStatus, StoreHour } from "./types";
 
 export type NextOpening = { dayOffset: number; weekday: number; time: string };
-export type OpenStatus = { isOpen: boolean; nextOpening: NextOpening | null };
+export type OpenStatus = { isOpen: boolean; nextOpening: NextOpening | null; closesAt: string | null };
 
 const WEEKDAY_INDEX: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 const WEEKDAY_NAMES = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
@@ -94,14 +94,22 @@ export function getOpenStatus(input: {
   timeZone: string;
   now: Date;
 }): OpenStatus {
-  if (input.manualStatus === "force_open") return { isOpen: true, nextOpening: null };
-  if (input.manualStatus === "force_closed") return { isOpen: false, nextOpening: null };
+  if (input.manualStatus === "force_open") return { isOpen: true, nextOpening: null, closesAt: null };
+  if (input.manualStatus === "force_closed") return { isOpen: false, nextOpening: null, closesAt: null };
 
   const { weekday, minutes } = localClock(input.now, input.timeZone);
-  if (input.hours.some((shift) => isWithinShift(shift, weekday, minutes))) {
-    return { isOpen: true, nextOpening: null };
-  }
-  return { isOpen: false, nextOpening: findNextOpening(input.hours, weekday, minutes) };
+  const current = input.hours.find((shift) => isWithinShift(shift, weekday, minutes));
+  if (current) return { isOpen: true, nextOpening: null, closesAt: current.closesAt };
+  return { isOpen: false, nextOpening: findNextOpening(input.hours, weekday, minutes), closesAt: null };
+}
+
+/** Texto curto do status para o painel (barra lateral e Configurações). */
+export function formatStoreStatus(status: OpenStatus, manualStatus: ManualStatus): string {
+  if (manualStatus === "force_open") return "Aberto agora (manual)";
+  if (manualStatus === "force_closed") return "Fechado agora (manual)";
+  if (status.isOpen) return status.closesAt ? `Aberto · fecha às ${status.closesAt}` : "Aberto agora";
+  if (!status.nextOpening) return "Fechado";
+  return `Fechado · ${formatOpenStatus(status).replace(/^Abre/, "abre")}`;
 }
 
 export function formatOpenStatus(status: OpenStatus): string {

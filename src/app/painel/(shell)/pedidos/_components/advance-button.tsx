@@ -1,0 +1,37 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect } from "react";
+import type { OrderStatus } from "@/modules/orders/client";
+import { Button } from "@/components/ui/button";
+import { idleState } from "@/app/_lib/action-state";
+import { advanceOrderAction } from "@/app/painel/(shell)/pedidos/actions";
+import { useQueueNotice } from "./queue-notice";
+
+export function AdvanceButton({ orderId, to, label, orderLabel, printUrl }: { orderId: string; to: OrderStatus; label: string; orderLabel: string; printUrl?: string }) {
+  const [state, formAction, pending] = useActionState(advanceOrderAction, idleState);
+  const router = useRouter();
+  const notice = useQueueNotice();
+
+  useEffect(() => {
+    if (state.status === "idle") return;
+    if (state.status === "error") notice(state.message);
+    router.refresh();
+  }, [state, router, notice]);
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={() => {
+        // Abre a comanda no clique (gesto do usuário), para o navegador não bloquear a janela.
+        if (printUrl) window.open(printUrl, "_blank");
+      }}
+    >
+      <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="to" value={to} />
+      <Button type="submit" disabled={pending} aria-label={`${label} ${orderLabel}`}>
+        {label}
+      </Button>
+    </form>
+  );
+}

@@ -1,30 +1,46 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 import type { Store } from "@/modules/stores";
 
-export function StoreHeader({ store, status }: { store: Store; status: ReactNode }) {
+export function StoreHeader({ store, status, info }: { store: Store; status: ReactNode; info: string[] }) {
   return (
-    <header className="bg-(--brand-primary) text-(--brand-primary-foreground)">
-      {store.bannerUrl && (
-        <div className="relative h-32 w-full sm:h-48">
-          <Image src={store.bannerUrl} alt="" fill unoptimized className="object-cover" />
-        </div>
-      )}
-      <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-5">
-        {store.logoUrl && (
-          <Image
-            src={store.logoUrl}
-            alt={`Logo de ${store.name}`}
-            width={64}
-            height={64}
-            unoptimized
-            className="size-16 rounded-full border-2 border-white object-cover"
-          />
+    <header className="bg-background">
+      <div className="relative mx-auto h-28 w-full max-w-5xl overflow-hidden sm:h-40 sm:rounded-b-2xl">
+        {store.bannerUrl ? (
+          <Image src={store.bannerUrl} alt="" fill unoptimized priority className="object-cover" />
+        ) : (
+          <div data-testid="cover-fallback" className="size-full bg-linear-to-br from-primary to-brand-secondary" />
         )}
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="text-2xl font-bold">{store.name}</h1>
-          {store.address && <p className="text-sm opacity-90">{store.address}</p>}
-          <div>{status}</div>
+        <ModeToggle className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm" />
+      </div>
+      <div className="mx-auto flex max-w-5xl items-start gap-3 px-4 pb-3">
+        <div className="relative -mt-7 size-14 shrink-0 overflow-hidden rounded-2xl border-4 border-background bg-primary shadow-md">
+          {store.logoUrl ? (
+            <Image src={store.logoUrl} alt={`Logo de ${store.name}`} width={56} height={56} unoptimized className="size-full object-cover" />
+          ) : (
+            <span aria-hidden="true" className="grid size-full place-items-center text-2xl font-bold text-primary-foreground [font-family:var(--heading-font)]">
+              {store.name.charAt(0)}
+            </span>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 pt-1.5">
+          <h1 className="line-clamp-2 text-xl font-bold sm:text-2xl">{store.name}</h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {store.address && <p className="min-w-0 truncate text-sm text-muted-foreground">{store.address}</p>}
+            {status}
+          </div>
+          {info.length > 0 && (
+            <p data-testid="store-info" className="text-sm text-muted-foreground">
+              {/* Cada item fica inteiro; a linha só quebra entre um item e outro. */}
+              {info.map((item, index) => (
+                <span key={item}>
+                  {index > 0 && " · "}
+                  <span className="whitespace-nowrap">{item}</span>
+                </span>
+              ))}
+            </p>
+          )}
         </div>
       </div>
     </header>

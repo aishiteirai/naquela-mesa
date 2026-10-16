@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { type ChangeEvent, useState, useTransition } from "react";
+import { type ChangeEvent, useId, useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 const MAX_SIDE = 1200;
 
@@ -21,10 +24,24 @@ async function resizeForUpload(file: File): Promise<Blob> {
   }
 }
 
-export function ImageUploadField({ name, label, defaultUrl }: { name: string; label: string; defaultUrl: string | null }) {
-  const [url, setUrl] = useState(defaultUrl ?? "");
+type Props = {
+  name: string;
+  label: string;
+  defaultUrl: string | null;
+  /** Avisa a URL atual (após enviar ou remover), para prévias ao vivo. */
+  onUrlChange?: (url: string) => void;
+};
+
+export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props) {
+  const id = useId();
+  const [url, setUrlState] = useState(defaultUrl ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function setUrl(next: string) {
+    setUrlState(next);
+    onUrlChange?.(next);
+  }
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -45,22 +62,20 @@ export function ImageUploadField({ name, label, defaultUrl }: { name: string; la
   }
 
   return (
-    <div className="flex flex-col gap-2 text-sm">
-      <label className="flex flex-col gap-1">
-        {label}
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onChange} disabled={pending} />
-      </label>
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input id={id} type="file" accept="image/jpeg,image/png,image/webp" onChange={onChange} disabled={pending} />
       <input type="hidden" name={name} value={url} />
-      {pending && <p>Enviando imagem...</p>}
-      {error && <p className="text-red-700 dark:text-red-400">{error}</p>}
+      {pending && <FieldDescription>Enviando imagem...</FieldDescription>}
+      {error && <FieldError>{error}</FieldError>}
       {url && (
         <div className="flex items-center gap-3">
-          <Image src={url} alt={`Prévia: ${label}`} width={80} height={80} unoptimized className="size-20 rounded object-cover" />
-          <button type="button" onClick={() => setUrl("")} className="underline">
+          <Image src={url} alt={`Prévia: ${label}`} width={80} height={80} unoptimized className="size-20 rounded-md border object-cover" />
+          <Button type="button" variant="outline" size="sm" onClick={() => setUrl("")}>
             Remover imagem
-          </button>
+          </Button>
         </div>
       )}
-    </div>
+    </Field>
   );
 }

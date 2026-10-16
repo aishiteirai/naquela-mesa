@@ -21,7 +21,14 @@ describe("buildOnboardingChecklist", () => {
       ["pix", false],
       ["menu", false],
     ]);
-    expect(items[0]).toEqual({ key: "logo", label: "Enviar o logo da loja", done: false, href: "/painel/loja" });
+    expect(items[0]).toEqual({ key: "logo", label: "Enviar o logo da loja", done: false, href: "/painel/loja?aba=aparencia" });
+    expect(items.map((item) => item.href)).toEqual([
+      "/painel/loja?aba=aparencia",
+      "/painel/loja?aba=horarios",
+      "/painel/loja?aba=pedidos",
+      "/painel/loja?aba=pedidos",
+      "/painel/cardapio",
+    ]);
     expect(items[4]?.href).toBe("/painel/cardapio");
   });
 

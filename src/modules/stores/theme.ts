@@ -27,11 +27,26 @@ export function readableTextColor(hex: string): typeof BLACK | typeof WHITE {
   return contrastRatio(luminance, 0) >= contrastRatio(luminance, 1) ? BLACK : WHITE;
 }
 
+// Fontes carregadas no layout raiz (next/font) e expostas como CSS vars no <html>.
+export const HEADING_FONTS: Record<StoreTheme["font"], string> = {
+  sans: "var(--font-geist-sans)",
+  serif: "var(--font-lora)",
+};
+
+// --primary/--heading-font fazem os componentes shadcn e os títulos dentro da loja usarem a marca dela;
+// --brand-secondary* atende acentos (selo de status, gradiente da capa).
+// O anel de foco depende do modo (claro/escuro), escolhido no CSS a partir de --store-ring-light/-dark:
+// o shadcn desenha o foco em ring/50, e uma primária clara some no fundo claro (e uma escura, no escuro).
 export function themeCssVariables(theme: StoreTheme) {
+  const primaryForeground = readableTextColor(theme.primary);
+  const darkPrimary = primaryForeground === "#FFFFFF";
   return {
-    "--brand-primary": theme.primary,
-    "--brand-primary-foreground": readableTextColor(theme.primary),
     "--brand-secondary": theme.secondary,
     "--brand-secondary-foreground": readableTextColor(theme.secondary),
+    "--primary": theme.primary,
+    "--primary-foreground": primaryForeground,
+    "--store-ring-light": darkPrimary ? theme.primary : "#000000",
+    "--store-ring-dark": darkPrimary ? "#FFFFFF" : theme.primary,
+    "--heading-font": HEADING_FONTS[theme.font],
   };
 }

@@ -26,7 +26,9 @@ export {
   createOptionGroup,
   createProduct,
   moveProduct,
+  saveOptionGroup,
   setOptionAvailability,
+  setProductActive,
   setProductAvailability,
   updateOption,
   updateOptionGroup,
@@ -34,4 +36,5 @@ export {
   type OptionGroupInput,
   type OptionInput,
   type ProductInput,
+  type SaveOptionGroupInput,
 } from "./editor-products";

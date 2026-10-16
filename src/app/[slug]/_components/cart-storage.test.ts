@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStoredCart } from "./cart-storage";
+import { addCartLine, parseStoredCart, type CartLine } from "./cart-storage";
 
 const valid = {
   key: "k1",
@@ -38,5 +38,31 @@ describe("parseStoredCart", () => {
     expect(parseStoredCart("não é json")).toEqual([]);
     expect(parseStoredCart('{"input":null}')).toEqual([]);
     expect(parseStoredCart("[]")).toEqual([]);
+  });
+});
+
+describe("addCartLine", () => {
+  const coca = valid as CartLine;
+  const pizza = validSized as CartLine;
+
+  it("item novo vira uma linha nova", () => {
+    expect(addCartLine([coca], pizza)).toEqual([coca, pizza]);
+  });
+
+  it("item igual soma a quantidade na linha existente", () => {
+    const again = { ...coca, key: "k9", input: { ...coca.input, quantity: 3 } };
+    expect(addCartLine([coca, pizza], again)).toEqual([{ ...coca, input: { ...coca.input, quantity: 5 } }, pizza]);
+  });
+
+  it("observação ou adicionais diferentes são outro item", () => {
+    const withNotes = { ...coca, key: "k9", input: { ...coca.input, notes: "gelada" } };
+    expect(addCartLine([coca], withNotes)).toHaveLength(2);
+    const otherOptions = { ...pizza, key: "k9", input: { ...pizza.input, optionIds: [] } };
+    expect(addCartLine([pizza], otherOptions)).toHaveLength(2);
+  });
+
+  it("não passa do máximo por item", () => {
+    const many = { ...coca, key: "k9", input: { ...coca.input, quantity: 99 } };
+    expect(addCartLine([coca], many)[0]?.input.quantity).toBeLessThanOrEqual(99);
   });
 });

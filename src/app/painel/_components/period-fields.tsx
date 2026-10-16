@@ -1,30 +1,32 @@
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { PERIOD_LABELS, PERIOD_PRESETS, type PeriodPreset } from "@/modules/orders";
-import { inputClass } from "@/app/_components/styles";
+import { NativeSelect } from "@/app/_components/native-select";
 
 type Props = { preset: PeriodPreset; from: string; to: string };
 
-/** Campos de período para formulários GET (`periodo`, `de`, `ate`). */
+/** Campos de período para formulários GET (`periodo`, `de`, `ate`). Uma vez por página (ids fixos). */
 export function PeriodFields({ preset, from, to }: Props) {
   return (
     <>
-      <label className="flex flex-col gap-1 text-sm">
-        Período
-        <select name="periodo" defaultValue={preset} className={inputClass}>
+      <Field className="w-auto">
+        <FieldLabel htmlFor="filtro-periodo">Período</FieldLabel>
+        <NativeSelect id="filtro-periodo" name="periodo" defaultValue={preset}>
           {PERIOD_PRESETS.map((value) => (
             <option key={value} value={value}>
               {PERIOD_LABELS[value]}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        De
-        <input type="date" name="de" defaultValue={from} className={inputClass} />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        Até
-        <input type="date" name="ate" defaultValue={to} className={inputClass} />
-      </label>
+        </NativeSelect>
+      </Field>
+      <Field className="w-auto">
+        <FieldLabel htmlFor="filtro-de">De</FieldLabel>
+        <Input id="filtro-de" type="date" name="de" defaultValue={from} />
+      </Field>
+      <Field className="w-auto">
+        <FieldLabel htmlFor="filtro-ate">Até</FieldLabel>
+        <Input id="filtro-ate" type="date" name="ate" defaultValue={to} />
+      </Field>
     </>
   );
 }

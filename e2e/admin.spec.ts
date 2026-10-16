@@ -37,7 +37,7 @@ test("super-admin cria loja a partir de template e o dono ativa o acesso", async
   await owner.getByLabel("Confirmar senha").fill("senha-dono-123");
   await owner.getByRole("button", { name: "Criar acesso" }).click();
   await expect(owner).toHaveURL(/\/painel$/);
-  await expect(owner.getByRole("region", { name: "Primeiros passos" })).toContainText("Primeiros passos (1 de 5)");
+  await expect(owner.getByRole("region", { name: "Primeiros passos" })).toContainText("1 de 5 concluídos");
 
   await owner.goto(inviteUrl);
   await expect(owner.getByRole("heading", { name: "Link inválido ou expirado." })).toBeVisible();
@@ -66,4 +66,25 @@ test("acesso de suporte entra no painel da loja e fica registrado", async ({ pag
 test("link de convite inválido mostra a página de erro", async ({ page }) => {
   await page.goto("/convite/token-que-nao-existe");
   await expect(page.getByRole("heading", { name: "Link inválido ou expirado." })).toBeVisible();
+});
+
+test("novo link de acesso pelo diálogo leva o dono a definir nova senha", async ({ page, browser }) => {
+  await loginAsAdmin(page);
+  const row = page.getByRole("row", { name: /Hamburgueria E2E/ });
+  await row.getByRole("button", { name: "Gerar link de acesso" }).click();
+  const dialog = page.getByRole("dialog", { name: "Link de acesso · Hamburgueria E2E" });
+  await expect(dialog).toContainText(OWNER_EMAIL);
+  await dialog.getByRole("button", { name: "Gerar link de acesso" }).click();
+
+  const link = dialog.getByRole("textbox", { name: "Link de acesso" });
+  await expect(link).toHaveValue(/\/convite\/[A-Za-z0-9_-]{43}$/);
+  const inviteUrl = await link.inputValue();
+
+  const ownerContext = await browser.newContext();
+  const owner = await ownerContext.newPage();
+  await owner.goto(inviteUrl);
+  await expect(owner.getByRole("heading", { name: "Acesso à Hamburgueria E2E" })).toBeVisible();
+  await expect(owner.getByText("Defina uma nova senha para entrar no painel.")).toBeVisible();
+  await expect(owner.getByRole("button", { name: "Definir nova senha" })).toBeVisible();
+  await ownerContext.close();
 });

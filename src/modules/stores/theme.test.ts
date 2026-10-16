@@ -19,12 +19,28 @@ describe("readableTextColor", () => {
 });
 
 describe("themeCssVariables", () => {
-  it("gera variáveis da marca com texto legível", () => {
-    expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans" })).toEqual({
-      "--brand-primary": "#B91C1C",
-      "--brand-primary-foreground": "#FFFFFF",
+  it("gera variáveis da marca e sobrescreve os tokens do shadcn", () => {
+    expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "sans", panelColors: "naquela" })).toEqual({
       "--brand-secondary": "#F59E0B",
       "--brand-secondary-foreground": "#000000",
+      "--primary": "#B91C1C",
+      "--primary-foreground": "#FFFFFF",
+      "--store-ring-light": "#B91C1C",
+      "--store-ring-dark": "#FFFFFF",
+      "--heading-font": "var(--font-geist-sans)",
     });
+  });
+
+  it("usa Lora nos títulos quando a fonte é serif", () => {
+    expect(themeCssVariables({ primary: "#B91C1C", secondary: "#F59E0B", font: "serif", panelColors: "naquela" })["--heading-font"]).toBe(
+      "var(--font-lora)",
+    );
+  });
+
+  it("primária clara ganha texto preto nos botões", () => {
+    const vars = themeCssVariables({ primary: "#ffff00", secondary: "#F59E0B", font: "sans", panelColors: "naquela" });
+    expect(vars["--primary-foreground"]).toBe("#000000");
+    expect(vars["--store-ring-light"]).toBe("#000000");
+    expect(vars["--store-ring-dark"]).toBe("#ffff00");
   });
 });

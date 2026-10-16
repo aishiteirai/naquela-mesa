@@ -1,25 +1,287 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Modo escuro só na tela: impressão (pedido, comanda) sai sempre clara. */
+@custom-variant dark {
+  @media screen {
+    &:is(.dark *) {
+      @slot;
+    }
+  }
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-primary-hover: var(--primary-hover);
+  --color-tint: var(--tint);
+  --color-ok: var(--ok);
+  --color-ok-foreground: var(--ok-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--heading-font);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-secondary-foreground: var(--brand-secondary-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: var(--store-ring-light, oklch(0.708 0 0));
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  /* Padrões fora da loja; o wrapper do cardápio (themeCssVariables) sobrescreve. */
+  --brand-secondary: var(--secondary);
+  --brand-secondary-foreground: var(--secondary-foreground);
+  --heading-font: var(--font-geist-sans);
+}
+
+/* Anel de foco da loja (themeCssVariables): o wrapper da loja redeclara --ring para usar as variáveis dele. */
+[data-store-theme] {
+  --ring: var(--store-ring-light);
+}
+
+@media screen {
+  .dark [data-store-theme] {
+    --ring: var(--store-ring-dark);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+@media screen {
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: var(--store-ring-dark, oklch(0.556 0 0));
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+}
+
+/* Tema do painel (spec §3). Só vale dentro de [data-panel-theme]; login, admin, cardápio e impressão ficam como estão. */
+[data-panel-theme="naquela"] {
+  --background: #ffffff;
+  --foreground: #3b2a20;
+  --card: #ffffff;
+  --card-foreground: #3b2a20;
+  --popover: #ffffff;
+  --popover-foreground: #3b2a20;
+  --muted: #f6eadb;
+  --muted-foreground: #6e5644;
+  --secondary: #f6eadb;
+  --secondary-foreground: #3b2a20;
+  --accent: #ebdcc8;
+  --accent-foreground: #3b2a20;
+  --border: #ebdcc8;
+  --input: #ebdcc8;
+  --primary: #b5481c;
+  --primary-foreground: #ffffff;
+  --ring: #b5481c;
+  --chart-1: #b5481c;
+  --chart-2: #e9a27a;
+  --primary-hover: #8a3a17;
+  --brand: #d9622b;
+  --tint: #fdf5ee;
+  --ok: #f6eadb;
+  --ok-foreground: #8a3a17;
+  --sidebar: #f6eadb;
+  --sidebar-foreground: #3b2a20;
+  --sidebar-primary: #b5481c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebdcc8;
+  --sidebar-accent-foreground: #3b2a20;
+  --sidebar-border: #ebdcc8;
+  --sidebar-ring: #b5481c;
+}
+
+/* "Cores da loja": a primária vem inline (panelThemeVariables); aqui só os extras e os padrões neutros. */
+[data-panel-theme="loja"] {
+  --brand: #d9622b;
+  --ok: #f5f5f5;
+  --ok-foreground: #404040;
+  --tint-pct: 8%;
+  --tint-base: white;
+  --accent-loja: var(--tint);
+}
+
+@media screen {
+  .dark[data-panel-theme="naquela"],
+  .dark [data-panel-theme="naquela"] {
+    --background: #1c1410;
+    --foreground: #f6eadb;
+    --card: #261c16;
+    --card-foreground: #f6eadb;
+    --popover: #261c16;
+    --popover-foreground: #f6eadb;
+    --muted: #2e231c;
+    --muted-foreground: #c9b49c;
+    --secondary: #2e231c;
+    --secondary-foreground: #f6eadb;
+    --accent: #3d2f25;
+    --accent-foreground: #f6eadb;
+    --border: #3d2f25;
+    --input: #3d2f25;
+    --primary: #d9622b;
+    --primary-foreground: #ffffff;
+    --ring: #d9622b;
+    --chart-1: #d9622b;
+    --chart-2: #e9a27a;
+    --primary-hover: #e9a27a;
+    --brand: #e9a27a;
+    --tint: #33241b;
+    --ok: #2e231c;
+    --ok-foreground: #e9a27a;
+    --sidebar: #2e231c;
+    --sidebar-foreground: #f6eadb;
+    --sidebar-primary: #d9622b;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #3d2f25;
+    --sidebar-accent-foreground: #f6eadb;
+    --sidebar-border: #3d2f25;
+    --sidebar-ring: #d9622b;
+  }
+
+  .dark[data-panel-theme="loja"],
+  .dark [data-panel-theme="loja"] {
+    --brand: #e9a27a;
+    --ok: #262626;
+    --ok-foreground: #d4d4d4;
+    --tint-pct: 18%;
+    --tint-base: var(--background);
+    --accent-loja: oklch(0.269 0 0);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--heading-font);
+  }
+}
+
+/* Landing: a comanda "sai da impressora" uma vez ao abrir a página (só com movimento permitido). */
+@keyframes nm-print {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-12px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes nm-ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20%,
+  60% {
+    transform: rotate(-14deg);
+  }
+  40%,
+  80% {
+    transform: rotate(14deg);
+  }
 }

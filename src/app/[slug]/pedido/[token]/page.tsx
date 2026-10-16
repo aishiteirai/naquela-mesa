@@ -1,84 +1,142 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { Suspense } from "react";
-import { FULFILLMENT_LABELS, formatOrderNumber, getOrderTracking, PAYMENT_LABELS, statusLabel } from "@/modules/orders";
+import { cache, Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  FULFILLMENT_LABELS,
+  formatOrderNumber,
+  getOrderTracking,
+  PAYMENT_LABELS,
+  statusLabel,
+} from "@/modules/orders";
 import { buildContactMessage, waMeLink } from "@/modules/whatsapp";
 import { appUrl } from "@/shared/env";
 import { formatBRL } from "@/shared/money";
+import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { AutoRefresh } from "./_components/auto-refresh";
+import { OrderTimeline } from "./_components/order-timeline";
 
 const FINAL_STATUSES = new Set(["completed", "cancelled"]);
 
-async function Tracking({ params }: { params: Promise<{ slug: string; token: string }> }) {
+// generateMetadata e a página leem o mesmo pedido: uma consulta só por requisição.
+const readOrder = cache((token: string) => getOrderTracking(token));
+
+const NO_INDEX = { index: false, follow: false } as const;
+
+export async function generateMetadata({ params }: PageProps<"/[slug]/pedido/[token]">): Promise<Metadata> {
+  const { token } = await params;
+  await connection();
+  const order = await readOrder(token);
+  if (!order) return { robots: NO_INDEX };
+  return { title: `Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`, robots: NO_INDEX };
+}
+
+async function Tracking({
+  params,
+}: {
+  params: Promise<{ slug: string; token: string }>;
+}) {
   const { slug, token } = await params;
   await connection();
-  const order = await getOrderTracking(token);
+  const order = await readOrder(token);
   if (!order || order.store.slug !== slug) notFound();
 
   const path = `/${slug}/pedido/${token}`;
-  const contactUrl = waMeLink(order.store.whatsappPhone, buildContactMessage(order.number, new URL(path, appUrl()).toString()));
-  const createdAt = new Intl.DateTimeFormat("pt-BR", { timeZone: order.store.timezone, dateStyle: "short", timeStyle: "short" }).format(
-    new Date(order.createdAt),
+  const contactUrl = waMeLink(
+    order.store.whatsappPhone,
+    buildContactMessage(order.number, new URL(path, appUrl()).toString()),
   );
+  const createdAt = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: order.store.timezone,
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(order.createdAt));
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-6">
-      <title>{`Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`}</title>
-      <meta name="robots" content="noindex, nofollow" />
-      {!FINAL_STATUSES.has(order.status) && <AutoRefresh intervalMs={10_000} />}
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">{order.store.name}</p>
-      <h1 className="text-2xl font-semibold">Pedido {formatOrderNumber(order.number)}</h1>
-      <p>Olá, {order.customerFirstName}!</p>
-      <p data-testid="order-status" className="rounded-lg bg-neutral-100 p-3 text-lg font-semibold dark:bg-neutral-800">
-        {statusLabel(order.status, order.fulfillment)}
-      </p>
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        {FULFILLMENT_LABELS[order.fulfillment]} · feito em {createdAt}
-      </p>
+    <StoreShell theme={order.store.theme}>
+      <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-6">
+        {!FINAL_STATUSES.has(order.status) && <AutoRefresh intervalMs={10_000} />}
 
-      <ul className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-800">
-        {order.items.map((item, index) => (
-          <li key={index} className="flex flex-col py-2">
-            <div className="flex justify-between gap-3">
-              <span>
-                {item.quantity}x {item.description}
+        <div className="flex items-center gap-3">
+          <div className="size-10 shrink-0 overflow-hidden rounded-xl bg-primary">
+            {order.store.logoUrl ? (
+              <Image src={order.store.logoUrl} alt={`Logo de ${order.store.name}`} width={40} height={40} unoptimized className="size-full object-cover" />
+            ) : (
+              <span aria-hidden="true" className="grid size-full place-items-center font-bold text-primary-foreground">
+                {order.store.name.charAt(0)}
               </span>
-              <span>{formatBRL(item.totalCents)}</span>
-            </div>
-            {item.options.map((option) => (
-              <span key={option} className="text-sm text-neutral-700 dark:text-neutral-300">
-                + {option}
-              </span>
-            ))}
-          </li>
-        ))}
-      </ul>
+            )}
+          </div>
+          <span className="font-medium">{order.store.name}</span>
+          <ModeToggle className="ml-auto" />
+        </div>
 
-      <dl className="grid grid-cols-2 gap-1">
-        <dt>Subtotal</dt>
-        <dd className="text-right">{formatBRL(order.subtotalCents)}</dd>
-        <dt>Entrega</dt>
-        <dd className="text-right">{formatBRL(order.deliveryFeeCents)}</dd>
-        <dt className="font-semibold">Total</dt>
-        <dd className="text-right font-semibold">{formatBRL(order.totalCents)}</dd>
-        <dt>Pagamento</dt>
-        <dd className="text-right">{PAYMENT_LABELS[order.paymentMethod]}</dd>
-      </dl>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold">Pedido {formatOrderNumber(order.number)}</h1>
+          <p>Olá, {order.customerFirstName}!</p>
+          <p className="text-sm text-muted-foreground">
+            {FULFILLMENT_LABELS[order.fulfillment]} · feito em {createdAt}
+          </p>
+        </div>
 
-      <a href={contactUrl} target="_blank" rel="noreferrer" className="rounded bg-green-700 px-4 py-3 text-center font-semibold text-white">
-        Falar com a loja no WhatsApp
-      </a>
-      <Link href={`/${slug}`} className="text-center underline">
-        Voltar ao cardápio
-      </Link>
-    </main>
+        <p data-testid="order-status" className="text-lg font-semibold">
+          {statusLabel(order.status, order.fulfillment)}
+        </p>
+        <OrderTimeline fulfillment={order.fulfillment} status={order.status} />
+
+        <Card>
+          <CardContent className="flex flex-col gap-4">
+            <ul className="flex flex-col divide-y">
+              {order.items.map((item, index) => (
+                <li key={index} className="flex flex-col py-2">
+                  <div className="flex justify-between gap-3">
+                    <span>
+                      {item.quantity}x {item.description}
+                    </span>
+                    <span>{formatBRL(item.totalCents)}</span>
+                  </div>
+                  {item.options.map((option) => (
+                    <span key={option} className="text-sm text-muted-foreground">
+                      + {option}
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ul>
+            <dl className="grid grid-cols-2 gap-1 text-sm">
+              <dt className="text-muted-foreground">Subtotal</dt>
+              <dd className="text-right">{formatBRL(order.subtotalCents)}</dd>
+              <dt className="text-muted-foreground">Entrega</dt>
+              <dd className="text-right">{formatBRL(order.deliveryFeeCents)}</dd>
+              <dt className="font-semibold">Total</dt>
+              <dd className="text-right font-semibold">{formatBRL(order.totalCents)}</dd>
+              <dt className="text-muted-foreground">Pagamento</dt>
+              <dd className="text-right">{PAYMENT_LABELS[order.paymentMethod]}</dd>
+            </dl>
+          </CardContent>
+        </Card>
+
+        <a href={contactUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-green-700 px-4 py-3 text-center font-semibold text-white">
+          Falar com a loja no WhatsApp
+        </a>
+        <Button asChild variant="outline">
+          <Link href={`/${slug}`}>Voltar ao cardápio</Link>
+        </Button>
+      </main>
+    </StoreShell>
   );
 }
 
-export default function OrderPage({ params }: PageProps<"/[slug]/pedido/[token]">) {
+export default function OrderPage({
+  params,
+}: PageProps<"/[slug]/pedido/[token]">) {
   return (
-    <Suspense fallback={<p className="p-6">Carregando pedido...</p>}>
+    <Suspense fallback={<p className="p-6 text-muted-foreground">Carregando pedido...</p>}>
       <Tracking params={params} />
     </Suspense>
   );

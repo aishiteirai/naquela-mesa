@@ -1,14 +1,14 @@
 import { Suspense } from "react";
+import { AccountCard } from "@/app/_components/account-card";
 import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Entrar</h1>
+    <AccountCard title="Entrar" description="Acesse o painel da sua loja.">
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
-      <p className="text-sm text-neutral-700 dark:text-neutral-300">Esqueceu a senha? Peça ao suporte um novo link de acesso.</p>
-    </main>
+      <p className="m-0 text-sm text-muted-foreground">Esqueceu a senha? Peça ao suporte um novo link de acesso.</p>
+    </AccountCard>
   );
 }

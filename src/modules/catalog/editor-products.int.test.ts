@@ -7,7 +7,9 @@ import {
   createOptionGroup,
   createProduct,
   moveProduct,
+  saveOptionGroup,
   setOptionAvailability,
+  setProductActive,
   setProductAvailability,
   updateOption,
   updateOptionGroup,
@@ -232,5 +234,97 @@ describe("catalog editor — produtos e adicionais", () => {
 
     const view = await getCatalogForEditing(storeId);
     expect(view.categories.find((c) => c.name === "Sucos")!.products.map((p) => p.name)).toEqual(["Laranja", "Uva", "Coca"]);
+  });
+
+  it("saveOptionGroup cria grupo com opções numa vez", async () => {
+    const storeId = await newStore("loja-a");
+    const { id } = await saveOptionGroup(storeId, null, {
+      name: "Borda recheada",
+      minSelect: 0,
+      maxSelect: 1,
+      options: [
+        { name: "Catupiry", priceCents: 800, available: true },
+        { name: "Cheddar", priceCents: 800, available: false },
+      ],
+    });
+    const group = (await getCatalogForEditing(storeId)).optionGroups.find((g) => g.id === id)!;
+    expect(group.options.map((o) => [o.name, o.priceCents, o.available])).toEqual([
+      ["Catupiry", 800, true],
+      ["Cheddar", 800, false],
+    ]);
+  });
+
+  it("saveOptionGroup edita uma opção e adiciona outra sem duplicar", async () => {
+    const storeId = await newStore("loja-a");
+    const { id } = await saveOptionGroup(storeId, null, {
+      name: "Borda",
+      minSelect: 0,
+      maxSelect: 1,
+      options: [{ name: "Catupiry", priceCents: 800, available: true }],
+    });
+    const [catupiry] = (await getCatalogForEditing(storeId)).optionGroups.find((g) => g.id === id)!.options;
+    await saveOptionGroup(storeId, id, {
+      name: "Borda recheada",
+      minSelect: 1,
+      maxSelect: 2,
+      options: [
+        { id: catupiry!.id, name: "Catupiry", priceCents: 900, available: true },
+        { name: "Chocolate", priceCents: 1000, available: true },
+      ],
+    });
+    const group = (await getCatalogForEditing(storeId)).optionGroups.find((g) => g.id === id)!;
+    expect([group.name, group.minSelect, group.maxSelect]).toEqual(["Borda recheada", 1, 2]);
+    expect(group.options.map((o) => [o.name, o.priceCents])).toEqual([
+      ["Catupiry", 900],
+      ["Chocolate", 1000],
+    ]);
+  });
+
+  it("saveOptionGroup inválido não grava nada", async () => {
+    const storeId = await newStore("loja-a");
+    const { id } = await saveOptionGroup(storeId, null, { name: "Borda", minSelect: 0, maxSelect: 1, options: [] });
+    await expect(
+      saveOptionGroup(storeId, id, {
+        name: "Novo nome",
+        minSelect: 3,
+        maxSelect: 1,
+        options: [{ name: "X", priceCents: 0, available: true }],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    const group = (await getCatalogForEditing(storeId)).optionGroups.find((g) => g.id === id)!;
+    expect(group.name).toBe("Borda");
+    expect(group.options).toEqual([]);
+  });
+
+  it("saveOptionGroup recusa opção de outro grupo", async () => {
+    const storeId = await newStore("loja-a");
+    const a = await saveOptionGroup(storeId, null, {
+      name: "A",
+      minSelect: 0,
+      maxSelect: 1,
+      options: [{ name: "Op", priceCents: 0, available: true }],
+    });
+    const b = await saveOptionGroup(storeId, null, { name: "B", minSelect: 0, maxSelect: 1, options: [] });
+    const op = (await getCatalogForEditing(storeId)).optionGroups.find((g) => g.id === a.id)!.options[0]!;
+    await expect(
+      saveOptionGroup(storeId, b.id, {
+        name: "B",
+        minSelect: 0,
+        maxSelect: 1,
+        options: [{ id: op.id, name: "Op", priceCents: 0, available: true }],
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("setProductActive oculta e mostra", async () => {
+    const storeId = await newStore("loja-a");
+    const bebidas = await createCategory(storeId, { name: "Bebidas" });
+    const { id } = await createProduct(storeId, pizza({ categoryId: bebidas.id, name: "Coca", priceCents: 1400 }));
+    const findCoca = async () => (await getCatalogForEditing(storeId)).categories[0]!.products.find((p) => p.id === id)!;
+
+    await setProductActive(storeId, id, false);
+    expect((await findCoca()).active).toBe(false);
+    await setProductActive(storeId, id, true);
+    expect((await findCoca()).active).toBe(true);
   });
 });

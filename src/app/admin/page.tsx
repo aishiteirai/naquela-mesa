@@ -1,113 +1,152 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ModeToggle } from "@/components/mode-toggle";
 import { AUDIT_LABELS, listAuditLogs } from "@/modules/audit";
 import { requireSuperAdmin } from "@/modules/auth";
 import { STORE_TEMPLATES, TEMPLATE_LABELS } from "@/modules/onboarding";
 import { listStoresForAdmin } from "@/modules/stores";
 import { SignOutButton } from "@/app/_components/sign-out-button";
-import { secondaryButtonClass } from "@/app/_components/styles";
 import { startSupportAction } from "./actions";
 import { CreateStoreForm } from "./_components/create-store-form";
-import { NewLinkForm } from "./_components/new-link-form";
+import { NewLinkDialog } from "./_components/new-link-dialog";
 
 const TIME_ZONE = "America/Sao_Paulo";
 const dateTime = new Intl.DateTimeFormat("pt-BR", { timeZone: TIME_ZONE, dateStyle: "short", timeStyle: "short" });
 const dayMonth = new Intl.DateTimeFormat("pt-BR", { timeZone: TIME_ZONE, day: "2-digit", month: "2-digit" });
-const sectionClass = "flex flex-col gap-3 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800";
+
+function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+  return (
+    <Card role="region" aria-label={title}>
+      <CardHeader>
+        <CardTitle>
+          <h2>{title}</h2>
+        </CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+async function AdminHeaderActions() {
+  const admin = await requireSuperAdmin();
+  return (
+    <div className="flex items-center gap-2">
+      <p className="hidden text-sm text-muted-foreground sm:block">Olá, {admin.name}.</p>
+      <ModeToggle />
+      <SignOutButton />
+    </div>
+  );
+}
 
 async function AdminContent() {
-  const admin = await requireSuperAdmin();
+  await requireSuperAdmin();
   const [stores, logs] = await Promise.all([listStoresForAdmin(), listAuditLogs(20)]);
   const templates = STORE_TEMPLATES.map((value) => ({ value, label: TEMPLATE_LABELS[value] }));
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300">Olá, {admin.name}.</p>
-        <SignOutButton />
-      </div>
-
-      <section aria-label="Nova loja" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Nova loja</h2>
+      <Section title="Nova loja" description="Cria a loja a partir de um modelo de cardápio e gera o link de acesso do dono.">
         <CreateStoreForm templates={templates} />
-      </section>
+      </Section>
 
-      <section aria-label="Lojas" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Lojas</h2>
+      <Section title="Lojas">
         {stores.length === 0 ? (
-          <p className="text-sm">Nenhuma loja ainda.</p>
+          <p className="text-sm text-muted-foreground">Nenhuma loja ainda.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-800">
-                  <th className="py-2 pr-3">Loja</th>
-                  <th className="py-2 pr-3">Endereço</th>
-                  <th className="py-2 pr-3">Dono</th>
-                  <th className="py-2">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="overflow-hidden rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Loja</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Dono</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {stores.map((store) => {
                   const linkEmail = store.ownerEmail ?? store.pendingInvite?.email ?? null;
                   return (
-                    <tr key={store.id} className="border-b border-neutral-200 align-top dark:border-neutral-800">
-                      <td className="py-2 pr-3 font-medium">{store.name}</td>
-                      <td className="py-2 pr-3">
-                        <a href={`/${store.slug}`} target="_blank" rel="noreferrer" className="underline">
+                    <TableRow key={store.id}>
+                      <TableCell className="font-medium">{store.name}</TableCell>
+                      <TableCell>
+                        <a href={`/${store.slug}`} target="_blank" rel="noreferrer" className="underline underline-offset-4">
                           /{store.slug}
                         </a>
-                      </td>
-                      <td className="py-2 pr-3">
-                        {store.ownerEmail ??
-                          (store.pendingInvite
-                            ? `Convite pendente: ${store.pendingInvite.email} (até ${dayMonth.format(store.pendingInvite.expiresAt)})`
-                            : "Sem dono")}
-                      </td>
-                      <td className="flex flex-col gap-2 py-2">
-                        <form action={startSupportAction}>
-                          <input type="hidden" name="storeId" value={store.id} />
-                          <button type="submit" disabled={!store.ownerEmail} className={secondaryButtonClass}>
-                            Acessar como loja
-                          </button>
-                        </form>
-                        <NewLinkForm storeId={store.id} email={linkEmail} />
-                      </td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="whitespace-normal">
+                        {store.ownerEmail ?? (
+                          store.pendingInvite ? (
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <Badge variant="secondary">Convite pendente</Badge>
+                              {store.pendingInvite.email} (até {dayMonth.format(store.pendingInvite.expiresAt)})
+                            </span>
+                          ) : (
+                            <Badge variant="outline">Sem dono</Badge>
+                          )
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <form action={startSupportAction}>
+                            <input type="hidden" name="storeId" value={store.id} />
+                            <Button type="submit" size="sm" disabled={!store.ownerEmail}>
+                              Acessar como loja
+                            </Button>
+                          </form>
+                          <NewLinkDialog storeId={store.id} storeName={store.name} email={linkEmail} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
-      </section>
+      </Section>
 
-      <section aria-label="Registro de suporte" className={sectionClass}>
-        <h2 className="text-lg font-semibold">Registro de suporte</h2>
+      <Section title="Registro de suporte" description="Últimos 20 eventos.">
         {logs.length === 0 ? (
-          <p className="text-sm">Nenhum registro ainda.</p>
+          <p className="text-sm text-muted-foreground">Nenhum registro ainda.</p>
         ) : (
-          <ul className="flex flex-col gap-1 text-sm">
+          <ul className="flex flex-col divide-y text-sm">
             {logs.map((log) => (
-              <li key={log.id}>
-                <span className="tabular-nums">{dateTime.format(log.createdAt)}</span> · {AUDIT_LABELS[log.action]}
+              <li key={log.id} className="py-2">
+                <span className="text-muted-foreground tabular-nums">{dateTime.format(log.createdAt)}</span> · {AUDIT_LABELS[log.action]}
                 {log.details.storeName ? ` · ${log.details.storeName}` : ""}
                 {log.details.actorEmail ? ` · por ${log.details.actorEmail}` : ""}
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Section>
     </div>
   );
 }
 
 export default function AdminPage() {
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-4 p-6">
-      <h1 className="text-2xl font-semibold">Painel do super-admin</h1>
-      <Suspense fallback={<p className="text-sm text-neutral-700 dark:text-neutral-300">Carregando...</p>}>
-        <AdminContent />
-      </Suspense>
-    </main>
+    <div className="flex min-h-dvh flex-col bg-muted/30">
+      <header className="sticky top-0 z-10 border-b bg-background">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
+          <h1 className="font-semibold">Painel do super-admin</h1>
+          <div className="ml-auto">
+            <Suspense fallback={null}>
+              <AdminHeaderActions />
+            </Suspense>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando...</p>}>
+          <AdminContent />
+        </Suspense>
+      </main>
+    </div>
   );
 }

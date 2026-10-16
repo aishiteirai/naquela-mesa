@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findHourConflict, formatOpenStatus, getOpenStatus, localClock } from "./hours";
+import { findHourConflict, formatOpenStatus, formatStoreStatus, getOpenStatus, localClock } from "./hours";
 import type { StoreHour } from "./types";
 
 const timeZone = "America/Sao_Paulo";
@@ -29,14 +29,27 @@ describe("localClock", () => {
 
 describe("getOpenStatus", () => {
   it("aberto dentro do turno (sexta 19:00)", () => {
-    expect(statusAt("2026-10-16T22:00:00Z")).toEqual({ isOpen: true, nextOpening: null });
+    expect(statusAt("2026-10-16T22:00:00Z")).toEqual({ isOpen: true, nextOpening: null, closesAt: "23:30" });
   });
 
   it("fechamento é exclusivo: sexta 23:30 fechado, próxima abertura amanhã 18:00", () => {
     expect(statusAt("2026-10-17T02:30:00Z")).toEqual({
       isOpen: false,
       nextOpening: { dayOffset: 1, weekday: 6, time: "18:00" },
+      closesAt: null,
     });
+  });
+
+  it("turno que vira a meia-noite informa 00:30 antes e depois da meia-noite", () => {
+    // sábado 23:00 em São Paulo = domingo 02:00Z
+    expect(statusAt("2026-10-18T02:00:00Z").closesAt).toBe("00:30");
+    // domingo 00:10 em São Paulo = domingo 03:10Z
+    expect(statusAt("2026-10-18T03:10:00Z").closesAt).toBe("00:30");
+  });
+
+  it("manual não tem horário de fechamento", () => {
+    expect(statusAt("2026-10-12T22:00:00Z", "force_open")).toEqual({ isOpen: true, nextOpening: null, closesAt: null });
+    expect(statusAt("2026-10-16T22:00:00Z", "force_closed")).toEqual({ isOpen: false, nextOpening: null, closesAt: null });
   });
 
   it("turno que vira a meia-noite: domingo 00:15 ainda aberto pelo turno de sábado", () => {
@@ -47,6 +60,7 @@ describe("getOpenStatus", () => {
     expect(statusAt("2026-10-18T03:30:00Z")).toEqual({
       isOpen: false,
       nextOpening: { dayOffset: 2, weekday: 2, time: "11:00" },
+      closesAt: null,
     });
   });
 
@@ -65,11 +79,11 @@ describe("getOpenStatus", () => {
   });
 
   it("force_open abre mesmo fora do horário (segunda)", () => {
-    expect(statusAt("2026-10-12T22:00:00Z", "force_open")).toEqual({ isOpen: true, nextOpening: null });
+    expect(statusAt("2026-10-12T22:00:00Z", "force_open")).toEqual({ isOpen: true, nextOpening: null, closesAt: null });
   });
 
   it("force_closed fecha mesmo dentro do horário", () => {
-    expect(statusAt("2026-10-16T22:00:00Z", "force_closed")).toEqual({ isOpen: false, nextOpening: null });
+    expect(statusAt("2026-10-16T22:00:00Z", "force_closed")).toEqual({ isOpen: false, nextOpening: null, closesAt: null });
   });
 
   it("turno 18:00–00:00 fecha exatamente à meia-noite", () => {
@@ -90,18 +104,40 @@ describe("getOpenStatus", () => {
     expect(getOpenStatus({ hours: [], manualStatus: "auto", timeZone, now: new Date("2026-10-16T22:00:00Z") })).toEqual({
       isOpen: false,
       nextOpening: null,
+      closesAt: null,
     });
+  });
+});
+
+describe("formatStoreStatus", () => {
+  it("aberto no automático mostra o fechamento", () => {
+    expect(formatStoreStatus({ isOpen: true, nextOpening: null, closesAt: "23:30" }, "auto")).toBe("Aberto · fecha às 23:30");
+  });
+
+  it("fechado no automático mostra a próxima abertura", () => {
+    expect(formatStoreStatus({ isOpen: false, nextOpening: { dayOffset: 0, weekday: 5, time: "18:00" }, closesAt: null }, "auto")).toBe(
+      "Fechado · abre hoje às 18:00",
+    );
+  });
+
+  it("fechado sem próxima abertura", () => {
+    expect(formatStoreStatus({ isOpen: false, nextOpening: null, closesAt: null }, "auto")).toBe("Fechado");
+  });
+
+  it("manual", () => {
+    expect(formatStoreStatus({ isOpen: true, nextOpening: null, closesAt: null }, "force_open")).toBe("Aberto agora (manual)");
+    expect(formatStoreStatus({ isOpen: false, nextOpening: null, closesAt: null }, "force_closed")).toBe("Fechado agora (manual)");
   });
 });
 
 describe("formatOpenStatus", () => {
   it.each([
-    [{ isOpen: true, nextOpening: null }, "Aberto agora"],
-    [{ isOpen: false, nextOpening: null }, "Fechado no momento"],
-    [{ isOpen: false, nextOpening: { dayOffset: 0, weekday: 2, time: "18:00" } }, "Abre hoje às 18:00"],
-    [{ isOpen: false, nextOpening: { dayOffset: 1, weekday: 6, time: "18:00" } }, "Abre amanhã às 18:00"],
-    [{ isOpen: false, nextOpening: { dayOffset: 2, weekday: 2, time: "11:00" } }, "Abre terça às 11:00"],
-    [{ isOpen: false, nextOpening: { dayOffset: 7, weekday: 0, time: "11:00" } }, "Abre domingo às 11:00"],
+    [{ isOpen: true, nextOpening: null, closesAt: null }, "Aberto agora"],
+    [{ isOpen: false, nextOpening: null, closesAt: null }, "Fechado no momento"],
+    [{ isOpen: false, nextOpening: { dayOffset: 0, weekday: 2, time: "18:00" }, closesAt: null }, "Abre hoje às 18:00"],
+    [{ isOpen: false, nextOpening: { dayOffset: 1, weekday: 6, time: "18:00" }, closesAt: null }, "Abre amanhã às 18:00"],
+    [{ isOpen: false, nextOpening: { dayOffset: 2, weekday: 2, time: "11:00" }, closesAt: null }, "Abre terça às 11:00"],
+    [{ isOpen: false, nextOpening: { dayOffset: 7, weekday: 0, time: "11:00" }, closesAt: null }, "Abre domingo às 11:00"],
   ])("%o → %s", (status, text) => {
     expect(formatOpenStatus(status)).toBe(text);
   });

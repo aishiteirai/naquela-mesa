@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceLabel, canTransition, isFinalStatus, nextStatus } from "./status";
+import { advanceLabel, canTransition, isFinalStatus, nextStatus, timelineFor } from "./status";
 
 describe("máquina de status", () => {
   it.each([
@@ -50,5 +50,28 @@ describe("máquina de status", () => {
     ["delivery", "completed", null],
   ] as const)("advanceLabel(%s, %s) → %s", (fulfillment, status, label) => {
     expect(advanceLabel(fulfillment, status)).toBe(label);
+  });
+});
+
+describe("timelineFor", () => {
+  it("delivery em preparo: recebido feito, preparo atual, resto adiante", () => {
+    expect(timelineFor("delivery", "preparing")).toEqual([
+      { status: "received", state: "done" },
+      { status: "preparing", state: "current" },
+      { status: "out_for_delivery", state: "upcoming" },
+      { status: "completed", state: "upcoming" },
+    ]);
+  });
+
+  it("retirada pronta", () => {
+    expect(timelineFor("pickup", "ready")?.map((step) => step.state)).toEqual(["done", "done", "current", "upcoming"]);
+  });
+
+  it("concluído marca tudo como feito", () => {
+    expect(timelineFor("dine_in", "completed")?.every((step) => step.state === "done")).toBe(true);
+  });
+
+  it("cancelado não tem linha do tempo", () => {
+    expect(timelineFor("delivery", "cancelled")).toBeNull();
   });
 });

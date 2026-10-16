@@ -12,16 +12,24 @@ test.afterAll(async ({ browser }) => {
   await setStoreStatus(browser, "Automático");
 });
 
-async function addSimple(page: Page, name: string) {
+async function addSimple(page: Page, name: string, quantity = 1) {
   await page.getByRole("button", { name: `Adicionar ${name}` }).click();
   const dialog = page.getByRole("dialog", { name });
+  for (let added = 1; added < quantity; added++) await dialog.getByRole("button", { name: "Aumentar quantidade" }).click();
   await dialog.getByRole("button", { name: /^Adicionar ·/ }).click();
   await expect(dialog).toBeHidden();
 }
 
-async function fillCustomer(page: Page) {
+async function goToCheckout(page: Page) {
+  await page.getByRole("link", { name: "Ver sacola" }).click();
+  await expect(page).toHaveURL(/\/pizzaria-demo\/sacola$/);
+  await page.getByRole("button", { name: "Continuar" }).click();
+}
+
+async function fillCustomerAndReview(page: Page) {
   await page.getByLabel("Seu nome").fill("Maria Silva");
   await page.getByLabel("WhatsApp (com DDD)").fill("(11) 98888-7777");
+  await page.getByRole("button", { name: "Continuar" }).click();
 }
 
 test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompanhamento", async ({ page }) => {
@@ -30,25 +38,22 @@ test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompan
   await page.getByRole("button", { name: "Adicionar Calabresa" }).click();
   const dialog = page.getByRole("dialog", { name: "Calabresa" });
   await dialog.getByRole("radio", { name: /^Grande/ }).check();
-  await dialog.getByLabel("Segundo sabor (opcional)").selectOption({ label: "Mussarela" });
+  await dialog.getByRole("radio", { name: "Mussarela", exact: true }).check();
   await dialog.getByRole("radio", { name: /^Catupiry/ }).check();
   await expect(dialog.getByRole("button", { name: /^Adicionar ·/ })).toHaveText(/R\$\s64,90/);
   await dialog.getByRole("button", { name: /^Adicionar ·/ }).click();
 
   await addSimple(page, "Coca-Cola 2L");
   await expect(page.getByRole("link", { name: "Ver sacola" })).toContainText(/\(2\)/);
-  await page.getByRole("link", { name: "Ver sacola" }).click();
-  await expect(page).toHaveURL(/\/pizzaria-demo\/sacola$/);
-
+  await goToCheckout(page);
   await page.getByRole("radio", { name: "Delivery" }).check();
-  await fillCustomer(page);
   await page.getByLabel("Rua").fill("Rua das Acácias");
   await page.getByLabel("Número").fill("45");
   await page.getByLabel("Bairro").fill("Centro");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await fillCustomerAndReview(page);
   await page.getByRole("radio", { name: "Dinheiro" }).check();
   await page.getByLabel("Troco para (deixe vazio se não precisa)").fill("100,00");
-
-  await page.getByRole("button", { name: "Revisar pedido" }).click();
   await expect(page.getByTestId("quote-total")).toHaveText(/R\$\s84,90/);
 
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
@@ -82,19 +87,15 @@ test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompan
   await expect(page.getByRole("link", { name: "Ver sacola" })).toHaveCount(0);
 });
 
-test("pedido abaixo do mínimo mostra o valor mínimo; sacola pode ser esvaziada", async ({ page }) => {
+test("pedido abaixo do mínimo avisa na sacola e não deixa continuar", async ({ page }) => {
   await page.goto("/pizzaria-demo");
   await addSimple(page, "Água sem gás 500ml");
   await page.getByRole("link", { name: "Ver sacola" }).click();
+  await expect(page.getByTestId("min-order-notice")).toHaveText(/Pedido mínimo de R\$\s30,00 \(sem a entrega\)\. Faltam R\$\s26,00\./);
+  await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
 
-  await page.getByRole("radio", { name: "Retirada no balcão" }).check();
-  await fillCustomer(page);
-  await page.getByRole("radio", { name: "Pix" }).check();
-  await expect(page.getByText("Chave Pix: pix@pizzariademo.com.br")).toBeVisible();
-  await page.getByRole("button", { name: "Revisar pedido" }).click();
-  await expect(page.getByTestId("checkout-error")).toHaveText(/Pedido mínimo de R\$\s30,00 \(sem a entrega\)\./);
-  await expect(page.getByRole("button", { name: "Confirmar pedido" })).toBeDisabled();
-
+  await page.getByRole("button", { name: "Aumentar Água sem gás 500ml" }).click();
+  await expect(page.getByTestId("min-order-notice")).toContainText(/Faltam R\$\s22,00/);
   await page.getByRole("button", { name: "Remover Água sem gás 500ml" }).click();
   await expect(page.getByText("Sua sacola está vazia.")).toBeVisible();
 });
@@ -114,14 +115,43 @@ test("loja fechada bloqueia a revisão do pedido", async ({ page, browser }) => 
     await dialog.getByRole("button", { name: "Aumentar quantidade" }).click();
     await dialog.getByRole("button", { name: "Aumentar quantidade" }).click();
     await dialog.getByRole("button", { name: /^Adicionar ·/ }).click();
-    await page.getByRole("link", { name: "Ver sacola" }).click();
+    await goToCheckout(page);
     await page.getByRole("radio", { name: "Retirada no balcão" }).check();
-    await fillCustomer(page);
-    await page.getByRole("button", { name: "Revisar pedido" }).click();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await fillCustomerAndReview(page);
     await expect(page.getByTestId("checkout-error")).toContainText("A loja está fechada agora.");
   } finally {
     await setStoreStatus(browser, "Abrir agora");
   }
+});
+
+test("voltar do navegador volta uma etapa do checkout sem perder os dados", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  // 3 × R$ 14,00 passa do pedido mínimo (R$ 30,00) da Pizzaria Demo.
+  await addSimple(page, "Coca-Cola 2L", 3);
+  await goToCheckout(page);
+  await page.getByRole("radio", { name: "Retirada no balcão" }).check();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByLabel("Seu nome").fill("Maria Silva");
+  await expect(page).toHaveURL(/etapa=3/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/etapa=2/);
+  await expect(page.getByRole("radio", { name: "Retirada no balcão" })).toBeChecked();
+  await page.goForward();
+  await expect(page.getByLabel("Seu nome")).toHaveValue("Maria Silva");
+});
+
+test("recarregar no meio do checkout volta para a primeira etapa", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  // 3 × R$ 14,00 passa do pedido mínimo (R$ 30,00) da Pizzaria Demo.
+  await addSimple(page, "Coca-Cola 2L", 3);
+  await goToCheckout(page);
+  await page.getByRole("radio", { name: "Retirada no balcão" }).check();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.reload();
+  await expect(page).not.toHaveURL(/etapa=/);
+  await expect(page.getByRole("heading", { level: 1, name: "Sua sacola" })).toBeVisible();
 });
 
 test("link de pedido inválido mostra não encontrado", async ({ page }) => {

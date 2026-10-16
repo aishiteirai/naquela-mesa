@@ -48,3 +48,6 @@ next-env.d.ts
 
 # uploads locais
 /.data/
+
+# brainstorm visual companion
+.superpowers/

@@ -49,15 +49,18 @@ test("histórico encontra o pedido pelo número e mostra o detalhe", async ({ pa
   await page.getByRole("button", { name: "Filtrar" }).click();
   await expect(page.getByText("1 pedido", { exact: true })).toBeVisible();
 
-  const item = page.getByRole("group", { name: `Pedido ${orderLabel}` });
-  await item.locator("summary").click();
-  await expect(item).toContainText("3x Coca-Cola 2L");
-  await expect(item).toContainText("Maria Silva");
-  await expect(item.getByRole("link", { name: `Imprimir comanda ${orderLabel}` })).toBeVisible();
+  await page.getByRole("button", { name: `Ver pedido ${orderLabel}` }).click();
+  const detail = page.getByRole("dialog", { name: `Pedido ${orderLabel}` });
+  await expect(detail).toContainText("3x Coca-Cola 2L");
+  await expect(detail).toContainText("Maria Silva");
+  await expect(detail.getByRole("link", { name: `Imprimir comanda ${orderLabel}` })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(detail).toBeHidden();
 
   await page.getByRole("combobox", { name: "Período" }).selectOption("30d");
   await page.getByLabel("Buscar").fill("");
   await page.getByLabel("Status").selectOption("cancelled");
   await page.getByRole("button", { name: "Filtrar" }).click();
-  await expect(page.getByRole("group").first()).toContainText("Cancelado");
+  await expect(page).toHaveURL(/status=cancelled/);
+  await expect(page.getByRole("row").nth(1)).toContainText("Cancelado");
 });

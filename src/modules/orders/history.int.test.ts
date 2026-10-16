@@ -47,6 +47,22 @@ async function place(slug: string, coca: string, name: string, phone: string, cr
   return placed.orderId;
 }
 
+async function placeDelivery(slug: string, coca: string, name: string, phone: string, createdAt: string) {
+  const placed = await createOrder(slug, {
+    idempotencyKey: randomUUID(),
+    items: [{ kind: "simple", productId: coca, optionIds: [], quantity: 1, notes: null }],
+    fulfillment: "delivery",
+    customer: { name, phone },
+    address: { street: "Rua A", number: "1", complement: null, neighborhood: "Centro", city: null, zipCode: null, reference: null },
+    tableLabel: null,
+    payment: { method: "cash", changeForCents: null },
+    notes: null,
+    expectedTotalCents: 2000,
+  });
+  await db.update(orders).set({ createdAt: new Date(createdAt) }).where(eq(orders.id, placed.orderId));
+  return placed.orderId;
+}
+
 const numbers = (page: { orders: { number: number }[] }) => page.orders.map((order) => order.number);
 
 describe("histórico de pedidos", () => {
@@ -96,6 +112,26 @@ describe("histórico de pedidos", () => {
     expect(numbers(await listOrderHistory(a.storeId, { ...ALL, search: "_" }))).toEqual([]);
     expect(numbers(await listOrderHistory(a.storeId, { ...ALL, search: "1234567" }))).toEqual([]);
     expect(numbers(await listOrderHistory(a.storeId, { ...ALL, search: "   " }))).toEqual([3, 2, 1]);
+  });
+
+  it("filtra por tipo de pedido", async () => {
+    await place("historico-a", a.coca, "Ana", "11999990001", "2026-10-10T20:00:00Z");
+    await placeDelivery("historico-a", a.coca, "Bia", "11999990002", "2026-10-10T21:00:00Z");
+    const delivery = await listOrderHistory(a.storeId, { ...ALL, fulfillment: "delivery" });
+    expect(delivery.orders.map((o) => o.customerName)).toEqual(["Bia"]);
+    const pickup = await listOrderHistory(a.storeId, { ...ALL, fulfillment: "pickup" });
+    expect(pickup.total).toBe(4);
+    expect(pickup.orders.map((o) => o.customerName)).not.toContain("Bia");
+  });
+
+  it("soma o total sem cancelados", async () => {
+    const first = await place("historico-a", a.coca, "Ana", "11999990001", "2026-10-10T20:00:00Z");
+    await place("historico-a", a.coca, "Bia", "11999990002", "2026-10-10T21:00:00Z");
+    await transitionOrder(a.storeId, first, "cancelled", { ...actor, cancelReason: "teste" });
+    const page = await listOrderHistory(a.storeId, ALL);
+    expect(page.total).toBe(5);
+    // beforeEach: Maria (ativo), João (cancelado), Ana 100% (ativo); teste: Ana (cancelado), Bia (ativo)
+    expect(page.revenueCents).toBe(3 * 1400);
   });
 
   it("pagina, ajusta página fora do intervalo e não mistura lojas", async () => {

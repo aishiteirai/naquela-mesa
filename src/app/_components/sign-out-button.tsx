@@ -1,20 +1,28 @@
 "use client";
 
+import { LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/modules/auth/client";
 
-export function SignOutButton() {
+/** Encerra a sessão e leva ao login. */
+export function useSignOut(): () => Promise<void> {
   const router = useRouter();
 
-  async function onClick() {
+  return async function signOut() {
     await authClient.signOut();
     router.push("/login");
     router.refresh();
-  }
+  };
+}
+
+export function SignOutButton() {
+  const signOut = useSignOut();
 
   return (
-    <button type="button" onClick={onClick} className="rounded border px-4 py-2 text-sm">
+    <Button type="button" variant="outline" onClick={signOut}>
+      <LogOutIcon />
       Sair
-    </button>
+    </Button>
   );
 }

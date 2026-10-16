@@ -1,60 +1,75 @@
 "use client";
 
-import { uuid } from "@/shared/uuid";
 import Link from "next/link";
-import { type FocusEvent, type FormEvent, type InputHTMLAttributes, useRef, useState, useTransition } from "react";
-import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeftIcon } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
+import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { OrderQuote } from "@/modules/orders";
+import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
 import { formatBRL, parseBRLToCents } from "@/shared/money";
+import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
+import { CHECKOUT_STEPS, deliveryStepErrors, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
 import type { CheckoutError } from "@/app/[slug]/sacola/messages";
 import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/sacola/actions";
+import { CartStep } from "./cart-step";
+import { CustomerStep } from "./customer-step";
+import { DeliveryStep } from "./delivery-step";
+import { OrderPlaced, type Placed } from "./order-placed";
+import { PaymentStep } from "./payment-step";
 
 export type CheckoutStore = {
   slug: string;
+  address: string | null;
   features: { delivery: boolean; pickup: boolean; dineIn: boolean };
   paymentMethods: { cash: boolean; cardOnDelivery: boolean; pixKey: string | null };
   deliveryFee: { strategy: "fixed"; fixedCents: number } | { strategy: "by_neighborhood" };
+  minOrderCents: number;
   zones: { neighborhood: string; feeCents: number }[];
 };
 
-type Placed = { numberLabel: string; trackingPath: string; whatsappUrl: string };
-
-const input = "rounded border border-neutral-300 bg-background px-3 py-2 dark:border-neutral-700";
-
-function FieldError({ error, name }: { error: CheckoutError | null; name: string }) {
-  const message = error?.fieldErrors[name];
-  return message ? <p className="text-sm text-red-700 dark:text-red-400">{message}</p> : null;
-}
-
-function Field({ label, name, error, ...props }: { label: string; name: string; error: CheckoutError | null } & InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="flex flex-col gap-1 text-sm">
-        {label}
-        <input name={name} className={input} {...props} />
-      </label>
-      <FieldError error={error} name={name} />
-    </div>
-  );
+// Só os campos da etapa atual precisam estar válidos para avançar; o servidor revalida tudo.
+function validFieldset(fieldset: HTMLFieldSetElement | null): boolean {
+  if (!fieldset) return true;
+  for (const element of Array.from(fieldset.elements)) {
+    if ((element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) && !element.reportValidity()) return false;
+  }
+  return true;
 }
 
 export function Checkout({ store }: { store: CheckoutStore }) {
   const cart = useCart();
+  const searchParams = useSearchParams();
+  const step = parseStepParam(searchParams.get("etapa"));
+  const stepRef = useRef<CheckoutStep>(step);
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+  const fieldsets = useRef<(HTMLFieldSetElement | null)[]>([]);
+
   const fulfillments = (
     [
       ["delivery", "Delivery", store.features.delivery],
       ["pickup", "Retirada no balcão", store.features.pickup],
       ["dine_in", "Consumo no local", store.features.dineIn],
     ] as const
-  ).filter(([, , enabled]) => enabled);
+  )
+    .filter(([, , enabled]) => enabled)
+    .map(([value, label]) => [value, label] as const);
   const payments = (
     [
       ["cash", "Dinheiro", store.paymentMethods.cash],
       ["card_on_delivery", "Cartão na entrega", store.paymentMethods.cardOnDelivery],
       ["pix", "Pix", store.paymentMethods.pixKey !== null],
     ] as const
-  ).filter(([, , enabled]) => enabled);
+  )
+    .filter(([, , enabled]) => enabled)
+    .map(([value, label]) => [value, label] as const);
 
   const [fulfillment, setFulfillment] = useState<Fulfillment>(fulfillments[0]?.[0] ?? "pickup");
   const [payment, setPayment] = useState<PaymentMethod>(payments[0]?.[0] ?? "cash");
@@ -64,36 +79,42 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   const [placed, setPlaced] = useState<Placed | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const firstStepRender = useRef(true);
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    headingRef.current?.focus();
+  }, [step]);
 
-  if (placed) {
-    return (
-      <section className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-        <h2 className="text-xl font-semibold">Pedido {placed.numberLabel} recebido!</h2>
-        <p>Envie o pedido para a loja pelo WhatsApp para agilizar o atendimento.</p>
-        <a
-          href={placed.whatsappUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded bg-green-700 px-4 py-3 text-center font-semibold text-white"
-        >
-          Enviar pedido no WhatsApp
-        </a>
-        <Link href={placed.trackingPath} className="text-center underline">
-          Acompanhar pedido
-        </Link>
-      </section>
-    );
+  // Os avisos de "adicionado à sacola" ficam no topo e cobririam o cabeçalho das etapas.
+  useEffect(() => {
+    toast.dismiss();
+  }, []);
+
+  // Recarregar no meio do checkout começa de novo: os campos das etapas anteriores estão vazios.
+  useEffect(() => {
+    if (parseStepParam(new URLSearchParams(window.location.search).get("etapa")) !== 1) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
+  function goTo(target: CheckoutStep) {
+    const current = stepRef.current;
+    if (target === current) return;
+    // Avançar empilha uma entrada (?etapa=N); voltar desempilha, então o voltar do celular anda junto.
+    stepRef.current = target;
+    if (target > current) window.history.pushState(null, "", `?etapa=${target}`);
+    else window.history.go(target - current);
   }
 
-  if (cart.ready && cart.lines.length === 0) {
-    return (
-      <div className="flex flex-col gap-3">
-        <p>Sua sacola está vazia.</p>
-        <Link href={`/${store.slug}`} className="underline">
-          Voltar ao cardápio
-        </Link>
-      </div>
-    );
+  function handleError(next: CheckoutError) {
+    setError(next);
+    const target = firstErrorStep(next.fieldErrors);
+    if (target && target < stepRef.current) goTo(target);
   }
 
   function buildPayload(expectedTotalCents: number | null): { payload: Record<string, unknown> } | { error: CheckoutError } {
@@ -132,15 +153,16 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   }
 
   function review() {
+    if (pending) return;
     const built = buildPayload(null);
-    if ("error" in built) return setError(built.error);
+    if ("error" in built) return handleError(built.error);
     startTransition(async () => {
       setError(null);
       const result = await quoteOrderAction(store.slug, built.payload);
       if (result.ok) setQuote(result.quote);
       else {
         setQuote(null);
-        setError(result.error);
+        handleError(result.error);
       }
     });
   }
@@ -148,190 +170,171 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   function confirm() {
     if (!quote) return;
     const built = buildPayload(quote.totalCents);
-    if ("error" in built) return setError(built.error);
+    if ("error" in built) return handleError(built.error);
     startTransition(async () => {
       setError(null);
       const result = await placeOrderAction(store.slug, built.payload);
       if (result.ok) {
         cart.clear();
         setPlaced(result.placed);
+        window.history.replaceState(null, "", window.location.pathname);
       } else {
-        setError(result.error);
         setQuote(result.error.quote ?? null);
+        handleError(result.error);
       }
     });
   }
 
-  async function fillFromZipCode(event: FocusEvent<HTMLInputElement>) {
-    const digits = event.target.value.replace(/\D/g, "");
-    if (digits.length !== 8 || !formRef.current) return;
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = (await response.json()) as { logradouro?: string; bairro?: string; localidade?: string; erro?: boolean };
-      if (data.erro) return;
-      const elements = formRef.current.elements;
-      const fill = (name: string, value?: string) => {
-        const field = elements.namedItem(name);
-        if (value && field instanceof HTMLInputElement && !field.value) field.value = value;
-      };
-      fill("street", data.logradouro);
-      fill("neighborhood", data.bairro);
-      fill("city", data.localidade);
-    } catch {
-      // CEP é só conveniência; o cliente pode digitar o endereço.
+  function next() {
+    if (step === 1 && cart.lines.length === 0) return;
+    if (!validFieldset(fieldsets.current[step - 1] ?? null)) return;
+    if (step === 2) {
+      const fieldErrors = deliveryStepErrors({
+        fulfillment,
+        strategy: store.deliveryFee.strategy,
+        neighborhood: String(new FormData(formRef.current!).get("neighborhood") ?? ""),
+      });
+      if (Object.keys(fieldErrors).length > 0) {
+        setError({ code: "VALIDATION", message: "Confira os campos destacados.", fieldErrors });
+        return;
+      }
+      setError(null);
     }
+    goTo((step + 1) as CheckoutStep);
+    if (step === 3) review();
   }
+
+  if (placed) return <OrderPlaced placed={placed} />;
+
+  if (cart.ready && cart.lines.length === 0) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-4 py-16 text-center">
+        <h1 className="text-xl font-bold">Sua sacola</h1>
+        <p className="text-muted-foreground">Sua sacola está vazia.</p>
+        <Button asChild>
+          <Link href={`/${store.slug}`}>Voltar ao cardápio</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  // Estimativa no cliente para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
+  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - cart.estimatedSubtotalCents) : 0;
+  const fieldError = (path: string) => error?.fieldErrors[path];
+  const invalidateQuote = () => setQuote(null);
 
   return (
     <form
       ref={formRef}
       onSubmit={(event: FormEvent) => event.preventDefault()}
-      onChange={() => setQuote(null)}
-      className="flex flex-col gap-6"
+      onChange={() => {
+        // Na etapa 4 só mudam pagamento/troco/observação, que não alteram o total; confirmar revalida no servidor.
+        if (stepRef.current < 4) setQuote(null);
+      }}
+      className="flex flex-1 flex-col"
     >
-      <ul className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-800">
-        {cart.lines.map((line) => (
-          <li key={line.key} className="flex flex-wrap items-center gap-3 py-3">
-            <span className="flex-1 font-medium">{line.label}</span>
-            <div className="flex items-center gap-2">
-              <button type="button" aria-label={`Diminuir ${line.label}`} onClick={() => { setQuote(null); cart.setQuantity(line.key, line.input.quantity - 1); }} className="rounded border px-2">
-                −
-              </button>
-              <span>{line.input.quantity}</span>
-              <button type="button" aria-label={`Aumentar ${line.label}`} onClick={() => { setQuote(null); cart.setQuantity(line.key, line.input.quantity + 1); }} className="rounded border px-2">
-                +
-              </button>
-            </div>
-            <span>{formatBRL(line.unitPriceCents * line.input.quantity)}</span>
-            <button type="button" aria-label={`Remover ${line.label}`} onClick={() => { setQuote(null); cart.remove(line.key); }} className="text-sm underline">
-              Remover
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="font-medium">Como você quer receber?</legend>
-        {fulfillments.map(([value, label]) => (
-          <label key={value} className="flex items-center gap-2">
-            <input type="radio" name="fulfillment" checked={fulfillment === value} onChange={() => setFulfillment(value)} />
-            {label}
-          </label>
-        ))}
-      </fieldset>
-
-      <div className="flex flex-col gap-3">
-        <Field label="Seu nome" name="name" error={error} autoComplete="name" required />
-        <FieldError error={error} name="customer.name" />
-        <Field label="WhatsApp (com DDD)" name="phone" error={error} autoComplete="tel" inputMode="tel" required />
-        <FieldError error={error} name="customer.phone" />
-      </div>
-
-      {fulfillment === "delivery" && (
-        <fieldset className="flex flex-col gap-3">
-          <legend className="font-medium">Endereço de entrega</legend>
-          <Field label="CEP" name="zipCode" error={error} inputMode="numeric" onBlur={fillFromZipCode} />
-          <FieldError error={error} name="address.zipCode" />
-          <Field label="Rua" name="street" error={error} />
-          <FieldError error={error} name="address.street" />
-          <Field label="Número" name="number" error={error} />
-          <FieldError error={error} name="address.number" />
-          <Field label="Complemento" name="complement" error={error} />
-          {store.deliveryFee.strategy === "by_neighborhood" ? (
-            <label className="flex flex-col gap-1 text-sm">
-              Bairro
-              <select name="neighborhood" className={input} defaultValue="">
-                <option value="" disabled>
-                  Escolha o bairro
-                </option>
-                {store.zones.map((zone) => (
-                  <option key={zone.neighborhood} value={zone.neighborhood}>
-                    {`${zone.neighborhood} — ${formatBRL(zone.feeCents)}`}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <header className="sticky top-0 z-10 border-b bg-background">
+        <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3">
+          {step > 1 ? (
+            <Button type="button" variant="ghost" size="icon" aria-label="Voltar" onClick={() => goTo((step - 1) as CheckoutStep)}>
+              <ArrowLeftIcon />
+            </Button>
           ) : (
-            <Field label="Bairro" name="neighborhood" error={error} />
+            <Button asChild variant="ghost" size="icon">
+              <Link href={`/${store.slug}`} aria-label="Voltar ao cardápio">
+                <ArrowLeftIcon />
+              </Link>
+            </Button>
           )}
-          <FieldError error={error} name="address.neighborhood" />
-          <FieldError error={error} name="address" />
-          <Field label="Cidade" name="city" error={error} />
-          <Field label="Ponto de referência" name="reference" error={error} />
-        </fieldset>
-      )}
-
-      {fulfillment === "dine_in" && (
-        <div className="flex flex-col gap-1">
-          <Field label="Mesa" name="tableLabel" error={error} />
-          <FieldError error={error} name="tableLabel" />
+          <h1 ref={headingRef} tabIndex={-1} className="flex-1 text-lg font-semibold outline-none">{CHECKOUT_STEPS[step - 1]}</h1>
+          <span className="text-sm text-muted-foreground">{step} de 4</span>
+          <ModeToggle />
         </div>
-      )}
+        <div aria-hidden="true" className="mx-auto flex max-w-2xl gap-1 px-4 pb-3">
+          {[1, 2, 3, 4].map((position) => (
+            <span key={position} className={cn("h-1 flex-1 rounded-full", position <= step ? "bg-primary" : "bg-muted")} />
+          ))}
+        </div>
+      </header>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="font-medium">Pagamento</legend>
-        {payments.map(([value, label]) => (
-          <label key={value} className="flex items-center gap-2">
-            <input type="radio" name="payment" checked={payment === value} onChange={() => setPayment(value)} />
-            {label}
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
+        <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} onCartChange={invalidateQuote} />
+        {step === 1 && missingForMinCents > 0 && (
+          <Alert data-testid="min-order-notice">
+            <AlertDescription>
+              Pedido mínimo de {formatBRL(store.minOrderCents)} (sem a entrega). Faltam {formatBRL(missingForMinCents)}.
+            </AlertDescription>
+          </Alert>
+        )}
+        <DeliveryStep
+          ref={(element) => { fieldsets.current[1] = element; }}
+          hidden={step !== 2}
+          store={store}
+          fulfillments={fulfillments}
+          fulfillment={fulfillment}
+          onFulfillmentChange={(value) => {
+            invalidateQuote();
+            setFulfillment(value);
+          }}
+          fieldError={fieldError}
+        />
+        <CustomerStep ref={(element) => { fieldsets.current[2] = element; }} hidden={step !== 3} fieldError={fieldError} />
+        <PaymentStep
+          ref={(element) => { fieldsets.current[3] = element; }}
+          hidden={step !== 4}
+          payments={payments}
+          payment={payment}
+          onPaymentChange={setPayment}
+          pixKey={store.paymentMethods.pixKey}
+          quote={quote}
+          fieldError={fieldError}
+        />
+
+        {/* Honeypot: invisível para pessoas, bots costumam preencher. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-0 overflow-hidden">
+          <label>
+            Site
+            <input name="website" tabIndex={-1} autoComplete="off" />
           </label>
-        ))}
-        {payment === "pix" && store.paymentMethods.pixKey && (
-          <p className="text-sm">Chave Pix: {store.paymentMethods.pixKey}</p>
-        )}
-        {payment === "cash" && (
-          <>
-            <Field label="Troco para (deixe vazio se não precisa)" name="changeFor" error={error} inputMode="decimal" />
-            <FieldError error={error} name="payment.changeForCents" />
-          </>
-        )}
-      </fieldset>
+        </div>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Observações do pedido
-        <textarea name="notes" maxLength={300} rows={2} className={input} />
-      </label>
-
-      {/* Honeypot: invisível para pessoas, bots costumam preencher. */}
-      <div aria-hidden="true" className="absolute -left-[9999px] h-0 overflow-hidden">
-        <label>
-          Site
-          <input name="website" tabIndex={-1} autoComplete="off" />
-        </label>
+        {error && (
+          <Alert variant="destructive" data-testid="checkout-error">
+            <AlertDescription className="flex flex-col gap-2">
+              {error.message}
+              {error.code === "BELOW_MIN_ORDER" && (
+                <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => goTo(1)}>
+                  Voltar à sacola
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
-      {error && (
-        <p data-testid="checkout-error" className="text-sm font-medium text-red-700 dark:text-red-400">
-          {error.message}
-        </p>
-      )}
-
-      {quote && (
-        <dl className="grid grid-cols-2 gap-1 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-          <dt>Subtotal</dt>
-          <dd className="text-right">{formatBRL(quote.subtotalCents)}</dd>
-          <dt>Entrega</dt>
-          <dd className="text-right">{formatBRL(quote.deliveryFeeCents)}</dd>
-          <dt className="font-semibold">Total</dt>
-          <dd data-testid="quote-total" className="text-right font-semibold">
-            {formatBRL(quote.totalCents)}
-          </dd>
-        </dl>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <button type="button" onClick={review} disabled={pending || !cart.ready} className="rounded border border-neutral-400 px-4 py-3 font-semibold disabled:opacity-50">
-          Revisar pedido
-        </button>
-        <button
-          type="button"
-          onClick={confirm}
-          disabled={pending || !quote}
-          className="rounded bg-(--brand-primary) px-4 py-3 font-semibold text-(--brand-primary-foreground) disabled:opacity-50"
-        >
-          Confirmar pedido
-        </button>
-      </div>
+      <footer className="sticky bottom-0 border-t bg-background">
+        <div className="mx-auto flex max-w-2xl items-center gap-4 px-4 py-3">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">{step === 4 && quote ? "Total" : "Subtotal"}</span>
+            <span data-testid={step === 4 && quote ? "quote-total" : undefined} className="font-semibold">
+              {formatBRL(step === 4 && quote ? quote.totalCents : cart.estimatedSubtotalCents)}
+            </span>
+          </div>
+          {step < 4 ? (
+            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && missingForMinCents > 0)}>
+              Continuar
+            </Button>
+          ) : quote ? (
+            <Button type="button" size="lg" className="flex-1" onClick={confirm} disabled={pending}>
+              Confirmar pedido
+            </Button>
+          ) : (
+            <Button type="button" size="lg" className="flex-1" onClick={review} disabled={pending || !cart.ready}>
+              {pending ? "Calculando..." : "Revisar pedido"}
+            </Button>
+          )}
+        </div>
+      </footer>
     </form>
   );
 }

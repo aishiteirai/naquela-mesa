@@ -2,6 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { authClient } from "@/modules/auth/client";
 import { safeNextPath } from "./next-path";
 
@@ -33,29 +36,25 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm">
-        Email
-        <input name="email" type="email" required autoComplete="email" className="rounded border px-3 py-2" />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        Senha
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="rounded border px-3 py-2"
-        />
-      </label>
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="login-email">Email</FieldLabel>
+          <Input id="login-email" name="email" type="email" required autoComplete="email" />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="login-senha">Senha</FieldLabel>
+          <Input id="login-senha" name="password" type="password" required autoComplete="current-password" />
+        </Field>
+      </FieldGroup>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
-      <button type="submit" disabled={pending} className="rounded bg-neutral-900 px-4 py-2 text-white disabled:opacity-50">
+      <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Entrando..." : "Entrar"}
-      </button>
+      </Button>
     </form>
   );
 }

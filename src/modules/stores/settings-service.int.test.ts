@@ -1,9 +1,12 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { pool } from "@/shared/db/client";
+import { db, pool } from "@/shared/db/client";
 import { createStore, deleteStoreBySlug, getStoreById, replaceStoreHours } from "./service";
+import { stores } from "./schema";
 import {
   getDeliveryZones,
   replaceDeliveryZones,
+  saveOperationsWithZones,
   setManualStatus,
   updateStoreOperations,
   updateStoreProfile,
@@ -15,6 +18,11 @@ const missingStore = "00000000-0000-4000-8000-000000000000";
 async function newStore(slug: string): Promise<string> {
   const { id } = await createStore({ slug, name: slug, whatsappPhone: "+5511988887777" });
   return id;
+}
+
+async function operationsOf(storeId: string) {
+  const store = (await getStoreById(storeId))!;
+  return { features: store.features, rules: store.rules, paymentMethods: store.paymentMethods };
 }
 
 const profile: StoreProfileInput = {
@@ -47,12 +55,49 @@ describe("store settings service", () => {
       whatsappPhone: "+5511977776666",
       logoUrl: profile.logoUrl,
       bannerUrl: null,
-      theme: { primary: "#1d4ed8", secondary: "#facc15" },
+      theme: { primary: "#1d4ed8", secondary: "#facc15", panelColors: "naquela" },
     });
+  });
+
+  it("fonte serif persiste e mantém as cores; sem fonte, a salva continua", async () => {
+    const storeId = await newStore("loja-a");
+    await updateStoreProfile(storeId, { ...profile, theme: { ...profile.theme, font: "serif" } });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#1d4ed8", secondary: "#facc15", font: "serif", panelColors: "naquela" });
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#000000", secondary: "#ffffff" } });
+    expect((await getStoreById(storeId))?.theme).toEqual({ primary: "#000000", secondary: "#ffffff", font: "serif", panelColors: "naquela" });
+  });
+
+  it("cores do painel: padrão naquela, salva store e preserva quando omitido", async () => {
+    const storeId = await newStore("loja-a");
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("naquela");
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B", panelColors: "store" } });
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("store");
+
+    await updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B" } });
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("store");
+  });
+
+  it("cores do painel: valor inválido é rejeitado", async () => {
+    const storeId = await newStore("loja-a");
+    await expect(
+      updateStoreProfile(storeId, { ...profile, theme: { primary: "#B91C1C", secondary: "#F59E0B", panelColors: "roxo" as never } }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+
+  it("loja com tema antigo (sem panelColors) lê como naquela", async () => {
+    const storeId = await newStore("loja-a");
+    await db
+      .update(stores)
+      .set({ theme: { primary: "#B91C1C", secondary: "#F59E0B", font: "sans" } as never })
+      .where(eq(stores.id, storeId));
+    expect((await getStoreById(storeId))!.theme.panelColors).toBe("naquela");
   });
 
   it.each([
     ["cor inválida", { theme: { primary: "red", secondary: "#facc15" } }],
+    ["fonte inválida", { theme: { primary: "#1d4ed8", secondary: "#facc15", font: "comic" as "sans" } }],
     ["logo http", { logoUrl: "http://x.com/a.png" }],
     ["telefone inválido", { whatsappPhone: "1199" }],
     ["nome vazio", { name: " " }],
@@ -136,6 +181,33 @@ describe("store settings service", () => {
         { weekday: 2, opensAt: "22:00", closesAt: "23:30" },
       ]),
     ).rejects.toMatchObject({ code: "VALIDATION", details: { issues: [{ message: "há turnos sobrepostos" }] } });
+  });
+
+  it("saveOperationsWithZones grava operação e bairros juntos", async () => {
+    const storeId = await newStore("loja-a");
+    const currentOperations = await operationsOf(storeId);
+    await saveOperationsWithZones(storeId, {
+      operations: { ...currentOperations, rules: { ...currentOperations.rules, deliveryFee: { strategy: "by_neighborhood" } } },
+      zones: [{ neighborhood: "Centro", feeCents: 500 }],
+    });
+    expect((await getDeliveryZones(storeId)).map((z) => z.neighborhood)).toEqual(["Centro"]);
+    expect((await getStoreById(storeId))!.rules.deliveryFee.strategy).toBe("by_neighborhood");
+  });
+
+  it("saveOperationsWithZones com bairro inválido não grava a operação", async () => {
+    const storeId = await newStore("loja-a");
+    const currentOperations = await operationsOf(storeId);
+    const before = (await getStoreById(storeId))!.rules.minOrderCents;
+    await expect(
+      saveOperationsWithZones(storeId, {
+        operations: { ...currentOperations, rules: { ...currentOperations.rules, minOrderCents: before + 1000 } },
+        zones: [
+          { neighborhood: "Centro", feeCents: 500 },
+          { neighborhood: "centro", feeCents: 700 },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    expect((await getStoreById(storeId))!.rules.minOrderCents).toBe(before);
   });
 
   it("loja inexistente → NOT_FOUND", async () => {
