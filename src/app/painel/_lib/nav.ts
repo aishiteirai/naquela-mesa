@@ -1,34 +1,27 @@
-export type NavItem = { href: string; label: string };
-export type NavGroup = { label: string; items: NavItem[] };
+export type NavItem = { href: string; label: string; primary?: true };
 
-export const PANEL_NAV: NavGroup[] = [
-  {
-    label: "Operação",
-    items: [
-      { href: "/painel", label: "Pedidos" },
-      { href: "/painel/pedidos", label: "Histórico" },
-      { href: "/painel/metricas", label: "Métricas" },
-    ],
-  },
-  {
-    label: "Cardápio",
-    items: [
-      { href: "/painel/cardapio", label: "Produtos" },
-      { href: "/painel/cardapio/adicionais", label: "Adicionais" },
-    ],
-  },
-  { label: "Loja", items: [{ href: "/painel/loja", label: "Configurações" }] },
+export const PANEL_NAV: NavItem[] = [
+  { href: "/painel", label: "Pedidos", primary: true },
+  { href: "/painel/cardapio", label: "Cardápio" },
+  { href: "/painel/pedidos", label: "Histórico" },
+  { href: "/painel/metricas", label: "Métricas" },
 ];
 
-const ALL_HREFS = PANEL_NAV.flatMap((group) => group.items.map((item) => item.href));
-
-function matches(pathname: string, href: string): boolean {
+/** `/painel` só vale na raiz; os demais valem no próprio caminho e em qualquer subcaminho. */
+export function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/painel") return pathname === "/painel";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** `/painel` só vale na raiz; os demais valem no prefixo, e o item mais específico vence. */
-export function isNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/painel") return pathname === "/painel";
-  if (!matches(pathname, href)) return false;
-  return !ALL_HREFS.some((other) => other !== href && other.startsWith(`${href}/`) && matches(pathname, other));
+const TRAILS: { href: string; trail: string[] }[] = [
+  { href: "/painel/loja", trail: ["Loja", "Configurações"] },
+  { href: "/painel/cardapio", trail: ["Cardápio"] },
+  { href: "/painel/pedidos", trail: ["Operação", "Histórico"] },
+  { href: "/painel/metricas", trail: ["Operação", "Métricas"] },
+  { href: "/painel", trail: ["Operação", "Pedidos"] },
+];
+
+/** Trilha do topo do conteúdo para o caminho atual (vazia fora do mapa). */
+export function pageTrail(pathname: string): string[] {
+  return TRAILS.find(({ href }) => isNavItemActive(pathname, href))?.trail ?? [];
 }

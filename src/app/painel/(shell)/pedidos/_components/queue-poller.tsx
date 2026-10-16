@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { BellRingIcon, WifiOffIcon } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useNewOrders } from "@/app/painel/_components/new-orders-context";
 import { createAlertSound } from "./alert-sound";
 
 const BASE_INTERVAL = 5_000;
@@ -14,6 +15,7 @@ const FETCH_TIMEOUT = 8_000;
 
 export function QueuePoller({ initialVersion, initialReceived, initialTotal }: { initialVersion: string; initialReceived: number; initialTotal: number }) {
   const router = useRouter();
+  const { setCount, claimPolling } = useNewOrders();
   const [started, setStarted] = useState(false);
   const [offline, setOffline] = useState(false);
   const [alerting, setAlerting] = useState(false);
@@ -35,6 +37,10 @@ export function QueuePoller({ initialVersion, initialReceived, initialTotal }: {
       // Wake Lock é opcional (nem todo navegador oferece).
     }
   }
+
+  // O selo da barra lateral usa as consultas deste componente em vez de fazer outras.
+  useEffect(() => claimPolling(), [claimPolling]);
+  useEffect(() => setCount(initialReceived), [initialReceived, setCount]);
 
   useEffect(() => {
     baseTitle.current = document.title;
@@ -82,6 +88,7 @@ export function QueuePoller({ initialVersion, initialReceived, initialTotal }: {
         version.current = data.version;
         received.current = data.received;
         total.current = data.total;
+        setCount(data.received);
         if (versionChanged) {
           try {
             router.refresh();
@@ -146,7 +153,7 @@ export function QueuePoller({ initialVersion, initialReceived, initialTotal }: {
       void wakeLock.current?.release().catch(() => {});
       wakeLock.current = null;
     };
-  }, [router]);
+  }, [router, setCount]);
 
   useEffect(() => {
     if (!alerting) return;

@@ -19,7 +19,8 @@ test("tema escuro no painel persiste, imprime claro e não vaza para o login", a
   await expect(page.locator("body")).toHaveCSS("background-color", PANEL_LIGHT_BACKGROUND);
   await page.emulateMedia({ media: "screen" });
 
-  await page.getByRole("button", { name: "Sair" }).click();
+  await page.getByRole("button", { name: "Pizzaria Demo — abrir menu da loja" }).click();
+  await page.getByRole("menuitem", { name: "Sair" }).click();
   await expect(page).toHaveURL(/\/login/);
   await expect(html).not.toHaveClass(/\bdark\b/);
   await expect(page.locator("body")).toHaveCSS("background-color", LIGHT_BACKGROUND);
@@ -44,7 +45,8 @@ test("menus em portal usam a paleta Naquela e a paleta sai do <html> ao deixar o
   await expect(menu).toHaveCSS("color", "rgb(59, 42, 32)");
   await page.keyboard.press("Escape");
 
-  await page.getByRole("button", { name: "Sair" }).click();
+  await page.getByRole("button", { name: "Pizzaria Demo — abrir menu da loja" }).click();
+  await page.getByRole("menuitem", { name: "Sair" }).click();
   await expect(page).toHaveURL(/\/login/);
   await expect(page.locator("html")).not.toHaveAttribute("data-panel-theme", /.*/);
   await expect(page.locator("html")).not.toHaveAttribute("style", /--primary/);

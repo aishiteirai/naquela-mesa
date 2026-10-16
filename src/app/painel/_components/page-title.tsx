@@ -1,18 +1,21 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { isNavItemActive, PANEL_NAV } from "@/app/painel/_lib/nav";
+import { pageTrail } from "@/app/painel/_lib/nav";
 
-/** Seção atual no topo do conteúdo (o título da página continua no <h1> de cada tela). */
+/** Trilha da seção atual no topo do conteúdo (o título da página continua no <h1> de cada tela). */
 export function PageTitle() {
-  const pathname = usePathname();
-  const group = PANEL_NAV.find((item) => item.items.some((link) => isNavItemActive(pathname, link.href)));
-  const item = group?.items.find((link) => isNavItemActive(pathname, link.href));
-  if (!group || !item) return null;
+  const trail = pageTrail(usePathname());
+  if (trail.length === 0) return null;
 
   return (
     <p className="truncate text-sm text-muted-foreground">
-      {group.label} <span aria-hidden="true">/</span> <span className="font-medium text-foreground">{item.label}</span>
+      {trail.map((part, index) => (
+        <span key={part}>
+          {index > 0 && <span aria-hidden="true"> / </span>}
+          <span className={index === trail.length - 1 ? "font-medium text-foreground" : undefined}>{part}</span>
+        </span>
+      ))}
     </p>
   );
 }
