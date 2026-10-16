@@ -120,3 +120,13 @@ test("landing page mostra a proposta, como funciona e o convite final", async ({
   await expect(page.getByRole("heading", { name: "Vamos abrir a sua mesa?" })).toBeInViewport();
   await expect(page.getByRole("img", { name: "Logo Naquela Mesa" })).toBeVisible();
 });
+
+test("aba do navegador usa o logo do Naquela Mesa", async ({ page, request }) => {
+  await page.goto("/");
+  const icon = page.locator('head link[rel="icon"][type="image/svg+xml"]');
+  await expect(icon).toHaveCount(1);
+  const response = await request.get((await icon.getAttribute("href"))!);
+  expect(response.ok()).toBe(true);
+  expect(await response.text()).toContain("#D9622B");
+  await expect(page.locator('head link[rel="apple-touch-icon"]')).toHaveCount(1);
+});
