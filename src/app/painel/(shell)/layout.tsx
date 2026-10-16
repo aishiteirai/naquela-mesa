@@ -8,6 +8,7 @@ import { NewOrdersProvider } from "@/app/painel/_components/new-orders-context";
 import { PanelSidebar, PanelSidebarToggle } from "@/app/painel/_components/panel-sidebar";
 import { PageTitle } from "@/app/painel/_components/page-title";
 import { SupportBanner } from "@/app/painel/_components/support-banner";
+import { OnboardingChecklist } from "@/app/painel/_components/onboarding-checklist";
 import { PanelThemeRoot } from "@/app/painel/_components/panel-theme-root";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { panelThemeVariables } from "@/app/painel/_lib/panel-theme";
@@ -55,6 +56,9 @@ async function Shell({ children }: { children: ReactNode }) {
               </div>
               <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</div>
             </SidebarInset>
+            <Suspense fallback={null}>
+              <OnboardingChecklist />
+            </Suspense>
           </NewOrdersProvider>
         </SidebarProvider>
       </TooltipProvider>

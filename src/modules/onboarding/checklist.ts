@@ -17,10 +17,10 @@ export function buildOnboardingChecklist(input: ChecklistInput): ChecklistItem[]
     (input.deliveryFee.strategy === "fixed" ? input.deliveryFee.fixedCents > 0 : input.zonesCount > 0);
 
   return [
-    { key: "logo", label: "Enviar o logo da loja", done: input.logoUrl !== null, href: "/painel/loja" },
-    { key: "hours", label: "Cadastrar os horários de funcionamento", done: input.hoursCount > 0, href: "/painel/loja" },
-    { key: "delivery", label: "Definir a taxa de entrega ou os bairros atendidos", done: deliveryDone, href: "/painel/loja" },
-    { key: "pix", label: "Cadastrar a chave Pix", done: input.pixKey !== null, href: "/painel/loja" },
+    { key: "logo", label: "Enviar o logo da loja", done: input.logoUrl !== null, href: "/painel/loja?aba=aparencia" },
+    { key: "hours", label: "Cadastrar os horários de funcionamento", done: input.hoursCount > 0, href: "/painel/loja?aba=horarios" },
+    { key: "delivery", label: "Definir a taxa de entrega ou os bairros atendidos", done: deliveryDone, href: "/painel/loja?aba=pedidos" },
+    { key: "pix", label: "Cadastrar a chave Pix", done: input.pixKey !== null, href: "/painel/loja?aba=pedidos" },
     { key: "menu", label: "Conferir o cardápio e os preços", done: input.productCount > 0, href: "/painel/cardapio" },
   ];
 }

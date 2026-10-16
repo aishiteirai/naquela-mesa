@@ -37,7 +37,7 @@ test("super-admin cria loja a partir de template e o dono ativa o acesso", async
   await owner.getByLabel("Confirmar senha").fill("senha-dono-123");
   await owner.getByRole("button", { name: "Criar acesso" }).click();
   await expect(owner).toHaveURL(/\/painel$/);
-  await expect(owner.getByRole("region", { name: "Primeiros passos" })).toContainText("Primeiros passos (1 de 5)");
+  await expect(owner.getByRole("region", { name: "Primeiros passos" })).toContainText("1 de 5 concluídos");
 
   await owner.goto(inviteUrl);
   await expect(owner.getByRole("heading", { name: "Link inválido ou expirado." })).toBeVisible();

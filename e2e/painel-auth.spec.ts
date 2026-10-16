@@ -55,3 +55,20 @@ test("login respeita next interno e ignora next externo", async ({ page }) => {
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/painel$/);
 });
+
+test("primeiros passos fechado volta no próximo login", async ({ page }) => {
+  await loginAsOwner(page);
+  const card = page.getByRole("region", { name: "Primeiros passos" });
+  await expect(card).toBeVisible();
+
+  await card.getByRole("button", { name: "Fechar primeiros passos" }).click();
+  await expect(card).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Pedidos" })).toBeVisible();
+  await expect(card).toBeHidden();
+
+  await page.getByRole("button", { name: "Pizzaria Demo — abrir menu da loja" }).click();
+  await page.getByRole("menuitem", { name: "Sair" }).click();
+  await loginAsOwner(page);
+  await expect(card).toBeVisible();
+});
