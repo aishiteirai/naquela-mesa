@@ -49,6 +49,7 @@ export function NewOrdersProvider({ initialCount, children }: { initialCount: nu
       }
     }
 
+    void check();
     const timer = window.setInterval(check, POLL_INTERVAL);
     document.addEventListener("visibilitychange", check);
     window.addEventListener("focus", check);

@@ -39,10 +39,14 @@ export function PanelThemeRoot({
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-panel-theme", effective);
+    // A fonte da marca também precisa existir nos portais (gaveta do celular).
+    const fontClasses = pacifico.variable.split(" ");
+    root.classList.add(...fontClasses);
     const entries = Object.entries(vars ?? {});
     for (const [name, value] of entries) root.style.setProperty(name, value);
     return () => {
       root.removeAttribute("data-panel-theme");
+      root.classList.remove(...fontClasses);
       for (const [name] of entries) root.style.removeProperty(name);
     };
   }, [effective, vars]);
