@@ -15,6 +15,8 @@ import type { ManualStatus } from "./types";
 
 const MAX_FEE_CENTS = 100_000_000;
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 function parse<T extends z.ZodType>(schema: T, input: unknown): z.infer<T> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) throw zodIssuesToDomainError(parsed.error);
@@ -88,25 +90,53 @@ export async function updateStoreOperations(storeId: string, input: StoreOperati
   await updateStore(storeId, operations);
 }
 
-export async function replaceDeliveryZones(storeId: string, zones: DeliveryZoneInput[]): Promise<void> {
+/** Valida os bairros; erros saem com caminho prefixado por "zones." para casar com o formulário. */
+function parseZones(zones: DeliveryZoneInput[]): z.infer<typeof deliveryZonesInputSchema> {
   const parsed = deliveryZonesInputSchema.safeParse(zones);
   if (!parsed.success) {
     const error = zodIssuesToDomainError(parsed.error);
-    // Prefixa o caminho com "zones." para casar com os campos do formulário.
     const issues = (error.details.issues as { path: string; message: string }[]).map((issue) => ({
       ...issue,
       path: issue.path ? `zones.${issue.path}` : "zones",
     }));
     throw new DomainError("VALIDATION", { issues });
   }
+  return parsed.data;
+}
+
+async function replaceZonesInTx(tx: Tx, storeId: string, zones: z.infer<typeof deliveryZonesInputSchema>): Promise<void> {
+  await tx.delete(deliveryZones).where(eq(deliveryZones.storeId, storeId));
+  if (zones.length > 0) {
+    await tx.insert(deliveryZones).values(zones.map((zone, position) => ({ storeId, ...zone, position })));
+  }
+}
+
+export async function replaceDeliveryZones(storeId: string, zones: DeliveryZoneInput[]): Promise<void> {
+  const parsed = parseZones(zones);
 
   await db.transaction(async (tx) => {
     const [store] = await tx.select({ id: stores.id }).from(stores).where(eq(stores.id, storeId)).limit(1);
     if (!store) throw new DomainError("NOT_FOUND");
-    await tx.delete(deliveryZones).where(eq(deliveryZones.storeId, storeId));
-    if (parsed.data.length > 0) {
-      await tx.insert(deliveryZones).values(parsed.data.map((zone, position) => ({ storeId, ...zone, position })));
-    }
+    await replaceZonesInTx(tx, storeId, parsed);
+  });
+}
+
+/** Grava operação e bairros numa transação: se um falhar, nenhum é gravado. */
+export async function saveOperationsWithZones(
+  storeId: string,
+  input: { operations: StoreOperationsInput; zones: DeliveryZoneInput[] },
+): Promise<void> {
+  const operations = parse(storeOperationsInputSchema, input.operations);
+  const zones = parseZones(input.zones);
+
+  await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(stores)
+      .set({ ...operations, updatedAt: sql`now()` })
+      .where(eq(stores.id, storeId))
+      .returning({ id: stores.id });
+    if (updated.length === 0) throw new DomainError("NOT_FOUND");
+    await replaceZonesInTx(tx, storeId, zones);
   });
 }
 

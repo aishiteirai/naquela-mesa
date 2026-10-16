@@ -6,6 +6,7 @@ import { stores } from "./schema";
 import {
   getDeliveryZones,
   replaceDeliveryZones,
+  saveOperationsWithZones,
   setManualStatus,
   updateStoreOperations,
   updateStoreProfile,
@@ -17,6 +18,11 @@ const missingStore = "00000000-0000-4000-8000-000000000000";
 async function newStore(slug: string): Promise<string> {
   const { id } = await createStore({ slug, name: slug, whatsappPhone: "+5511988887777" });
   return id;
+}
+
+async function operationsOf(storeId: string) {
+  const store = (await getStoreById(storeId))!;
+  return { features: store.features, rules: store.rules, paymentMethods: store.paymentMethods };
 }
 
 const profile: StoreProfileInput = {
@@ -175,6 +181,33 @@ describe("store settings service", () => {
         { weekday: 2, opensAt: "22:00", closesAt: "23:30" },
       ]),
     ).rejects.toMatchObject({ code: "VALIDATION", details: { issues: [{ message: "há turnos sobrepostos" }] } });
+  });
+
+  it("saveOperationsWithZones grava operação e bairros juntos", async () => {
+    const storeId = await newStore("loja-a");
+    const currentOperations = await operationsOf(storeId);
+    await saveOperationsWithZones(storeId, {
+      operations: { ...currentOperations, rules: { ...currentOperations.rules, deliveryFee: { strategy: "by_neighborhood" } } },
+      zones: [{ neighborhood: "Centro", feeCents: 500 }],
+    });
+    expect((await getDeliveryZones(storeId)).map((z) => z.neighborhood)).toEqual(["Centro"]);
+    expect((await getStoreById(storeId))!.rules.deliveryFee.strategy).toBe("by_neighborhood");
+  });
+
+  it("saveOperationsWithZones com bairro inválido não grava a operação", async () => {
+    const storeId = await newStore("loja-a");
+    const currentOperations = await operationsOf(storeId);
+    const before = (await getStoreById(storeId))!.rules.minOrderCents;
+    await expect(
+      saveOperationsWithZones(storeId, {
+        operations: { ...currentOperations, rules: { ...currentOperations.rules, minOrderCents: before + 1000 } },
+        zones: [
+          { neighborhood: "Centro", feeCents: 500 },
+          { neighborhood: "centro", feeCents: 700 },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    expect((await getStoreById(storeId))!.rules.minOrderCents).toBe(before);
   });
 
   it("loja inexistente → NOT_FOUND", async () => {

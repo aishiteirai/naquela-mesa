@@ -24,6 +24,7 @@ export { readableTextColor, themeCssVariables } from "./theme";
 export {
   getDeliveryZones,
   replaceDeliveryZones,
+  saveOperationsWithZones,
   setManualStatus,
   updateStoreOperations,
   updateStoreProfile,
