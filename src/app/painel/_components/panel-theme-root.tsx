@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { pacifico } from "@/app/_components/brand-theme";
 import type { PanelPalette } from "@/app/painel/_lib/panel-theme";
 import { cn } from "@/lib/utils";
@@ -32,12 +32,26 @@ export function PanelThemeRoot({
   const [preview, setPreview] = useState<PanelPalette | null>(null);
   const effective = preview ?? palette;
   const value = useMemo(() => ({ palette: effective, setPreview }), [effective]);
+  const vars = effective === "loja" ? storeStyle : null;
+
+  // Portais do shadcn (menus, sheet, dialog, tooltip) renderizam no <body>, fora do div. Espelhamos
+  // o atributo e as variáveis no <html> e desfazemos tudo ao sair do painel.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-panel-theme", effective);
+    const entries = Object.entries(vars ?? {});
+    for (const [name, value] of entries) root.style.setProperty(name, value);
+    return () => {
+      root.removeAttribute("data-panel-theme");
+      for (const [name] of entries) root.style.removeProperty(name);
+    };
+  }, [effective, vars]);
 
   return (
     <PanelPaletteCtx.Provider value={value}>
       <div
         data-panel-theme={effective}
-        style={effective === "loja" ? (storeStyle as CSSProperties) : undefined}
+        style={vars ? (vars as CSSProperties) : undefined}
         className={cn(pacifico.variable, "min-h-svh bg-background text-foreground")}
       >
         {children}
