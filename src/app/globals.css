@@ -75,7 +75,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: var(--store-ring-light, oklch(0.708 0 0));
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -94,6 +94,17 @@
   --brand-secondary: var(--secondary);
   --brand-secondary-foreground: var(--secondary-foreground);
   --heading-font: var(--font-geist-sans);
+}
+
+/* Anel de foco da loja (themeCssVariables): o wrapper da loja redeclara --ring para usar as variáveis dele. */
+[data-store-theme] {
+  --ring: var(--store-ring-light);
+}
+
+@media screen {
+  .dark [data-store-theme] {
+    --ring: var(--store-ring-dark);
+  }
 }
 
 @media screen {
@@ -115,7 +126,7 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: var(--store-ring-dark, oklch(0.556 0 0));
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);

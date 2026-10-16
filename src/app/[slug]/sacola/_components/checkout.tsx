@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -226,6 +227,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           )}
           <h1 ref={headingRef} tabIndex={-1} className="flex-1 text-lg font-semibold outline-none">{CHECKOUT_STEPS[step - 1]}</h1>
           <span className="text-sm text-muted-foreground">{step} de 4</span>
+          <ModeToggle />
         </div>
         <div aria-hidden="true" className="mx-auto flex max-w-2xl gap-1 px-4 pb-3">
           {[1, 2, 3, 4].map((position) => (

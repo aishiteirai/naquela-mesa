@@ -39,10 +39,33 @@ test("slug inválido não chega ao cache e mostra loja não encontrada", async (
   await expect(page.getByRole("heading", { name: "Loja não encontrada" })).toBeVisible();
 });
 
-test("cardápio continua claro com o sistema em modo escuro", async ({ page }) => {
+test("cardápio começa claro mesmo com o sistema em modo escuro", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/pizzaria-demo");
   await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
+  await expect(page.locator("body")).toHaveCSS("background-color", "lab(100 0 0)");
+});
+
+test("cliente troca o cardápio para o modo escuro; a escolha vale na sacola e não vaza para fora da loja", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  const html = page.locator("html");
+  await page.getByRole("button", { name: "Alternar tema" }).click();
+  await page.getByRole("menuitem", { name: "Escuro" }).click();
+  await expect(html).toHaveClass(/\bdark\b/);
+  await expect(page.locator("body")).not.toHaveCSS("background-color", "lab(100 0 0)");
+
+  await page.reload();
+  await expect(html).toHaveClass(/\bdark\b/);
+  await page.goto("/pizzaria-demo/sacola");
+  await expect(html).toHaveClass(/\bdark\b/);
+
+  await page.goto("/login");
+  await expect(html).not.toHaveClass(/\bdark\b/);
+
+  await page.goto("/pizzaria-demo");
+  await page.getByRole("button", { name: "Alternar tema" }).click();
+  await page.getByRole("menuitem", { name: "Claro" }).click();
+  await expect(html).not.toHaveClass(/\bdark\b/);
   await expect(page.locator("body")).toHaveCSS("background-color", "lab(100 0 0)");
 });
 

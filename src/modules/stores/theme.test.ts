@@ -25,7 +25,8 @@ describe("themeCssVariables", () => {
       "--brand-secondary-foreground": "#000000",
       "--primary": "#B91C1C",
       "--primary-foreground": "#FFFFFF",
-      "--ring": "#B91C1C",
+      "--store-ring-light": "#B91C1C",
+      "--store-ring-dark": "#FFFFFF",
       "--heading-font": "var(--font-geist-sans)",
     });
   });
@@ -39,6 +40,7 @@ describe("themeCssVariables", () => {
   it("primária clara ganha texto preto nos botões", () => {
     const vars = themeCssVariables({ primary: "#ffff00", secondary: "#F59E0B", font: "sans" });
     expect(vars["--primary-foreground"]).toBe("#000000");
-    expect(vars["--ring"]).toBe("#000000");
+    expect(vars["--store-ring-light"]).toBe("#000000");
+    expect(vars["--store-ring-dark"]).toBe("#ffff00");
   });
 });

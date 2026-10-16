@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 import type { Store } from "@/modules/stores";
 
 export function StoreHeader({ store, status }: { store: Store; status: ReactNode }) {
@@ -11,6 +12,7 @@ export function StoreHeader({ store, status }: { store: Store; status: ReactNode
         ) : (
           <div data-testid="cover-fallback" className="size-full bg-linear-to-br from-primary to-brand-secondary" />
         )}
+        <ModeToggle className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm" />
       </div>
       <div className="mx-auto flex max-w-3xl items-end gap-4 px-4">
         <div className="-mt-10 size-20 shrink-0 overflow-hidden rounded-2xl border-4 border-background bg-primary shadow-md">

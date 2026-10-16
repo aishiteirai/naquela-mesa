@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -69,6 +70,7 @@ async function Tracking({
             )}
           </div>
           <span className="font-medium">{order.store.name}</span>
+          <ModeToggle className="ml-auto" />
         </div>
 
         <div className="flex flex-col gap-1">
