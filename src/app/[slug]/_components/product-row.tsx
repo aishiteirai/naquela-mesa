@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { MenuProduct } from "@/modules/catalog";
-import { openItem } from "./item-url";
+import { useItemSheet } from "./item-sheet-context";
 
 export function ProductRow({ product, price }: { product: MenuProduct; price: string | null }) {
+  const { open: openItem } = useItemSheet();
   const open = product.available ? () => openItem(product.id) : undefined;
 
   return (
-    <article onClick={open} className={cn("flex gap-3 py-4", product.available && "cursor-pointer")}>
+    <article onClick={open} className={cn("flex items-center gap-3 py-3 sm:rounded-xl sm:border sm:p-3", product.available && "cursor-pointer")}>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h3 className="font-semibold">{product.name}</h3>
         {product.description && <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>}
@@ -21,15 +22,15 @@ export function ProductRow({ product, price }: { product: MenuProduct; price: st
           {!product.available && <Badge variant="secondary">Esgotado</Badge>}
         </div>
       </div>
-      <div className="relative flex shrink-0 items-end">
+      <div className="relative flex shrink-0 items-center">
         {product.imageUrl && (
           <Image
             src={product.imageUrl}
             alt=""
-            width={80}
-            height={80}
+            width={72}
+            height={72}
             unoptimized
-            className={cn("size-20 rounded-lg object-cover", !product.available && "grayscale")}
+            className={cn("size-[72px] rounded-lg object-cover", !product.available && "grayscale")}
           />
         )}
         {product.available && (

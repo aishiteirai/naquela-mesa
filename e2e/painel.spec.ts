@@ -100,7 +100,7 @@ test("nova categoria com produto aparece no cardápio", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Combos" }).getByRole("button", { name: "Editar Combo Família" })).toBeVisible();
 
   await page.goto("/pizzaria-demo");
-  await expect(page.getByRole("navigation", { name: "Categorias" }).getByRole("link", { name: "Combos" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Categorias" }).getByRole("button", { name: "Combos" })).toBeVisible();
   await expect(await publicCard(page, "Combo Família")).toContainText(/R\$\s89,90/);
 });
 

@@ -8,7 +8,7 @@ test("cardápio público da Pizzaria Demo", async ({ page }) => {
   await expect(page.getByTestId("open-status")).toHaveText(/^(Aberto agora|Fechado no momento|Abre .+ às \d\d:\d\d)$/);
 
   const nav = page.getByRole("navigation", { name: "Categorias" });
-  await expect(nav.getByRole("link")).toHaveText(["Pizzas Salgadas", "Pizzas Doces", "Bebidas", "Sobremesas"]);
+  await expect(nav.getByRole("button")).toHaveText(["Pizzas Salgadas", "Pizzas Doces", "Bebidas", "Sobremesas"]);
 
   const calabresa = page.getByRole("article").filter({ hasText: "Calabresa" });
   await expect(calabresa).toContainText(/a partir de R\$\s34,90/);
@@ -22,11 +22,21 @@ test("cardápio público da Pizzaria Demo", async ({ page }) => {
   await expect(calabresa).not.toContainText("Esgotado");
 });
 
-test("link de categoria leva à seção", async ({ page }) => {
+test("aba de categoria leva à seção sem mudar a URL", async ({ page }) => {
   await page.goto("/pizzaria-demo");
-  await page.getByRole("navigation", { name: "Categorias" }).getByRole("link", { name: "Bebidas" }).click();
-  await expect(page).toHaveURL(/#categoria-/);
+  const button = page.getByRole("navigation", { name: "Categorias" }).getByRole("button", { name: "Bebidas" });
+  await button.click();
   await expect(page.getByRole("heading", { level: 2, name: "Bebidas" })).toBeInViewport();
+  await expect(page).toHaveURL(/\/pizzaria-demo$/);
+  await expect(button).toHaveAttribute("aria-current", "true");
+});
+
+test("aba da última categoria fica ativa mesmo com seção curta", async ({ page }) => {
+  await page.goto("/pizzaria-demo");
+  const button = page.getByRole("navigation", { name: "Categorias" }).getByRole("button", { name: "Sobremesas" });
+  await button.click();
+  await expect(button).toHaveAttribute("aria-current", "true");
+  await expect(page.getByRole("heading", { level: 2, name: "Sobremesas" })).toBeInViewport();
 });
 
 test("slug inexistente mostra loja não encontrada", async ({ page }) => {
@@ -80,30 +90,15 @@ test("tema da loja vale no <html> (componentes em portal) e sai ao deixar a loja
   await expect.poll(primary).toBe("");
 });
 
-test("item abre com ?item= na URL e o voltar do navegador fecha", async ({ page }) => {
+test("abrir item não muda a URL e Voltar ao cardápio fecha", async ({ page }) => {
   await page.goto("/pizzaria-demo");
   await page.getByRole("button", { name: "Adicionar Coca-Cola 2L" }).click();
-  const dialog = page.getByRole("dialog", { name: "Coca-Cola 2L" });
-  await expect(dialog).toBeVisible();
-  await expect(page).toHaveURL(/\?item=/);
-  const itemUrl = page.url();
-
-  await page.goBack();
-  await expect(dialog).toBeHidden();
-  await expect(page).toHaveURL(/\/pizzaria-demo$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Pizzaria Demo" })).toBeVisible();
-
-  await page.goto(itemUrl);
   await expect(page.getByRole("dialog", { name: "Coca-Cola 2L" })).toBeVisible();
+  await expect(page).toHaveURL(/\/pizzaria-demo$/);
+
   await page.getByRole("button", { name: "Voltar ao cardápio" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page).toHaveURL(/\/pizzaria-demo$/);
-});
-
-test("?item= de produto inexistente não abre nada e limpa a URL", async ({ page }) => {
-  await page.goto("/pizzaria-demo?item=nao-existe");
-  await expect(page).toHaveURL(/\/pizzaria-demo$/);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 test("loja sem foto de capa mostra o topo em gradiente", async ({ page }) => {
