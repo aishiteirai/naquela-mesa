@@ -21,3 +21,11 @@ export function firstErrorStep(fieldErrors: Record<string, string>): CheckoutSte
   if (paths.length === 0) return null;
   return Math.min(...paths.map(stepForField)) as CheckoutStep;
 }
+
+// O Select do bairro (Radix) não participa da validação nativa: a etapa 2 confere o bairro à parte.
+export function deliveryStepErrors(input: { fulfillment: string; strategy: "fixed" | "by_neighborhood"; neighborhood: string }): Record<string, string> {
+  if (input.fulfillment === "delivery" && input.strategy === "by_neighborhood" && !input.neighborhood.trim()) {
+    return { "address.neighborhood": "escolha o bairro" };
+  }
+  return {};
+}

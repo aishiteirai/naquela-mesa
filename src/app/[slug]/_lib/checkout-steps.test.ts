@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstErrorStep, parseStepParam, stepForField } from "./checkout-steps";
+import { deliveryStepErrors, firstErrorStep, parseStepParam, stepForField } from "./checkout-steps";
 
 describe("parseStepParam", () => {
   it.each([
@@ -41,5 +41,18 @@ describe("firstErrorStep", () => {
 
   it("devolve a menor etapa entre os campos com erro", () => {
     expect(firstErrorStep({ "payment.changeForCents": "x", "address.number": "y", "customer.name": "z" })).toBe(2);
+  });
+});
+
+describe("deliveryStepErrors", () => {
+  it("exige bairro em delivery com taxa por bairro", () => {
+    expect(deliveryStepErrors({ fulfillment: "delivery", strategy: "by_neighborhood", neighborhood: "" })).toEqual({ "address.neighborhood": "escolha o bairro" });
+    expect(deliveryStepErrors({ fulfillment: "delivery", strategy: "by_neighborhood", neighborhood: "  " })).toEqual({ "address.neighborhood": "escolha o bairro" });
+  });
+
+  it("não exige quando o bairro foi escolhido, taxa é fixa ou não é delivery", () => {
+    expect(deliveryStepErrors({ fulfillment: "delivery", strategy: "by_neighborhood", neighborhood: "Centro" })).toEqual({});
+    expect(deliveryStepErrors({ fulfillment: "delivery", strategy: "fixed", neighborhood: "" })).toEqual({});
+    expect(deliveryStepErrors({ fulfillment: "pickup", strategy: "by_neighborhood", neighborhood: "" })).toEqual({});
   });
 });

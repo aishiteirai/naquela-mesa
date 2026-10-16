@@ -13,7 +13,7 @@ import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
 import { formatBRL, parseBRLToCents } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
-import { CHECKOUT_STEPS, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
+import { CHECKOUT_STEPS, deliveryStepErrors, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
 import type { CheckoutError } from "@/app/[slug]/sacola/messages";
 import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/sacola/actions";
 import { CartStep } from "./cart-step";
@@ -181,6 +181,18 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   function next() {
     if (step === 1 && cart.lines.length === 0) return;
     if (!validFieldset(fieldsets.current[step - 1] ?? null)) return;
+    if (step === 2) {
+      const fieldErrors = deliveryStepErrors({
+        fulfillment,
+        strategy: store.deliveryFee.strategy,
+        neighborhood: String(new FormData(formRef.current!).get("neighborhood") ?? ""),
+      });
+      if (Object.keys(fieldErrors).length > 0) {
+        setError({ code: "VALIDATION", message: "Confira os campos destacados.", fieldErrors });
+        return;
+      }
+      setError(null);
+    }
     goTo((step + 1) as CheckoutStep);
     if (step === 3) review();
   }
