@@ -205,7 +205,7 @@ Raios: cards 14px, campos 10px, botões pequenos 8px, pílulas 999px. Títulos d
 2. `stores/hours.ts`: `OpenStatus` ganha `closesAt: string | null` (fechamento do turno atual; nulo em manual e fechado).
 3. `auth`: `SessionUser.sessionId`.
 4. `orders/history.ts`: filtro `fulfillment` e `revenueCents` (soma sem cancelados) no `OrderHistoryPage`.
-5. `catalog`: `saveOptionGroup(storeId, {id?, name, minSelect, maxSelect, options: [{id?, name, priceCents, available}]})` transacional (cria ou atualiza; opção que some da lista não é apagada, porque apagar está fora de escopo); action devolve o id. `setProductActive(storeId, productId, active)` + action. `CatalogEditorView` ganha, por grupo, os ids dos produtos que o usam.
+5. `catalog`: `saveOptionGroup(storeId, {id?, name, minSelect, maxSelect, options: [{id?, name, priceCents, available}]})` transacional (cria ou atualiza; opção que some da lista não é apagada, porque apagar está fora de escopo); action devolve o id. `setProductActive(storeId, productId, active)` + action. O uso de cada grupo ("usado em N produtos" e os chips) é calculado no painel a partir de `optionGroupIds` dos produtos, sem consulta nova.
 6. `stores`: `saveOperationsWithZones` que grava operação e bairros numa transação; Pix ligado sem chave é rejeitado.
 7. Rótulos curtos do painel (`PANEL_FULFILLMENT_LABELS`, `PANEL_STATUS_LABELS`) num módulo do painel; os mapas globais não mudam.
 
