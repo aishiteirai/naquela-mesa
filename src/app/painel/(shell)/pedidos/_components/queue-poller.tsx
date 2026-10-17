@@ -203,7 +203,7 @@ export function QueuePoller({ initialVersion, initialReceived, initialTotal }: {
           Atendimento ativo: alerta sonoro ligado
         </p>
       ) : (
-        <Button type="button" size="lg" onClick={start} className="self-start">
+        <Button type="button" onClick={start} className="self-start">
           <BellRingIcon />
           Iniciar atendimento
         </Button>

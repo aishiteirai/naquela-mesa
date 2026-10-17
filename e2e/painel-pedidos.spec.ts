@@ -75,13 +75,14 @@ test("cancelar exige motivo e aparece para o cliente", async ({ browser }) => {
   const { page: customer, orderLabel, trackingPath } = await customerOrder(browser);
   const owner = await ownerPage(browser);
 
-  await owner.getByRole("button", { name: `Cancelar pedido ${orderLabel}` }).click();
-  const novos = card(owner, "Novos", orderLabel);
-  await novos.getByRole("button", { name: "Confirmar cancelamento" }).click();
-  await expect(novos.getByText("informe o motivo do cancelamento")).toBeVisible();
+  await card(owner, "Novos", orderLabel).getByRole("button", { name: `Mais ações do pedido ${orderLabel}` }).click();
+  await owner.getByRole("menuitem", { name: "Cancelar pedido" }).click();
+  const dialog = owner.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await expect(dialog.getByText("informe o motivo do cancelamento")).toBeVisible();
 
-  await novos.getByLabel("Motivo do cancelamento").fill("acabou a massa");
-  await novos.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await dialog.getByLabel("Motivo do cancelamento").fill("acabou a massa");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
   const finalizado = card(owner, "Finalizados (24 h)", orderLabel);
   await expect(finalizado).toContainText("Cancelado");
   await expect(finalizado).toContainText("Motivo: acabou a massa");

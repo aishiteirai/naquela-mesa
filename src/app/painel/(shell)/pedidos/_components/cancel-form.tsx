@@ -2,15 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
+import { EllipsisIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { idleState } from "@/app/_lib/action-state";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { idleState, type ActionState } from "@/app/_lib/action-state";
 import { TextField } from "@/app/_components/form-fields";
 import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 
+/** Menu "⋯" do card; "Cancelar pedido" abre o diálogo com o motivo. */
 export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabel: string }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(cancelOrderAction, idleState);
+  const [state, formAction, pending] = useActionState(async (prev: ActionState, form: FormData) => {
+    const next = await cancelOrderAction(prev, form);
+    // Sucesso, ou erro sem campo (pedido já mudou em outro aparelho): fecha o diálogo; o aviso vai para a fila.
+    if (next.status === "success" || (next.status === "error" && Object.keys(next.fieldErrors).length === 0)) setOpen(false);
+    return next;
+  }, idleState);
   const router = useRouter();
   const notice = useQueueNotice();
 
@@ -24,26 +33,40 @@ export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabe
     }
   }, [state, router, notice, orderLabel]);
 
-  if (!open) {
-    return (
-      <Button type="button" variant="ghost" onClick={() => setOpen(true)} aria-label={`Cancelar pedido ${orderLabel}`} className="text-destructive">
-        Cancelar
-      </Button>
-    );
-  }
-
   return (
-    <form action={formAction} className="flex w-full flex-col gap-2 rounded-lg border border-destructive/40 p-3">
-      <input type="hidden" name="orderId" value={orderId} />
-      <TextField label="Motivo do cancelamento" name="cancelReason" state={state} maxLength={200} autoFocus />
-      <div className="flex gap-2">
-        <Button type="submit" variant="destructive" disabled={pending}>
-          Confirmar cancelamento
-        </Button>
-        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-          Voltar
-        </Button>
-      </div>
-    </form>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="ghost" size="icon-lg" aria-label={`Mais ações do pedido ${orderLabel}`} title="Mais (cancelar)" className="text-muted-foreground">
+            <EllipsisIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem variant="destructive" onSelect={() => setOpen(true)}>
+            Cancelar pedido
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar pedido {orderLabel}</DialogTitle>
+            <DialogDescription>O cliente verá o motivo no acompanhamento do pedido.</DialogDescription>
+          </DialogHeader>
+          <form action={formAction} className="flex flex-col gap-3">
+            <input type="hidden" name="orderId" value={orderId} />
+            <TextField label="Motivo do cancelamento" name="cancelReason" state={state} maxLength={200} autoFocus />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Voltar
+              </Button>
+              <Button type="submit" variant="destructive" disabled={pending}>
+                Confirmar cancelamento
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
