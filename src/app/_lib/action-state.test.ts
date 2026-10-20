@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { notFound, redirect } from "next/navigation";
 import { DomainError } from "@/shared/errors";
 import { CONNECTION_ERROR, actionError, fieldError, success, withConnectionError } from "./action-state";
 
@@ -45,9 +46,23 @@ describe("withConnectionError", () => {
   });
 
   it("transforma falha (rede, servidor fora) em estado de erro", async () => {
-    const failing = withConnectionError(async (_prev: unknown) => {
+    const failing = withConnectionError(async () => {
       throw new TypeError("Failed to fetch");
     });
-    await expect(failing(null)).resolves.toEqual({ status: "error", message: CONNECTION_ERROR, fieldErrors: {} });
+    await expect(failing()).resolves.toEqual({ status: "error", message: CONNECTION_ERROR, fieldErrors: {} });
+  });
+
+  it("relança redirect em vez de virar erro de conexão", async () => {
+    const redirecting = withConnectionError(async () => {
+      redirect("/login");
+    });
+    await expect(redirecting()).rejects.toMatchObject({ digest: expect.stringMatching(/^NEXT_REDIRECT;/) });
+  });
+
+  it("relança notFound", async () => {
+    const missing = withConnectionError(async () => {
+      notFound();
+    });
+    await expect(missing()).rejects.toMatchObject({ digest: expect.stringMatching(/^NEXT_HTTP_ERROR_FALLBACK;404/) });
   });
 });

@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { isDomainError } from "@/shared/errors";
 
 export type ActionState =
@@ -24,7 +25,9 @@ export function withConnectionError<A extends unknown[]>(action: (...args: A) =>
   return async (...args: A): Promise<ActionState> => {
     try {
       return await action(...args);
-    } catch {
+    } catch (error) {
+      // redirect()/notFound() da action não são falha de conexão.
+      unstable_rethrow(error);
       return connectionErrorState();
     }
   };

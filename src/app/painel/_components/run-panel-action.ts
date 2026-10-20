@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 import { connectionErrorState, type ActionState } from "@/app/_lib/action-state";
 
@@ -6,7 +7,8 @@ export async function runPanelAction(call: () => Promise<ActionState>): Promise<
   let state: ActionState;
   try {
     state = await call();
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error);
     state = connectionErrorState();
   }
   if (state.status === "error") toast.error(state.message);
