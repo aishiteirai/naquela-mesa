@@ -34,7 +34,7 @@ describe("pageTrail", () => {
     ["/painel/pedidos", ["Operação", "Histórico"]],
     ["/painel/metricas", ["Operação", "Métricas"]],
     ["/painel/cardapio", ["Cardápio"]],
-    ["/painel/cardapio/adicionais", ["Cardápio"]],
+    ["/painel/cardapio/adicionais", ["Cardápio", "Adicionais"]],
     ["/painel/loja", ["Loja", "Configurações"]],
     ["/outro", []],
   ])("%s → %j", (pathname, expected) => {

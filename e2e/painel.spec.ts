@@ -201,3 +201,8 @@ test.describe("celular", () => {
     await expect(nav).toBeHidden();
   });
 });
+
+test("cardápio tem link para os adicionais", async ({ page }) => {
+  await page.getByRole("link", { name: "Adicionais" }).click();
+  await expect(page).toHaveURL(/\/painel\/cardapio\/adicionais$/);
+});
