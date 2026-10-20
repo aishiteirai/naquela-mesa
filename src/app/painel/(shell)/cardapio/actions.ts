@@ -19,6 +19,7 @@ import { storeMenuTag } from "@/modules/stores";
 import { parseBRLToCents } from "@/shared/money";
 import { actionError, fieldError, success, type ActionState } from "@/app/_lib/action-state";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
+import { mapSizePriceErrors } from "./_lib/size-price-errors";
 
 function text(form: FormData, key: string): string {
   return String(form.get(key) ?? "").trim();
@@ -125,8 +126,11 @@ export async function saveProductAction(_prev: ActionState, form: FormData): Pro
 
   // Sem redirect: o painel lateral fecha sozinho ao receber o sucesso.
   const productId = text(form, "productId");
-  return mutate(
-    (storeId) => (productId ? updateProduct(storeId, productId, parsed.input) : createProduct(storeId, parsed.input)),
-    "Produto salvo.",
+  return mapSizePriceErrors(
+    await mutate(
+      (storeId) => (productId ? updateProduct(storeId, productId, parsed.input) : createProduct(storeId, parsed.input)),
+      "Produto salvo.",
+    ),
+    parsed.input.sizePrices,
   );
 }
