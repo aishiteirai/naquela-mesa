@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/modules/auth/client";
+import { loginErrorMessage } from "./login-error";
 import { safeNextPath } from "./next-path";
 
 export function LoginForm() {
@@ -19,20 +20,23 @@ export function LoginForm() {
     setPending(true);
     setError(null);
     const form = new FormData(event.currentTarget);
-    const { data, error: signInError } = await authClient.signIn.email({
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-    });
-    setPending(false);
-    if (signInError) {
-      setError(
-        signInError.status === 429 ? "Muitas tentativas. Tente novamente em instantes." : "Email ou senha inválidos.",
-      );
-      return;
+    try {
+      const { data, error: signInError } = await authClient.signIn.email({
+        email: String(form.get("email")),
+        password: String(form.get("password")),
+      });
+      if (signInError) {
+        setError(loginErrorMessage(signInError.status));
+        return;
+      }
+      const isSuperAdminUser = data?.user && "role" in data.user && data.user.role === "super_admin";
+      router.push(safeNextPath(searchParams.get("next")) ?? (isSuperAdminUser ? "/admin" : "/painel"));
+      router.refresh();
+    } catch {
+      setError(loginErrorMessage(undefined));
+    } finally {
+      setPending(false);
     }
-    const isSuperAdminUser = data?.user && "role" in data.user && data.user.role === "super_admin";
-    router.push(safeNextPath(searchParams.get("next")) ?? (isSuperAdminUser ? "/admin" : "/painel"));
-    router.refresh();
   }
 
   return (
