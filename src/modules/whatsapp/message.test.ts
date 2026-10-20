@@ -74,6 +74,12 @@ describe("buildOrderMessage", () => {
     const dineIn = buildOrderMessage({ ...order, fulfillment: "dine_in", address: null, tableLabel: "12", deliveryFeeCents: 0 }, "u");
     expect(dineIn).toContain("Mesa: 12");
   });
+
+  it("cartão na retirada e na mesa é 'maquininha', no delivery é 'na entrega'", () => {
+    const card = { ...order, paymentMethod: "card_on_delivery" as const };
+    expect(buildOrderMessage({ ...card, fulfillment: "pickup", address: null, deliveryFeeCents: 0 }, "u")).toContain("Pagamento: Cartão (maquininha)");
+    expect(buildOrderMessage({ ...card, fulfillment: "delivery" }, "u")).toContain("Pagamento: Cartão na entrega");
+  });
 });
 
 describe("waMeLink e contato", () => {

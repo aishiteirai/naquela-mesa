@@ -64,7 +64,8 @@ function OrderDetail({ order }: { order: QueueOrder }) {
         {order.changeForCents ? ` · troco para ${formatBRL(order.changeForCents)}` : ""}
       </p>
       <p className="tabular-nums">
-        Subtotal {formatBRL(order.subtotalCents)} · Entrega {formatBRL(order.deliveryFeeCents)} ·{" "}
+        Subtotal {formatBRL(order.subtotalCents)} ·{" "}
+        {order.fulfillment === "delivery" && `Entrega ${formatBRL(order.deliveryFeeCents)} · `}
         <span className="font-semibold">Total {formatBRL(order.totalCents)}</span>
       </p>
       {order.status === "cancelled" && order.cancelReason && <p className="text-destructive">Motivo: {order.cancelReason}</p>}

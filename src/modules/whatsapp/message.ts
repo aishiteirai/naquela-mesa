@@ -1,4 +1,4 @@
-import { describeLine, formatOrderNumber, FULFILLMENT_LABELS, PAYMENT_LABELS } from "@/modules/orders/client";
+import { describeLine, formatOrderNumber, FULFILLMENT_LABELS, paymentLabel } from "@/modules/orders/client";
 import type { PlacedOrder } from "@/modules/orders";
 import { formatBRL } from "@/shared/money";
 
@@ -24,7 +24,7 @@ export function buildOrderMessage(order: PlacedOrder, trackingUrl: string): stri
   if (order.fulfillment === "delivery") out.push(`Entrega: ${formatBRL(order.deliveryFeeCents)}`);
   out.push(`*Total: ${formatBRL(order.totalCents)}*`);
   const change = order.changeForCents ? ` (troco para ${formatBRL(order.changeForCents)})` : "";
-  out.push(`Pagamento: ${PAYMENT_LABELS[order.paymentMethod]}${change}`);
+  out.push(`Pagamento: ${paymentLabel(order.paymentMethod, order.fulfillment)}${change}`);
 
   const details: string[] = [];
   if (order.address) {
