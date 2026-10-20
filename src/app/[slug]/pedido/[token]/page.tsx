@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<"/[slug]/pedido/[to
   await connection();
   const order = await readOrder(token);
   if (!order) return { robots: NO_INDEX };
-  return { title: `Pedido ${formatOrderNumber(order.number)} | ${order.store.name}`, robots: NO_INDEX };
+  return { title: `Pedido ${formatOrderNumber(order.number)} - ${order.store.name}`, robots: NO_INDEX };
 }
 
 async function Tracking({

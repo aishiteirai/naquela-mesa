@@ -217,6 +217,7 @@ test.describe("celular", () => {
 });
 
 test("cardápio tem link para os adicionais", async ({ page }) => {
+  await expect(page).toHaveTitle("Pizzaria Demo - Painel");
   await page.getByRole("link", { name: "Adicionais" }).click();
   await expect(page).toHaveURL(/\/painel\/cardapio\/adicionais$/);
 });

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps<"/[slug]/sacola">):
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
   const data = await getStorePageData(slug);
   if (!data) return {};
-  return { title: `Sacola | ${data.store.name}` };
+  return { title: `${data.store.name} - Sacola` };
 }
 
 async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }) {

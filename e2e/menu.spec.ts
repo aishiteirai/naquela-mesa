@@ -6,7 +6,9 @@ test("cardápio público da Pizzaria Demo", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: "Pizzaria Demo" }),
   ).toBeVisible();
-  await expect(page).toHaveTitle("Pizzaria Demo | Naquela Mesa");
+  await expect(page).toHaveTitle("Pizzaria Demo");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Pizzaria Demo");
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", /Pizzaria Demo/);
   await expect(page.getByTestId("open-status")).toHaveText(
     /^(Aberto agora|Fechado no momento|Abre .+ às \d\d:\d\d)$/,
   );

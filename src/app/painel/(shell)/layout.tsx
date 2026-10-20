@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
@@ -18,6 +19,12 @@ import { formatStoreStatus, getOpenStatus } from "@/modules/stores";
 
 // Mesmo cookie que o SidebarProvider grava ao recolher/abrir no desktop.
 const SIDEBAR_COOKIE = "sidebar_state";
+
+// Vale para todas as páginas do shell (nenhuma define título próprio). O shell já é dinâmico (sessão).
+export async function generateMetadata(): Promise<Metadata> {
+  const { store } = await requireStoreAccess();
+  return { title: `${store.name} - Painel` };
+}
 
 async function Shell({ children }: { children: ReactNode }) {
   const [{ store, user }, cookieStore] = await Promise.all([requireStoreAccess(), cookies()]);

@@ -16,6 +16,7 @@ async function loginAsAdmin(page: Page) {
 
 test("super-admin cria loja a partir de template e o dono ativa o acesso", async ({ page, browser }) => {
   await loginAsAdmin(page);
+  await expect(page).toHaveTitle("Naquela Mesa - Admin");
   const form = page.getByRole("form", { name: "Nova loja" });
   await form.getByLabel("Nome da loja").fill("Hamburgueria E2E");
   await form.getByLabel("Endereço (slug)").fill("e2e-hamburgueria");

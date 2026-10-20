@@ -23,7 +23,14 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
   const data = await getStorePageData(slug);
   if (!data) return {};
-  return { title: `${data.store.name} | Naquela Mesa` };
+  const { store } = data;
+  const description = `Cardápio e pedidos online de ${store.name}. Peça pelo celular, sem baixar app.`;
+  const image = store.bannerUrl ?? store.logoUrl;
+  return {
+    title: store.name,
+    description,
+    openGraph: { title: store.name, description, type: "website", ...(image ? { images: [{ url: image }] } : {}) },
+  };
 }
 
 async function StoreMenu({ params }: { params: Promise<{ slug: string }> }) {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { appUrl } from "@/shared/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,10 +21,14 @@ const lora = Lora({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: "Naquela Mesa",
-  description: "Cardápio digital e pedidos para restaurantes da região.",
-};
+export function generateMetadata(): Metadata {
+  return {
+    // URLs relativas do openGraph (/uploads/…) viram absolutas com o endereço público do app.
+    metadataBase: new URL(appUrl()),
+    title: "Naquela Mesa",
+    description: "Cardápio digital e pedidos para restaurantes da região.",
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
