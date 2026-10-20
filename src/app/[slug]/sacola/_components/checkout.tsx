@@ -33,6 +33,7 @@ export type CheckoutStore = {
   minOrderCents: number;
   zones: { neighborhood: string; feeCents: number }[];
   pricing: PricingContext;
+  closedMessage: string | null;
 };
 
 // Só os campos da etapa atual precisam estar válidos para avançar; o servidor revalida tudo.
@@ -261,6 +262,11 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       </header>
 
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
+        {store.closedMessage !== null && (
+          <Alert data-testid="store-closed">
+            <AlertDescription>A loja está fechada agora. {store.closedMessage}</AlertDescription>
+          </Alert>
+        )}
         <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} lines={repriced.lines} onCartChange={invalidateQuote} />
         {step === 1 && missingForMinCents > 0 && (
           <Alert data-testid="min-order-notice">
@@ -324,7 +330,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
             </span>
           </div>
           {step < 4 ? (
-            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && (missingForMinCents > 0 || repriced.hasProblems))}>
+            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || store.closedMessage !== null || (step === 1 && (missingForMinCents > 0 || repriced.hasProblems))}>
               Continuar
             </Button>
           ) : quote ? (
@@ -332,7 +338,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
               Confirmar pedido
             </Button>
           ) : (
-            <Button type="button" size="lg" className="flex-1" onClick={review} disabled={pending || !cart.ready}>
+            <Button type="button" size="lg" className="flex-1" onClick={review} disabled={pending || !cart.ready || store.closedMessage !== null}>
               {pending ? "Calculando..." : "Revisar pedido"}
             </Button>
           )}

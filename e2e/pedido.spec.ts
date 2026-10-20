@@ -106,20 +106,14 @@ test("produto esgotado não tem botão de adicionar", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Adicionar Calabresa" })).toBeVisible();
 });
 
-test("loja fechada bloqueia a revisão do pedido", async ({ page, browser }) => {
+test("loja fechada avisa na sacola e não deixa continuar", async ({ page, browser }) => {
   await setStoreStatus(browser, "Fechar agora");
   try {
     await page.goto("/pizzaria-demo");
-    await page.getByRole("button", { name: "Adicionar Coca-Cola 2L" }).click();
-    const dialog = page.getByRole("dialog", { name: "Coca-Cola 2L" });
-    await dialog.getByRole("button", { name: "Aumentar quantidade" }).click();
-    await dialog.getByRole("button", { name: "Aumentar quantidade" }).click();
-    await dialog.getByRole("button", { name: /^Adicionar ·/ }).click();
-    await goToCheckout(page);
-    await page.getByRole("radio", { name: "Retirada no balcão" }).check();
-    await page.getByRole("button", { name: "Continuar" }).click();
-    await fillCustomerAndReview(page);
-    await expect(page.getByTestId("checkout-error")).toContainText("A loja está fechada agora.");
+    await addSimple(page, "Coca-Cola 2L", 3);
+    await page.getByRole("link", { name: "Ver sacola" }).click();
+    await expect(page.getByTestId("store-closed")).toContainText("A loja está fechada agora.");
+    await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
   } finally {
     await setStoreStatus(browser, "Abrir agora");
   }

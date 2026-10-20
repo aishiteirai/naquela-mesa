@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
-import { SLUG_PATTERN } from "@/modules/stores";
+import { formatOpenStatus, getOpenStatus, SLUG_PATTERN } from "@/modules/stores";
 import { CartProvider } from "@/app/[slug]/_components/cart-context";
 import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { getStorePageData } from "@/app/[slug]/data";
@@ -21,6 +22,9 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
   const data = await getStorePageData(slug);
   if (!data) notFound();
   const { store, zones, menu } = data;
+  // Aberto/fechado depende da hora: calculado a cada requisição (os dados da loja continuam em cache).
+  await connection();
+  const status = getOpenStatus({ hours: store.hours, manualStatus: store.manualStatus, timeZone: store.timezone, now: new Date() });
 
   return (
     <StoreShell theme={store.theme}>
@@ -34,6 +38,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
               paymentMethods: store.paymentMethods,
               deliveryFee: store.rules.deliveryFee,
               minOrderCents: store.rules.minOrderCents,
+              closedMessage: status.isOpen ? null : formatOpenStatus(status),
               zones: zones.map(({ neighborhood, feeCents }) => ({ neighborhood, feeCents })),
               pricing: {
                 menu,
