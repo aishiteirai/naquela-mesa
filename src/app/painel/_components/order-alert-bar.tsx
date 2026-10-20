@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BellRingIcon, WifiOffIcon } from "lucide-react";
+import { BellRingIcon, Volume2Icon, WifiOffIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useNewOrders } from "./new-orders-context";
@@ -15,9 +15,10 @@ function waitingText(count: number): string {
 
 /** Aviso de conexão e de pedido novo no topo de qualquer página do painel. */
 export function OrderAlertBar() {
-  const { count, offline, alerting, silence } = useNewOrders();
+  const { count, offline, alerting, attending, soundReady, silence } = useNewOrders();
   const onQueue = usePathname() === "/painel";
-  if (!offline && !alerting) return null;
+  const soundLocked = attending && !soundReady;
+  if (!offline && !alerting && !soundLocked) return null;
 
   return (
     <div className="mb-4 flex flex-col gap-2">
@@ -25,6 +26,12 @@ export function OrderAlertBar() {
         <Alert variant="destructive" role="status">
           <WifiOffIcon />
           <AlertTitle>Sem conexão — tentando reconectar</AlertTitle>
+        </Alert>
+      )}
+      {soundLocked && (
+        <Alert role="status" data-testid="sound-locked">
+          <Volume2Icon />
+          <AlertTitle>Toque na tela para reativar o som de novos pedidos.</AlertTitle>
         </Alert>
       )}
       {alerting && (

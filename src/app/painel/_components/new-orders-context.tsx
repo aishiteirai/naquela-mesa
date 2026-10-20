@@ -20,6 +20,8 @@ type NewOrders = {
   attending: boolean;
   /** Pedido novo sem resposta: som (se atendendo) e título piscando. */
   alerting: boolean;
+  /** Áudio liberado nesta página (após gesto); depois de recarregar fica false até o próximo toque. */
+  soundReady: boolean;
   startAttending: () => void;
   silence: () => void;
 };
@@ -58,6 +60,7 @@ export function NewOrdersProvider({
   const [offline, setOffline] = useState(false);
   const [attending, setAttending] = useState(false);
   const [alerting, setAlerting] = useState(false);
+  const [soundReady, setSoundReady] = useState(false);
   const total = useRef(initialTotal);
   const waitingOnLoad = useRef(initialCount);
   const sound = useRef<AlertSound | null>(null);
@@ -86,6 +89,7 @@ export function NewOrdersProvider({
     /* eslint-enable react-hooks/set-state-in-effect */
     const unlock = () => {
       getSound().unlock();
+      setSoundReady(true);
       void requestWakeLock();
     };
     document.addEventListener("pointerdown", unlock, { once: true });
@@ -212,6 +216,7 @@ export function NewOrdersProvider({
 
   const startAttending = useCallback(() => {
     getSound().unlock();
+    setSoundReady(true);
     attendingRef.current = true;
     setAttending(true);
     try {
@@ -228,8 +233,8 @@ export function NewOrdersProvider({
   const silence = useCallback(() => setAlerting(false), []);
 
   const value = useMemo(
-    () => ({ count, version, offline, attending, alerting, startAttending, silence }),
-    [count, version, offline, attending, alerting, startAttending, silence],
+    () => ({ count, version, offline, attending, alerting, soundReady, startAttending, silence }),
+    [count, version, offline, attending, alerting, soundReady, startAttending, silence],
   );
   return <NewOrdersCtx.Provider value={value}>{children}</NewOrdersCtx.Provider>;
 }

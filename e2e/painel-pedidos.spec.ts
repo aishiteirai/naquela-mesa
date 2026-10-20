@@ -42,7 +42,11 @@ test("atendimento continua depois de recarregar e alerta fora da página de pedi
   const owner = await ownerPage(browser);
   await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
   await owner.reload();
+  await expect(owner.getByTestId("sound-locked")).toHaveText("Toque na tela para reativar o som de novos pedidos.");
+  await expect(owner.getByText("Atendimento ativo: toque na tela para reativar o som")).toBeVisible();
+  await owner.getByRole("heading", { name: "Pedidos" }).click();
   await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+  await expect(owner.getByTestId("sound-locked")).toBeHidden();
 
   await owner.getByRole("link", { name: "Cardápio" }).first().click();
   await expect(owner).toHaveURL(/\/painel\/cardapio$/);
@@ -135,6 +139,10 @@ test("pedido que já esperava volta a alertar depois de recarregar", async ({ br
   const owner = await ownerPage(browser);
   await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
   await owner.reload();
+  await expect(owner.getByTestId("sound-locked")).toHaveText("Toque na tela para reativar o som de novos pedidos.");
+  await expect(owner.getByText("Atendimento ativo: toque na tela para reativar o som")).toBeVisible();
+  await owner.getByRole("heading", { name: "Pedidos" }).click();
   await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+  await expect(owner.getByTestId("sound-locked")).toBeHidden();
   await expect(owner.getByTestId("new-order-alert")).toBeVisible();
 });

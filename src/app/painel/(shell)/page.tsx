@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { listQueue, type QueueOrder } from "@/modules/orders";
+import { getQueueVersion, listQueue, type QueueOrder } from "@/modules/orders";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { OrderCard } from "./pedidos/_components/order-card";
 import { QueueNoticeProvider } from "./pedidos/_components/queue-notice";
@@ -14,11 +14,13 @@ const COLUMNS: { title: string; statuses: QueueOrder["status"][] }[] = [
 
 async function Queue() {
   const { store } = await requireStoreAccess();
+  // Versão ANTES da lista: pedido que chegar entre as duas leituras recarrega a fila no próximo poll.
+  const version = await getQueueVersion(store.id);
   const orders = await listQueue(store.id);
 
   return (
     <QueueNoticeProvider>
-      <QueueControls />
+      <QueueControls renderedVersion={version.version} />
       <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((column) => {
           const columnOrders = orders.filter((order) => column.statuses.includes(order.status));
