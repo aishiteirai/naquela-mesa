@@ -38,6 +38,28 @@ test("pedido novo aparece sozinho e muda o título da aba", async ({ browser }) 
   await expect(owner).toHaveTitle(/^\(\d+\) Novo pedido/);
 });
 
+test("atendimento continua depois de recarregar e alerta fora da página de pedidos", async ({ browser }) => {
+  const owner = await ownerPage(browser);
+  await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
+  await owner.reload();
+  await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+
+  await owner.getByRole("link", { name: "Cardápio" }).first().click();
+  await expect(owner).toHaveURL(/\/painel\/cardapio$/);
+  await customerOrder(browser);
+
+  const alert = owner.getByTestId("new-order-alert");
+  await expect(alert).toBeVisible({ timeout: 15_000 });
+  await expect(owner).toHaveTitle(/^\(\d+\) Novo pedido/);
+  await alert.getByRole("button", { name: "Silenciar" }).click();
+  await expect(alert).toBeHidden();
+
+  await customerOrder(browser);
+  await expect(owner.getByTestId("new-order-alert")).toBeVisible({ timeout: 15_000 });
+  await owner.getByTestId("new-order-alert").getByRole("link", { name: "Ver pedidos" }).click();
+  await expect(owner).toHaveURL(/\/painel$/);
+});
+
 test("aceitar, pronto e concluir aparecem no acompanhamento; avisar e comanda", async ({ browser }) => {
   const { page: customer, orderLabel, trackingPath } = await customerOrder(browser);
   const owner = await ownerPage(browser);

@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { NewOrdersProvider } from "@/app/painel/_components/new-orders-context";
+import { OrderAlertBar } from "@/app/painel/_components/order-alert-bar";
 import { PanelSidebar, PanelSidebarToggle } from "@/app/painel/_components/panel-sidebar";
 import { PageTitle } from "@/app/painel/_components/page-title";
 import { SupportBanner } from "@/app/painel/_components/support-banner";
@@ -22,7 +23,7 @@ async function Shell({ children }: { children: ReactNode }) {
   const [{ store, user }, cookieStore] = await Promise.all([requireStoreAccess(), cookies()]);
   // O status depende da hora atual: precisa ser calculado a cada requisição.
   await connection();
-  const [{ received }, openStatus] = await Promise.all([
+  const [{ received, total, version }, openStatus] = await Promise.all([
     getQueueVersion(store.id),
     getOpenStatus({
       hours: store.hours,
@@ -39,7 +40,7 @@ async function Shell({ children }: { children: ReactNode }) {
     >
       <TooltipProvider>
         <SidebarProvider defaultOpen={cookieStore.get(SIDEBAR_COOKIE)?.value !== "false"}>
-          <NewOrdersProvider initialCount={received}>
+          <NewOrdersProvider initialCount={received} initialTotal={total} initialVersion={version}>
             <PanelSidebar
               storeName={store.name}
               storeSlug={store.slug}
@@ -55,7 +56,10 @@ async function Shell({ children }: { children: ReactNode }) {
                 <PageTitle />
               </div>
               {/* pb-28: o card flutuante de primeiros passos não cobre a última linha das listas. */}
-              <div className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-28">{children}</div>
+              <div className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-28">
+                <OrderAlertBar />
+                {children}
+              </div>
             </SidebarInset>
             <Suspense fallback={null}>
               <OnboardingChecklist />
