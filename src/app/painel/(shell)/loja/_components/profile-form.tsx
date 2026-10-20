@@ -48,7 +48,7 @@ export function ProfileForm(props: Props) {
         <FieldGroup>
           <TextField label="Nome da loja" name="name" state={state} value={name} onChange={(event) => setName(event.target.value)} required maxLength={120} />
           <TextField label="Endereço" name="address" state={state} defaultValue={props.address ?? ""} maxLength={300} />
-          <TextField label="WhatsApp" name="whatsappPhone" state={state} defaultValue={props.whatsappPhone} placeholder="+5511999999999" required />
+          <TextField label="WhatsApp" name="whatsappPhone" state={state} defaultValue={props.whatsappPhone} placeholder="(11) 99999-9999" inputMode="tel" required />
         </FieldGroup>
         <FieldGroup>
           <ImageUploadField name="logoUrl" label="Logo" defaultUrl={props.logoUrl} onUrlChange={setLogoUrl} />

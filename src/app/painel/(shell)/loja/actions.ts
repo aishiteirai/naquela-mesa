@@ -10,6 +10,7 @@ import {
   updateStoreProfile,
   type ManualStatus,
 } from "@/modules/stores";
+import { normalizeBrazilPhone } from "@/modules/orders";
 import { parseBRLToCents } from "@/shared/money";
 import { actionError, fieldError, success, type ActionState } from "@/app/_lib/action-state";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
@@ -51,7 +52,7 @@ export async function saveProfileAction(_prev: ActionState, form: FormData): Pro
       updateStoreProfile(storeId, {
         name: text(form, "name"),
         address: text(form, "address") || null,
-        whatsappPhone: text(form, "whatsappPhone"),
+        whatsappPhone: normalizeBrazilPhone(text(form, "whatsappPhone")) ?? text(form, "whatsappPhone"),
         theme: {
           primary: text(form, "primary"),
           secondary: text(form, "secondary"),

@@ -166,6 +166,20 @@ test("prévia muda ao trocar a cor; cor, fonte e logo aparecem no cardápio", as
   await expect(page.locator('[style*="--heading-font:var(--font-lora)"]')).toHaveCount(1);
 });
 
+test("whatsapp da loja aceita número com máscara", async ({ page }) => {
+  await page.goto("/painel/loja");
+  const appearance = page.getByRole("tabpanel", { name: "Aparência" });
+  await appearance.getByLabel("WhatsApp").fill("(11) 97777-6666");
+  await appearance.getByRole("button", { name: "Salvar aparência" }).click();
+  await expect(appearance.getByRole("status")).toHaveText("Aparência salva.");
+  await page.reload();
+  await expect(appearance.getByLabel("WhatsApp")).toHaveValue("+5511977776666");
+  // restaura o número do seed (scripts/demo/pizzaria-demo.ts)
+  await appearance.getByLabel("WhatsApp").fill("+5511999999999");
+  await appearance.getByRole("button", { name: "Salvar aparência" }).click();
+  await expect(appearance.getByRole("status")).toHaveText("Aparência salva.");
+});
+
 test("abas das configurações seguem ?aba=", async ({ page }) => {
   await page.goto("/painel/loja");
   await page.getByRole("tab", { name: "Pedidos e pagamento" }).click();
