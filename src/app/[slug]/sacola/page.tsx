@@ -20,7 +20,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) notFound();
   const data = await getStorePageData(slug);
   if (!data) notFound();
-  const { store, zones } = data;
+  const { store, zones, menu } = data;
 
   return (
     <StoreShell theme={store.theme}>
@@ -35,6 +35,12 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
               deliveryFee: store.rules.deliveryFee,
               minOrderCents: store.rules.minOrderCents,
               zones: zones.map(({ neighborhood, feeCents }) => ({ neighborhood, feeCents })),
+              pricing: {
+                menu,
+                halfPriceRule: store.rules.halfPriceRule,
+                halfAndHalfEnabled: store.features.halfAndHalf,
+                addonsEnabled: store.features.addons,
+              },
             }}
           />
         </main>

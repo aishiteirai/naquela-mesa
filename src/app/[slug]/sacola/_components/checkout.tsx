@@ -4,16 +4,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
-import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { OrderQuote } from "@/modules/orders";
-import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
+import type { Fulfillment, PaymentMethod, PricingContext } from "@/modules/orders/client";
 import { formatBRL, parseBRLToCents } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
+import { repriceCart } from "@/app/[slug]/_lib/reprice-cart";
 import { CHECKOUT_STEPS, deliveryStepErrors, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
 import type { CheckoutError } from "@/app/[slug]/sacola/messages";
 import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/sacola/actions";
@@ -31,6 +32,7 @@ export type CheckoutStore = {
   deliveryFee: { strategy: "fixed"; fixedCents: number } | { strategy: "by_neighborhood" };
   minOrderCents: number;
   zones: { neighborhood: string; feeCents: number }[];
+  pricing: PricingContext;
 };
 
 // Só os campos da etapa atual precisam estar válidos para avançar; o servidor revalida tudo.
@@ -51,6 +53,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     stepRef.current = step;
   }, [step]);
   const fieldsets = useRef<(HTMLFieldSetElement | null)[]>([]);
+  const repriced = useMemo(() => repriceCart(store.pricing, cart.lines), [store.pricing, cart.lines]);
 
   const fulfillments = (
     [
@@ -218,8 +221,8 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     );
   }
 
-  // Estimativa no cliente para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
-  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - cart.estimatedSubtotalCents) : 0;
+  // Recálculo no cliente com o cardápio atual para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
+  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - repriced.subtotalCents) : 0;
   const fieldError = (path: string) => error?.fieldErrors[path];
   const invalidateQuote = () => setQuote(null);
 
@@ -258,7 +261,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       </header>
 
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
-        <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} onCartChange={invalidateQuote} />
+        <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} lines={repriced.lines} onCartChange={invalidateQuote} />
         {step === 1 && missingForMinCents > 0 && (
           <Alert data-testid="min-order-notice">
             <AlertDescription>
@@ -302,7 +305,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           <Alert variant="destructive" data-testid="checkout-error">
             <AlertDescription className="flex flex-col gap-2">
               {error.message}
-              {error.code === "BELOW_MIN_ORDER" && (
+              {["BELOW_MIN_ORDER", "ITEM_UNAVAILABLE", "INVALID_OPTIONS"].includes(error.code) && (
                 <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => goTo(1)}>
                   Voltar à sacola
                 </Button>
@@ -317,11 +320,11 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">{step === 4 && quote ? "Total" : "Subtotal"}</span>
             <span data-testid={step === 4 && quote ? "quote-total" : undefined} className="font-semibold">
-              {formatBRL(step === 4 && quote ? quote.totalCents : cart.estimatedSubtotalCents)}
+              {formatBRL(step === 4 && quote ? quote.totalCents : repriced.subtotalCents)}
             </span>
           </div>
           {step < 4 ? (
-            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && missingForMinCents > 0)}>
+            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && (missingForMinCents > 0 || repriced.hasProblems))}>
               Continuar
             </Button>
           ) : quote ? (

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { setStoreStatus } from "./helpers";
+import { loginAsOwner, setStoreStatus } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -157,4 +157,27 @@ test("recarregar no meio do checkout volta para a primeira etapa", async ({ page
 test("link de pedido inválido mostra não encontrado", async ({ page }) => {
   await page.goto("/pizzaria-demo/pedido/token-invalido");
   await expect(page.getByRole("heading", { name: "Pedido não encontrado" })).toBeVisible();
+});
+
+test("item que saiu do cardápio fica marcado na sacola e bloqueia o avanço", async ({ page, browser }) => {
+  await page.goto("/pizzaria-demo");
+  await addSimple(page, "Coca-Cola 2L", 3);
+
+  const ownerContext = await browser.newContext();
+  const owner = await ownerContext.newPage();
+  await loginAsOwner(owner, "/painel/cardapio");
+  const toggle = owner.getByRole("switch", { name: "Disponível: Coca-Cola 2L" });
+  await toggle.click();
+  await expect(toggle).not.toBeChecked();
+  try {
+    await page.goto("/pizzaria-demo/sacola");
+    await expect(page.getByTestId("cart-line-problem")).toContainText("não está mais disponível");
+    await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
+    await page.getByRole("button", { name: "Remover Coca-Cola 2L" }).click();
+    await expect(page.getByText("Sua sacola está vazia.")).toBeVisible();
+  } finally {
+    await toggle.click();
+    await expect(toggle).toBeChecked();
+    await ownerContext.close();
+  }
 });
