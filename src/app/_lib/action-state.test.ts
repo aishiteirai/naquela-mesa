@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DomainError } from "@/shared/errors";
-import { actionError, fieldError, success } from "./action-state";
+import { CONNECTION_ERROR, actionError, fieldError, success, withConnectionError } from "./action-state";
 
 describe("action-state", () => {
   it("VALIDATION vira erros por campo", () => {
@@ -36,5 +36,18 @@ describe("action-state", () => {
       message: "Confira os campos destacados.",
       fieldErrors: { price: "preço inválido" },
     });
+  });
+});
+
+describe("withConnectionError", () => {
+  it("devolve o resultado da action", async () => {
+    await expect(withConnectionError(async () => success("ok"))()).resolves.toEqual(success("ok"));
+  });
+
+  it("transforma falha (rede, servidor fora) em estado de erro", async () => {
+    const failing = withConnectionError(async (_prev: unknown) => {
+      throw new TypeError("Failed to fetch");
+    });
+    await expect(failing(null)).resolves.toEqual({ status: "error", message: CONNECTION_ERROR, fieldErrors: {} });
   });
 });

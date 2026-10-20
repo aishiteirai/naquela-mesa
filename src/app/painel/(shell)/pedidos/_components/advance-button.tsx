@@ -5,12 +5,14 @@ import { useActionState, useEffect, useRef } from "react";
 import type { OrderStatus } from "@/modules/orders/client";
 import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { idleState } from "@/app/_lib/action-state";
+import { idleState, withConnectionError } from "@/app/_lib/action-state";
 import { advanceOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
 
+const advance = withConnectionError(advanceOrderAction);
+
 export function AdvanceButton({ orderId, to, label, orderLabel, printUrl }: { orderId: string; to: OrderStatus; label: string; orderLabel: string; printUrl?: string }) {
-  const [state, formAction, pending] = useActionState(advanceOrderAction, idleState);
+  const [state, formAction, pending] = useActionState(advance, idleState);
   const router = useRouter();
   const notice = useQueueNotice();
   const printWindow = useRef<Window | null>(null);

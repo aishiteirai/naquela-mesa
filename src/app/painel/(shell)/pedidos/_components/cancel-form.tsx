@@ -6,16 +6,18 @@ import { EllipsisIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { idleState, type ActionState } from "@/app/_lib/action-state";
+import { idleState, withConnectionError, type ActionState } from "@/app/_lib/action-state";
 import { TextField } from "@/app/_components/form-fields";
 import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
+
+const safeCancel = withConnectionError(cancelOrderAction);
 
 /** Menu "⋯" do card; "Cancelar pedido" abre o diálogo com o motivo. */
 export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabel: string }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(async (prev: ActionState, form: FormData) => {
-    const next = await cancelOrderAction(prev, form);
+    const next = await safeCancel(prev, form);
     // Sucesso, ou erro sem campo (pedido já mudou em outro aparelho): fecha o diálogo; o aviso vai para a fila.
     if (next.status === "success" || (next.status === "error" && Object.keys(next.fieldErrors).length === 0)) setOpen(false);
     return next;

@@ -13,6 +13,23 @@ export function success(message: string): ActionState {
   return { status: "success", message };
 }
 
+export const CONNECTION_ERROR = "Não foi possível salvar. Confira a conexão e tente de novo.";
+
+export function connectionErrorState(): ActionState {
+  return { status: "error", message: CONNECTION_ERROR, fieldErrors: {} };
+}
+
+/** Falha ao chamar a action (sem rede, servidor fora) vira estado de erro em vez de derrubar a tela. */
+export function withConnectionError<A extends unknown[]>(action: (...args: A) => Promise<ActionState>) {
+  return async (...args: A): Promise<ActionState> => {
+    try {
+      return await action(...args);
+    } catch {
+      return connectionErrorState();
+    }
+  };
+}
+
 export function fieldError(field: string, message: string): ActionState {
   return { status: "error", message: CHECK_FIELDS, fieldErrors: { [field]: message } };
 }
