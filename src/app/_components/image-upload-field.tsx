@@ -77,6 +77,7 @@ export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props
         accept="image/jpeg,image/png,image/webp"
         onChange={onChange}
         disabled={pending}
+        tabIndex={-1}
         className="sr-only"
       />
       <input type="hidden" name={name} value={url} />

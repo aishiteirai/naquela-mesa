@@ -20,7 +20,7 @@ export function OrderTimeline({
         <XCircleIcon />
         <AlertTitle>Pedido cancelado</AlertTitle>
         <AlertDescription>
-          {cancelReason ? `Motivo: ${cancelReason}. ` : ""}Fale com a loja pelo WhatsApp se tiver dúvidas.
+          {cancelReason ? `Motivo: ${cancelReason.replace(/[.!?]+$/, "")}. ` : ""}Fale com a loja pelo WhatsApp se tiver dúvidas.
         </AlertDescription>
       </Alert>
     );

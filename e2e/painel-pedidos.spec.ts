@@ -107,6 +107,11 @@ test("cancelar exige motivo e aparece para o cliente", async ({ browser }) => {
   await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
   await expect(dialog.getByText("informe o motivo do cancelamento")).toBeVisible();
 
+  await dialog.getByLabel("Motivo do cancelamento").fill("ab");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await expect(dialog.getByText("informe o motivo do cancelamento")).toBeVisible();
+  await expect(dialog.getByLabel("Motivo do cancelamento")).toHaveValue("ab");
+
   await dialog.getByLabel("Motivo do cancelamento").fill("acabou a massa");
   await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
   const finalizado = card(owner, "Finalizados (24 h)", orderLabel);

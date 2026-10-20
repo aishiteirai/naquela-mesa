@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { idleState, withConnectionError, type ActionState } from "@/app/_lib/action-state";
+import { ActionForm } from "@/app/_components/action-form";
 import { TextField } from "@/app/_components/form-fields";
 import { cancelOrderAction } from "@/app/painel/(shell)/pedidos/actions";
 import { useQueueNotice } from "./queue-notice";
@@ -55,7 +56,7 @@ export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabe
             <DialogTitle>Cancelar pedido {orderLabel}</DialogTitle>
             <DialogDescription>O cliente verá o motivo no acompanhamento do pedido.</DialogDescription>
           </DialogHeader>
-          <form action={formAction} className="flex flex-col gap-3">
+          <ActionForm action={formAction} pending={pending} className="flex flex-col gap-3">
             <input type="hidden" name="orderId" value={orderId} />
             <TextField label="Motivo do cancelamento" name="cancelReason" state={state} maxLength={200} autoFocus />
             <div className="flex justify-end gap-2">
@@ -66,7 +67,7 @@ export function CancelForm({ orderId, orderLabel }: { orderId: string; orderLabe
                 Confirmar cancelamento
               </Button>
             </div>
-          </form>
+          </ActionForm>
         </DialogContent>
       </Dialog>
     </>
