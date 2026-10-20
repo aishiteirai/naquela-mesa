@@ -145,8 +145,15 @@ async function quoteFor(store: Store, input: ParsedCheckout, now: Date): Promise
   return computeQuote(store, menu, zones, input, now);
 }
 
+function assertPhone(input: ParsedCheckout): string {
+  const phone = normalizeBrazilPhone(input.customer.phone);
+  if (!phone) throw validation("customer.phone", "telefone inválido (use DDD + número)");
+  return phone;
+}
+
 export async function quoteOrder(slug: string, rawInput: unknown, now: Date = new Date()): Promise<OrderQuote> {
   const input = parseCheckout(rawInput);
+  assertPhone(input);
   const store = await loadStore(slug);
   return quoteFor(store, input, now);
 }
@@ -253,8 +260,7 @@ export async function createOrder(
 ): Promise<PlacedOrder> {
   const input = parseCheckout(rawInput);
   if (input.expectedTotalCents === null) throw validation("expectedTotalCents", "revise o pedido antes de confirmar");
-  const phone = normalizeBrazilPhone(input.customer.phone);
-  if (!phone) throw validation("customer.phone", "telefone inválido (use DDD + número)");
+  const phone = assertPhone(input);
 
   const store = await loadStore(slug);
   // Repetição com a mesma chave devolve o pedido original, mesmo que a loja tenha fechado ou o carrinho mudado.

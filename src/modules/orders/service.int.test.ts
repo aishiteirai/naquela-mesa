@@ -151,6 +151,14 @@ describe("orders service", () => {
     await expect(createOrder(SLUG, checkout(ids))).rejects.toMatchObject({ code: "VALIDATION" });
   });
 
+  it("revisão já recusa telefone inválido", async () => {
+    const ids = await setupStore();
+    await expect(quoteOrder(SLUG, checkout(ids, { customer: { name: "Maria", phone: "123" } }))).rejects.toMatchObject({
+      code: "VALIDATION",
+      details: { issues: [{ path: "customer.phone" }] },
+    });
+  });
+
   it("produto de outra loja ou esgotado → ITEM_UNAVAILABLE", async () => {
     const ids = await setupStore();
     const other = await setupStore("pedido-outra");
