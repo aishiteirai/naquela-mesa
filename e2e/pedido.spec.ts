@@ -160,6 +160,8 @@ test("item que saiu do cardápio fica marcado na sacola e bloqueia o avanço", a
   const ownerContext = await browser.newContext();
   const owner = await ownerContext.newPage();
   await loginAsOwner(owner, "/painel/cardapio");
+  await owner.getByRole("navigation", { name: "Categorias do cardápio" }).getByRole("button", { name: "Bebidas" }).click();
+  await expect(owner.getByRole("region", { name: "Bebidas" })).toBeVisible();
   const toggle = owner.getByRole("switch", { name: "Disponível: Coca-Cola 2L" });
   await toggle.click();
   await expect(toggle).not.toBeChecked();
