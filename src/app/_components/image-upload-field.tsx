@@ -1,10 +1,10 @@
 "use client";
 
+import { ImageUpIcon } from "lucide-react";
 import Image from "next/image";
-import { type ChangeEvent, useId, useState, useTransition } from "react";
+import { type ChangeEvent, useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 
 const MAX_SIDE = 1200;
 
@@ -24,6 +24,10 @@ async function resizeForUpload(file: File): Promise<Blob> {
   }
 }
 
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 type Props = {
   name: string;
   label: string;
@@ -34,6 +38,7 @@ type Props = {
 
 export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props) {
   const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrlState] = useState(defaultUrl ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -45,6 +50,7 @@ export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
     setError(null);
     startTransition(async () => {
@@ -54,7 +60,7 @@ export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props
         const response = await fetch("/api/painel/upload", { method: "POST", body: form });
         const result = (await response.json()) as { url?: string; error?: string };
         if (result.url) setUrl(result.url);
-        else setError(result.error ?? "Não foi possível enviar a imagem.");
+        else setError(capitalize(result.error ?? "não foi possível enviar a imagem."));
       } catch {
         setError("Não foi possível enviar a imagem.");
       }
@@ -64,18 +70,47 @@ export function ImageUploadField({ name, label, defaultUrl, onUrlChange }: Props
   return (
     <Field data-invalid={error ? true : undefined}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input id={id} type="file" accept="image/jpeg,image/png,image/webp" onChange={onChange} disabled={pending} />
+      <input
+        ref={inputRef}
+        id={id}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={onChange}
+        disabled={pending}
+        className="sr-only"
+      />
       <input type="hidden" name={name} value={url} />
-      {pending && <FieldDescription>Enviando imagem...</FieldDescription>}
-      {error && <FieldError>{error}</FieldError>}
-      {url && (
-        <div className="flex items-center gap-3">
-          <Image src={url} alt={`Prévia: ${label}`} width={80} height={80} unoptimized className="size-20 rounded-md border object-cover" />
-          <Button type="button" variant="outline" size="sm" onClick={() => setUrl("")}>
+      <div className="flex flex-wrap items-center gap-3">
+        {url && (
+          <Image
+            src={url}
+            alt={`Prévia: ${label}`}
+            width={80}
+            height={80}
+            unoptimized
+            className="size-20 rounded-md border object-cover"
+          />
+        )}
+        <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={pending}>
+          <ImageUpIcon />
+          {pending ? "Enviando..." : url ? "Trocar imagem" : "Escolher imagem"}
+        </Button>
+        {url && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setUrl("");
+              setError(null);
+            }}
+          >
             Remover imagem
           </Button>
-        </div>
-      )}
+        )}
+      </div>
+      <FieldDescription>JPG, PNG ou WebP, até 5 MB.</FieldDescription>
+      {error && <FieldError>{error}</FieldError>}
     </Field>
   );
 }
