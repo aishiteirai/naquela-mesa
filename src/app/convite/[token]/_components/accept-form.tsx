@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { FieldGroup } from "@/components/ui/field";
 import { idleState, type ActionState } from "@/app/_lib/action-state";
 import { FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
@@ -12,9 +13,9 @@ type Props = {
 };
 
 export function AcceptForm({ action, email, hasAccount }: Props) {
-  const [state, formAction] = useActionState(action, idleState);
+  const [state, formAction, pending] = useActionState(action, idleState);
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <ActionForm action={formAction} pending={pending} className="flex flex-col gap-6">
       <FieldGroup>
         <TextField label="Email" errorKey="email" state={state} value={email} readOnly />
         {!hasAccount && <TextField label="Seu nome" name="name" state={state} required maxLength={80} autoComplete="name" />}
@@ -25,6 +26,6 @@ export function AcceptForm({ action, email, hasAccount }: Props) {
       <SubmitButton size="lg" pendingText="Salvando...">
         {hasAccount ? "Definir nova senha" : "Criar acesso"}
       </SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

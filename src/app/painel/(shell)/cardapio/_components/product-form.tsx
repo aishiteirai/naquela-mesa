@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useId } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
@@ -30,7 +31,7 @@ function SwitchField({ name, label, defaultChecked }: { name: string; label: str
 }
 
 export function ProductForm({ category, optionGroups, product, onSaved }: Props) {
-  const [state, formAction] = useActionState(saveProductAction, idleState);
+  const [state, formAction, pending] = useActionState(saveProductAction, idleState);
   const descriptionId = useId();
   const hasSizes = category.sizes.length > 0;
   const allowsHalfOption = category.sizes.some((size) => size.maxFlavors === 2);
@@ -41,7 +42,7 @@ export function ProductForm({ category, optionGroups, product, onSaved }: Props)
   }, [state, onSaved]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <ActionForm action={formAction} pending={pending} className="flex flex-col gap-6">
       <input type="hidden" name="productId" value={product?.id ?? ""} />
       <input type="hidden" name="categoryId" value={category.id} />
       <input type="hidden" name="hasSizes" value={hasSizes ? "1" : "0"} />
@@ -122,6 +123,6 @@ export function ProductForm({ category, optionGroups, product, onSaved }: Props)
         <SubmitButton size="lg">Salvar produto</SubmitButton>
         {state.status === "error" && <FormMessage state={state} />}
       </div>
-    </form>
+    </ActionForm>
   );
 }

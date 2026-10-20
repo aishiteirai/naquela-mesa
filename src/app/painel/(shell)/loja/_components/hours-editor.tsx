@@ -2,6 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ type Row = StoreHour & { key: string };
 
 export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
   const [rows, setRows] = useState<Row[]>(() => initialHours.map((hour) => ({ ...hour, key: uuid() })));
-  const [state, formAction] = useActionState(saveHoursAction, idleState);
+  const [state, formAction, pending] = useActionState(saveHoursAction, idleState);
 
   function update(key: string, patch: Partial<StoreHour>) {
     setRows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -27,7 +28,7 @@ export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
   const payload = rows.map((row) => ({ weekday: row.weekday, opensAt: row.opensAt, closesAt: row.closesAt }));
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <ActionForm action={formAction} pending={pending} className="flex flex-col gap-4">
       <input type="hidden" name="hours" value={JSON.stringify(payload)} />
       <FieldDescription>Se o horário de fechar for menor que o de abrir, o turno vira a meia-noite (ex.: 18:00 às 00:30).</FieldDescription>
       {rows.length === 0 ? (
@@ -95,6 +96,6 @@ export function HoursEditor({ initialHours }: { initialHours: StoreHour[] }) {
         </ul>
       )}
       <FormMessage state={state} />
-    </form>
+    </ActionForm>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,7 +33,7 @@ function ColorField({ label, name, value, onChange, error }: { label: string; na
 }
 
 export function ProfileForm(props: Props) {
-  const [state, formAction] = useActionState(saveProfileAction, idleState);
+  const [state, formAction, pending] = useActionState(saveProfileAction, idleState);
   const fontId = useId();
   const [name, setName] = useState(props.name);
   const [primary, setPrimary] = useState(props.primary);
@@ -43,7 +44,7 @@ export function ProfileForm(props: Props) {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-      <form action={formAction} className="flex max-w-xl flex-col gap-6">
+      <ActionForm action={formAction} pending={pending} className="flex max-w-xl flex-col gap-6">
         <FieldGroup>
           <TextField label="Nome da loja" name="name" state={state} value={name} onChange={(event) => setName(event.target.value)} required maxLength={120} />
           <TextField label="Endereço" name="address" state={state} defaultValue={props.address ?? ""} maxLength={300} />
@@ -75,7 +76,7 @@ export function ProfileForm(props: Props) {
           <SubmitButton className="self-start">Salvar aparência</SubmitButton>
           <FormMessage state={state} />
         </div>
-      </form>
+      </ActionForm>
       <div className="lg:sticky lg:top-20 lg:self-start">
         <ThemePreview name={name} logoUrl={logoUrl} bannerUrl={bannerUrl} primary={primary} secondary={secondary} font={font} />
       </div>

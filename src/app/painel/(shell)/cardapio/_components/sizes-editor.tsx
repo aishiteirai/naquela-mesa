@@ -2,6 +2,7 @@
 
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react";
 import { useActionState, useEffect, useId, useRef } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,17 +30,17 @@ function FlavorsSelect({ label, defaultValue }: { label: string; defaultValue: n
 }
 
 function SizeRow({ size, isFirst, isLast }: { size: EditorSize; isFirst: boolean; isLast: boolean }) {
-  const [state, formAction] = useActionState(updateSizeAction, idleState);
+  const [state, formAction, pending] = useActionState(updateSizeAction, idleState);
 
   return (
     <li className="flex flex-col gap-3 rounded-lg border p-3">
-      {/* key: o reset do <form> após a action faria o Select voltar ao valor do mount; remonta com o valor salvo. */}
-      <form key={`${size.name}:${size.maxFlavors}`} action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      {/* key: depois de salvar, remonta com o valor salvo (o Select guarda o valor do mount). */}
+      <ActionForm key={`${size.name}:${size.maxFlavors}`} action={formAction} pending={pending} className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <input type="hidden" name="sizeId" value={size.id} />
         <TextField label="Tamanho" name="name" state={state} defaultValue={size.name} required maxLength={80} />
         <FlavorsSelect label="Sabores" defaultValue={size.maxFlavors} />
         <SubmitButton variant="outline">Salvar tamanho</SubmitButton>
-      </form>
+      </ActionForm>
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-2">
         <form action={moveSizeAction} className="flex gap-1">
@@ -70,7 +71,7 @@ function SizeRow({ size, isFirst, isLast }: { size: EditorSize; isFirst: boolean
 }
 
 export function SizesEditor({ categoryId, sizes }: { categoryId: string; sizes: EditorSize[] }) {
-  const [state, formAction] = useActionState(createSizeAction, idleState);
+  const [state, formAction, pending] = useActionState(createSizeAction, idleState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -88,12 +89,12 @@ export function SizesEditor({ categoryId, sizes }: { categoryId: string; sizes: 
       ) : (
         <p className="text-sm text-muted-foreground">Sem tamanhos: os produtos têm preço único.</p>
       )}
-      <form ref={formRef} action={formAction} className="flex flex-col gap-3 rounded-lg border border-dashed p-3 sm:flex-row sm:items-end">
+      <ActionForm ref={formRef} action={formAction} pending={pending} className="flex flex-col gap-3 rounded-lg border border-dashed p-3 sm:flex-row sm:items-end">
         <input type="hidden" name="categoryId" value={categoryId} />
         <TextField label="Novo tamanho" name="name" state={state} required maxLength={80} placeholder="Ex.: Grande" />
         <FlavorsSelect label="Sabores do novo tamanho" defaultValue={1} />
         <SubmitButton>Adicionar tamanho</SubmitButton>
-      </form>
+      </ActionForm>
       <FormMessage state={state} />
     </div>
   );

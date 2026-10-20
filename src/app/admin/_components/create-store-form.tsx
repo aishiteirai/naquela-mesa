@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { FormMessage, SubmitButton, TextField, fieldErrorOf } from "@/app/_components/form-fields";
 import { NativeSelect } from "@/app/_components/native-select";
@@ -10,12 +11,16 @@ import { InviteLink } from "./invite-link";
 type Props = { templates: { value: string; label: string }[] };
 
 export function CreateStoreForm({ templates }: Props) {
-  const [state, formAction] = useActionState<AdminLinkState, FormData>(createStoreAction, { status: "idle" });
+  const [state, formAction, pending] = useActionState<AdminLinkState, FormData>(createStoreAction, { status: "idle" });
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state.status === "link") formRef.current?.reset();
+  }, [state]);
   const fieldState = state.status === "link" ? ({ status: "idle" } as const) : state;
   const templateError = fieldErrorOf(fieldState, "template");
 
   return (
-    <form action={formAction} aria-label="Nova loja" className="flex flex-col gap-4">
+    <ActionForm ref={formRef} action={formAction} pending={pending} aria-label="Nova loja" className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField label="Nome da loja" name="name" state={fieldState} required maxLength={120} />
         <TextField label="Endereço (slug)" name="slug" state={fieldState} required maxLength={60} pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="pizzaria-do-joao" />
@@ -44,6 +49,6 @@ export function CreateStoreForm({ templates }: Props) {
         <FormMessage state={state} />
       )}
       {state.status === "link" && state.inviteUrl && <InviteLink url={state.inviteUrl} />}
-    </form>
+    </ActionForm>
   );
 }

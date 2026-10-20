@@ -32,13 +32,18 @@ test("editar preço de um tamanho no painel lateral aparece no cardápio", async
   await expect(await publicCard(page, "Calabresa")).toContainText(/a partir de R\$\s39,90/);
 });
 
-test("preço digitado errado mostra erro no painel e não salva", async ({ page }) => {
+test("preço digitado errado mostra erro, mantém o que foi digitado e não salva", async ({ page }) => {
   await page.getByRole("button", { name: "Editar Mussarela" }).click();
   const sheet = page.getByRole("dialog", { name: "Editar produto" });
+  await sheet.getByLabel("Nome", { exact: true }).fill("Mussarela Especial");
+  await sheet.getByLabel("Descrição").fill("Com orégano fresco");
   await sheet.getByLabel("Preço Broto").fill("12.50");
   await sheet.getByRole("button", { name: "Salvar produto" }).click();
 
   await expect(sheet.getByText("preço inválido (use 34,90)")).toBeVisible();
+  await expect(sheet.getByLabel("Nome", { exact: true })).toHaveValue("Mussarela Especial");
+  await expect(sheet.getByLabel("Descrição")).toHaveValue("Com orégano fresco");
+  await expect(sheet.getByLabel("Preço Broto")).toHaveValue("12.50");
   await expect(page).toHaveURL(/\?produto=/);
   await expect(await publicCard(page, "Mussarela")).toContainText(/a partir de R\$\s32,90/);
 });
