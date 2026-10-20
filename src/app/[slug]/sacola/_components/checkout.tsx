@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { type FormEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -15,6 +15,7 @@ import { formatBRL, parseBRLToCents } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
 import { repriceCart } from "@/app/[slug]/_lib/reprice-cart";
+import { closedNotice } from "@/app/[slug]/_lib/closed-notice";
 import { CHECKOUT_STEPS, deliveryStepErrors, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
 import type { CheckoutError } from "@/app/[slug]/sacola/messages";
 import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/sacola/actions";
@@ -47,12 +48,27 @@ function validFieldset(fieldset: HTMLFieldSetElement | null): boolean {
 
 export function Checkout({ store }: { store: CheckoutStore }) {
   const cart = useCart();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const step = parseStepParam(searchParams.get("etapa"));
   const stepRef = useRef<CheckoutStep>(step);
   useEffect(() => {
     stepRef.current = step;
   }, [step]);
+  const closed = store.closedMessage !== null;
+  // O status da loja é calculado por requisição: enquanto fechada, reconsulta para liberar na hora de abrir.
+  useEffect(() => {
+    if (!closed) return;
+    const timer = window.setInterval(() => router.refresh(), 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [closed, router]);
   const fieldsets = useRef<(HTMLFieldSetElement | null)[]>([]);
   const repriced = useMemo(() => repriceCart(store.pricing, cart.lines), [store.pricing, cart.lines]);
 
@@ -265,7 +281,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
         {store.closedMessage !== null && (
           <Alert data-testid="store-closed">
-            <AlertDescription>A loja está fechada agora. {store.closedMessage}</AlertDescription>
+            <AlertDescription>{closedNotice(store.closedMessage)}</AlertDescription>
           </Alert>
         )}
         <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} lines={repriced.lines} onCartChange={invalidateQuote} />

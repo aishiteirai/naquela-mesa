@@ -114,6 +114,12 @@ test("loja fechada avisa na sacola e não deixa continuar", async ({ page, brows
     await page.getByRole("link", { name: "Ver sacola" }).click();
     await expect(page.getByTestId("store-closed")).toContainText("A loja está fechada agora.");
     await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
+
+    // Loja abre: ao voltar para a aba, a sacola reconsulta o status e libera sem recarregar.
+    await setStoreStatus(browser, "Abrir agora");
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("store-closed")).toBeHidden({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: "Continuar" })).toBeEnabled({ timeout: 10_000 });
   } finally {
     await setStoreStatus(browser, "Abrir agora");
   }
