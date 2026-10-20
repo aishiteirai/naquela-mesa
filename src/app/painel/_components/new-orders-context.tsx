@@ -59,6 +59,7 @@ export function NewOrdersProvider({
   const [attending, setAttending] = useState(false);
   const [alerting, setAlerting] = useState(false);
   const total = useRef(initialTotal);
+  const waitingOnLoad = useRef(initialCount);
   const sound = useRef<AlertSound | null>(null);
   const attendingRef = useRef(false);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
@@ -80,6 +81,8 @@ export function NewOrdersProvider({
     attendingRef.current = true;
     /* eslint-disable react-hooks/set-state-in-effect -- sessionStorage só existe no cliente */
     setAttending(true);
+    // Pedidos que já esperavam ao recarregar voltam a alertar.
+    if (waitingOnLoad.current > 0) setAlerting(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     const unlock = () => {
       getSound().unlock();

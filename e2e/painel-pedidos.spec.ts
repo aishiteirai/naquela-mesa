@@ -128,3 +128,12 @@ test("dois aparelhos: só o primeiro aceite vale", async ({ browser }) => {
   await expect(deviceB.getByTestId("queue-notice")).toHaveText("Este pedido já foi atualizado em outro aparelho.");
   await expect(card(deviceB, "Em preparo", orderLabel)).toBeVisible();
 });
+
+test("pedido que já esperava volta a alertar depois de recarregar", async ({ browser }) => {
+  await customerOrder(browser);
+  const owner = await ownerPage(browser);
+  await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
+  await owner.reload();
+  await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+  await expect(owner.getByTestId("new-order-alert")).toBeVisible();
+});
