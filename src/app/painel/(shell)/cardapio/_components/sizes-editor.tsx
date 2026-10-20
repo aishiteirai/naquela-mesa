@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { EditorSize } from "@/modules/catalog";
 import { idleState } from "@/app/_lib/action-state";
 import { FormMessage, SubmitButton, TextField } from "@/app/_components/form-fields";
+import { runPanelAction } from "@/app/painel/_components/run-panel-action";
 import { createSizeAction, deleteSizeAction, moveSizeAction, updateSizeAction } from "@/app/painel/(shell)/cardapio/actions";
 
 function FlavorsSelect({ label, defaultValue }: { label: string; defaultValue: number }) {
@@ -43,7 +44,9 @@ function SizeRow({ size, isFirst, isLast }: { size: EditorSize; isFirst: boolean
       </ActionForm>
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-2">
-        <form action={moveSizeAction} className="flex gap-1">
+        <form action={async (form) => {
+          await runPanelAction(() => moveSizeAction(form));
+        }} className="flex gap-1">
           <input type="hidden" name="sizeId" value={size.id} />
           <Button type="submit" name="direction" value="up" variant="ghost" size="icon-sm" disabled={isFirst} aria-label={`Subir ${size.name}`}>
             <ArrowUpIcon />
@@ -53,7 +56,9 @@ function SizeRow({ size, isFirst, isLast }: { size: EditorSize; isFirst: boolean
           </Button>
         </form>
         <form
-          action={deleteSizeAction}
+          action={async (form) => {
+            await runPanelAction(() => deleteSizeAction(form));
+          }}
           onSubmit={(event) => {
             if (!window.confirm(`Remover o tamanho ${size.name}? Os preços desse tamanho serão apagados.`)) event.preventDefault();
           }}

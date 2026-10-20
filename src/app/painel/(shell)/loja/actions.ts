@@ -68,10 +68,10 @@ export async function saveProfileAction(_prev: ActionState, form: FormData): Pro
 
 const MANUAL_STATUSES: ManualStatus[] = ["auto", "force_open", "force_closed"];
 
-export async function setManualStatusAction(form: FormData): Promise<void> {
+export async function setManualStatusAction(form: FormData): Promise<ActionState> {
   const status = MANUAL_STATUSES.find((value) => value === form.get("status"));
-  if (!status) return;
-  await mutate((storeId) => setManualStatus(storeId, status), "");
+  if (!status) return fieldError("status", "status inválido");
+  return mutate((storeId) => setManualStatus(storeId, status), "Status da loja atualizado.");
 }
 
 export async function saveHoursAction(_prev: ActionState, form: FormData): Promise<ActionState> {

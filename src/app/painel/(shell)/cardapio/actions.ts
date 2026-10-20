@@ -55,8 +55,8 @@ export async function updateCategoryAction(_prev: ActionState, form: FormData): 
   );
 }
 
-export async function moveCategoryAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveCategory(storeId, text(form, "categoryId"), direction(form)), "");
+export async function moveCategoryAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveCategory(storeId, text(form, "categoryId"), direction(form)), "Ordem salva.");
 }
 
 export async function createSizeAction(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -73,16 +73,16 @@ export async function updateSizeAction(_prev: ActionState, form: FormData): Prom
   );
 }
 
-export async function moveSizeAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveSize(storeId, text(form, "sizeId"), direction(form)), "");
+export async function moveSizeAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveSize(storeId, text(form, "sizeId"), direction(form)), "Ordem salva.");
 }
 
-export async function deleteSizeAction(form: FormData): Promise<void> {
-  await mutate((storeId) => deleteSize(storeId, text(form, "sizeId")), "");
+export async function deleteSizeAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => deleteSize(storeId, text(form, "sizeId")), "Tamanho removido.");
 }
 
-export async function moveProductAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveProduct(storeId, text(form, "productId"), direction(form)), "");
+export async function moveProductAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveProduct(storeId, text(form, "productId"), direction(form)), "Ordem salva.");
 }
 
 const PRICE_PREFIX = "price:";
