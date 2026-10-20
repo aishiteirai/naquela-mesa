@@ -15,7 +15,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "publico", testMatch: ["**/auth.spec.ts", "**/menu.spec.ts"], use: { ...devices["Desktop Chrome"] } },
+    { name: "publico", testMatch: ["**/auth.spec.ts", "**/menu.spec.ts", "**/health.spec.ts"], use: { ...devices["Desktop Chrome"] } },
     // Os projetos abaixo alteram a Pizzaria Demo: rodam depois do "publico", sem retry (estado já mudou).
     { name: "pedido", testMatch: ["**/pedido*.spec.ts"], dependencies: ["publico"], retries: 0, use: { ...devices["Desktop Chrome"] } },
     { name: "painel", testMatch: ["**/painel*.spec.ts"], dependencies: ["pedido"], retries: 0, use: { ...devices["Desktop Chrome"] } },
