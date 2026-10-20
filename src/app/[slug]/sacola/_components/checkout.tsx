@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { OrderQuote } from "@/modules/orders";
-import type { Fulfillment, PaymentMethod, PricingContext } from "@/modules/orders/client";
+import { paymentLabel, type Fulfillment, type PaymentMethod, type PricingContext } from "@/modules/orders/client";
 import { formatBRL, parseBRLToCents } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
@@ -65,18 +65,19 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   )
     .filter(([, , enabled]) => enabled)
     .map(([value, label]) => [value, label] as const);
-  const payments = (
+  const enabledPayments = (
     [
-      ["cash", "Dinheiro", store.paymentMethods.cash],
-      ["card_on_delivery", "Cartão na entrega", store.paymentMethods.cardOnDelivery],
-      ["pix", "Pix", store.paymentMethods.pixKey !== null],
+      ["cash", store.paymentMethods.cash],
+      ["card_on_delivery", store.paymentMethods.cardOnDelivery],
+      ["pix", store.paymentMethods.pixKey !== null],
     ] as const
   )
-    .filter(([, , enabled]) => enabled)
-    .map(([value, label]) => [value, label] as const);
+    .filter(([, enabled]) => enabled)
+    .map(([value]) => value);
 
   const [fulfillment, setFulfillment] = useState<Fulfillment>(fulfillments[0]?.[0] ?? "pickup");
-  const [payment, setPayment] = useState<PaymentMethod>(payments[0]?.[0] ?? "cash");
+  const [payment, setPayment] = useState<PaymentMethod>(enabledPayments[0] ?? "cash");
+  const payments = enabledPayments.map((value) => [value, paymentLabel(value, fulfillment)] as const);
   const [idempotencyKey] = useState(() => uuid());
   const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [error, setError] = useState<CheckoutError | null>(null);
@@ -293,6 +294,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           hidden={step !== 4}
           payments={payments}
           payment={payment}
+          fulfillment={fulfillment}
           onPaymentChange={setPayment}
           pixKey={store.paymentMethods.pixKey}
           quote={quote}

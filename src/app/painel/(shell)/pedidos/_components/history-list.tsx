@@ -10,7 +10,7 @@ import {
   formatOrderAddress,
   formatOrderNumber,
   FULFILLMENT_LABELS,
-  PAYMENT_LABELS,
+  paymentLabel,
   statusLabel,
 } from "@/modules/orders/client";
 import type { QueueOrder } from "@/modules/orders";
@@ -60,7 +60,7 @@ function OrderDetail({ order }: { order: QueueOrder }) {
       </ul>
       {order.notes && <p className="italic">Obs. do pedido: {order.notes}</p>}
       <p className="text-muted-foreground">
-        {PAYMENT_LABELS[order.paymentMethod]}
+        {paymentLabel(order.paymentMethod, order.fulfillment)}
         {order.changeForCents ? ` · troco para ${formatBRL(order.changeForCents)}` : ""}
       </p>
       <p className="tabular-nums">

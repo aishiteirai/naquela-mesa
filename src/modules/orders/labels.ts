@@ -24,6 +24,12 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   pix: "Pix",
 };
 
+/** "Cartão na entrega" só faz sentido no delivery; na retirada e na mesa é a maquininha da loja. */
+export function paymentLabel(method: PaymentMethod, fulfillment: Fulfillment): string {
+  if (method === "card_on_delivery" && fulfillment !== "delivery") return "Cartão (maquininha)";
+  return PAYMENT_LABELS[method];
+}
+
 export const FULFILLMENT_LABELS: Record<Fulfillment, string> = {
   delivery: "Delivery",
   pickup: "Retirada no balcão",

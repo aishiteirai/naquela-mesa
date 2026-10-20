@@ -5,7 +5,7 @@ import {
   formatOrderNumber,
   isFinalStatus,
   nextStatus,
-  PAYMENT_LABELS,
+  paymentLabel,
   type QueueOrder,
 } from "@/modules/orders";
 import type { ComponentType } from "react";
@@ -107,7 +107,7 @@ export function OrderCard({ order, storeName, storeSlug, timezone, autoPrintOnAc
       <div className="flex items-baseline gap-1.5">
         <span className="flex items-center gap-1 text-[13px] text-muted-foreground">
           <BanknoteIcon className="size-3.5" aria-hidden="true" />
-          {PAYMENT_LABELS[order.paymentMethod]}
+          {paymentLabel(order.paymentMethod, order.fulfillment)}
           {order.changeForCents ? ` · troco p/ ${formatBRL(order.changeForCents)}` : ""}
           {changeCents !== null && changeCents > 0 ? ` (levar ${formatBRL(changeCents)})` : ""}
         </span>

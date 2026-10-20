@@ -4,7 +4,7 @@ import { type Ref, useId } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { OrderQuote } from "@/modules/orders";
-import type { PaymentMethod } from "@/modules/orders/client";
+import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
 import { formatBRL } from "@/shared/money";
 import { ChoiceCards, TextField } from "./text-field";
 
@@ -12,6 +12,7 @@ export function PaymentStep({
   hidden,
   payments,
   payment,
+  fulfillment,
   onPaymentChange,
   pixKey,
   quote,
@@ -21,6 +22,7 @@ export function PaymentStep({
   hidden: boolean;
   payments: readonly (readonly [PaymentMethod, string])[];
   payment: PaymentMethod;
+  fulfillment: Fulfillment;
   onPaymentChange: (value: PaymentMethod) => void;
   pixKey: string | null;
   quote: OrderQuote | null;
@@ -45,8 +47,12 @@ export function PaymentStep({
         <dl className="grid grid-cols-2 gap-1 rounded-xl border bg-card p-4 text-sm">
           <dt className="text-muted-foreground">Subtotal</dt>
           <dd className="text-right">{formatBRL(quote.subtotalCents)}</dd>
-          <dt className="text-muted-foreground">Entrega</dt>
-          <dd className="text-right">{formatBRL(quote.deliveryFeeCents)}</dd>
+          {fulfillment === "delivery" && (
+            <>
+              <dt className="text-muted-foreground">Entrega</dt>
+              <dd className="text-right">{formatBRL(quote.deliveryFeeCents)}</dd>
+            </>
+          )}
           <dt className="font-semibold">Total</dt>
           <dd className="text-right font-semibold">{formatBRL(quote.totalCents)}</dd>
         </dl>

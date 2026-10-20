@@ -61,6 +61,7 @@ export type OrderTracking = {
   deliveryFeeCents: number;
   totalCents: number;
   paymentMethod: PaymentMethod;
+  cancelReason: string | null;
   store: StoreRef & { timezone: string; logoUrl: string | null; theme: Store["theme"] };
 };
 
@@ -341,6 +342,7 @@ export async function getOrderTracking(publicToken: string): Promise<OrderTracki
     deliveryFeeCents: order.deliveryFeeCents,
     totalCents: order.totalCents,
     paymentMethod: order.paymentMethod,
+    cancelReason: order.cancelReason,
     store: { slug: store.slug, name: store.name, whatsappPhone: store.whatsappPhone, timezone: store.timezone, logoUrl: store.logoUrl, theme: store.theme },
   };
 }

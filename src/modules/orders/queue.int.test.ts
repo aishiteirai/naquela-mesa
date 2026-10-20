@@ -7,7 +7,7 @@ import { ensureUser } from "@/modules/auth";
 import { db, pool } from "@/shared/db/client";
 import { getQueueVersion, getStoreOrder, listQueue, transitionOrder } from "./queue";
 import { orderStatusEvents } from "./schema";
-import { createOrder } from "./service";
+import { createOrder, getOrderTracking } from "./service";
 
 async function setupStore(slug: string, features: { dineIn?: boolean } = {}) {
   const { id: storeId } = await createStore({
@@ -107,7 +107,7 @@ describe("fila de pedidos", () => {
 
   it("cancelar exige motivo", async () => {
     const a = await setupStore("fila-a");
-    const { orderId } = await placeOrder("fila-a", a.coca);
+    const { orderId, publicToken } = await placeOrder("fila-a", a.coca);
     for (const reason of [undefined, null, "  ", "ab"]) {
       await expect(transitionOrder(a.storeId, orderId, "cancelled", { ...actor, cancelReason: reason })).rejects.toMatchObject({
         code: "VALIDATION",
@@ -116,6 +116,7 @@ describe("fila de pedidos", () => {
     }
     await transitionOrder(a.storeId, orderId, "cancelled", { ...actor, cancelReason: "  acabou a massa  " });
     expect(await getStoreOrder(a.storeId, orderId)).toMatchObject({ status: "cancelled", cancelReason: "acabou a massa" });
+    expect((await getOrderTracking(publicToken))?.cancelReason).toBe("acabou a massa");
   });
 
   it("dois aparelhos aceitando ao mesmo tempo: só um vence", async () => {

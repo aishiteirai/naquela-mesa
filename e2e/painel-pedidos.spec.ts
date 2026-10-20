@@ -111,6 +111,7 @@ test("cancelar exige motivo e aparece para o cliente", async ({ browser }) => {
 
   await customer.goto(trackingPath);
   await expect(customer.getByTestId("order-status")).toHaveText("Cancelado");
+  await expect(customer.getByText("Motivo: acabou a massa")).toBeVisible();
 });
 
 test("dois aparelhos: só o primeiro aceite vale", async ({ browser }) => {

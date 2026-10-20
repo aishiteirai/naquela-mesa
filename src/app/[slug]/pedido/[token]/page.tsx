@@ -11,7 +11,7 @@ import {
   FULFILLMENT_LABELS,
   formatOrderNumber,
   getOrderTracking,
-  PAYMENT_LABELS,
+  paymentLabel,
   statusLabel,
 } from "@/modules/orders";
 import { buildContactMessage, waMeLink } from "@/modules/whatsapp";
@@ -87,7 +87,7 @@ async function Tracking({
         <p data-testid="order-status" className="text-lg font-semibold">
           {statusLabel(order.status, order.fulfillment)}
         </p>
-        <OrderTimeline fulfillment={order.fulfillment} status={order.status} />
+        <OrderTimeline fulfillment={order.fulfillment} status={order.status} cancelReason={order.cancelReason} />
 
         <Card>
           <CardContent className="flex flex-col gap-4">
@@ -111,12 +111,16 @@ async function Tracking({
             <dl className="grid grid-cols-2 gap-1 text-sm">
               <dt className="text-muted-foreground">Subtotal</dt>
               <dd className="text-right">{formatBRL(order.subtotalCents)}</dd>
-              <dt className="text-muted-foreground">Entrega</dt>
-              <dd className="text-right">{formatBRL(order.deliveryFeeCents)}</dd>
+              {order.fulfillment === "delivery" && (
+                <>
+                  <dt className="text-muted-foreground">Entrega</dt>
+                  <dd className="text-right">{formatBRL(order.deliveryFeeCents)}</dd>
+                </>
+              )}
               <dt className="font-semibold">Total</dt>
               <dd className="text-right font-semibold">{formatBRL(order.totalCents)}</dd>
               <dt className="text-muted-foreground">Pagamento</dt>
-              <dd className="text-right">{PAYMENT_LABELS[order.paymentMethod]}</dd>
+              <dd className="text-right">{paymentLabel(order.paymentMethod, order.fulfillment)}</dd>
             </dl>
           </CardContent>
         </Card>

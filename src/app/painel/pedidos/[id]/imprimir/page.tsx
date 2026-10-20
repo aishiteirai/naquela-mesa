@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
-import { describeLine, FULFILLMENT_LABELS, formatOrderNumber, getStoreOrder, PAYMENT_LABELS } from "@/modules/orders";
+import { describeLine, FULFILLMENT_LABELS, formatOrderNumber, getStoreOrder, paymentLabel } from "@/modules/orders";
 import { isDomainError } from "@/shared/errors";
 import { formatBRL } from "@/shared/money";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
@@ -81,7 +81,7 @@ async function Ticket({ params }: { params: Promise<{ id: string }> }) {
         <span>{formatBRL(order.totalCents)}</span>
       </div>
       <p>
-        Pagamento: {PAYMENT_LABELS[order.paymentMethod]}
+        Pagamento: {paymentLabel(order.paymentMethod, order.fulfillment)}
         {order.changeForCents ? ` · troco para ${formatBRL(order.changeForCents)}` : ""}
       </p>
       {change > 0 && <p className="font-bold">Levar troco: {formatBRL(change)}</p>}

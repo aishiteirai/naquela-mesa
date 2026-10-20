@@ -5,6 +5,7 @@ import {
   formatOrderAddress,
   formatOrderNumber,
   PAYMENT_LABELS,
+  paymentLabel,
   statusLabel,
 } from "./labels";
 
@@ -44,5 +45,14 @@ describe("formatOrderAddress", () => {
     expect(formatOrderAddress({ ...base, complement: "apto 3", reference: "portão azul" })).toBe(
       "Rua A, 10 - apto 3 — Centro (ref.: portão azul)",
     );
+  });
+});
+
+describe("paymentLabel", () => {
+  it("cartão só é 'na entrega' no delivery", () => {
+    expect(paymentLabel("card_on_delivery", "delivery")).toBe("Cartão na entrega");
+    expect(paymentLabel("card_on_delivery", "pickup")).toBe("Cartão (maquininha)");
+    expect(paymentLabel("card_on_delivery", "dine_in")).toBe("Cartão (maquininha)");
+    expect(paymentLabel("pix", "pickup")).toBe("Pix");
   });
 });
