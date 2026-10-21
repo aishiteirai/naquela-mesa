@@ -153,7 +153,7 @@ test("cliente troca o cardápio para o modo escuro; a escolha vale na sacola e n
 
   await page.reload();
   await expect(html).toHaveClass(/\bdark\b/);
-  await page.goto("/pizzaria-demo/sacola");
+  await page.goto("/pizzaria-demo/cart");
   await expect(html).toHaveClass(/\bdark\b/);
 
   await page.goto("/login");

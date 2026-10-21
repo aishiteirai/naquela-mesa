@@ -8,7 +8,7 @@ import { StoreShell } from "@/app/[slug]/_components/store-shell";
 import { getStorePageData } from "@/app/[slug]/data";
 import { Checkout } from "./_components/checkout";
 
-export async function generateMetadata({ params }: PageProps<"/[slug]/sacola">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/[slug]/cart">): Promise<Metadata> {
   const { slug } = await params;
   if (slug.length > 60 || !SLUG_PATTERN.test(slug)) return {};
   const data = await getStorePageData(slug);
@@ -54,7 +54,7 @@ async function CheckoutContent({ params }: { params: Promise<{ slug: string }> }
   );
 }
 
-export default function SacolaPage({ params }: PageProps<"/[slug]/sacola">) {
+export default function SacolaPage({ params }: PageProps<"/[slug]/cart">) {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Carregando sacola...</p>}>
       <CheckoutContent params={params} />

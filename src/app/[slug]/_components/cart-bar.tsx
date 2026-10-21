@@ -12,7 +12,7 @@ export function CartBar({ slug }: { slug: string }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 p-3">
       <Link
-        href={`/${slug}/sacola`}
+        href={`/${slug}/cart`}
         aria-label="Ver sacola"
         className="mx-auto flex max-w-5xl items-center justify-between rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-lg"
       >

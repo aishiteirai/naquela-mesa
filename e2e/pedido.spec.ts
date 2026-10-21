@@ -22,7 +22,7 @@ async function addSimple(page: Page, name: string, quantity = 1) {
 
 async function goToCheckout(page: Page) {
   await page.getByRole("link", { name: "Ver sacola" }).click();
-  await expect(page).toHaveURL(/\/pizzaria-demo\/sacola$/);
+  await expect(page).toHaveURL(/\/pizzaria-demo\/cart$/);
   await page.getByRole("button", { name: "Continuar" }).click();
 }
 
@@ -31,6 +31,11 @@ async function fillCustomerAndReview(page: Page) {
   await page.getByLabel("WhatsApp (com DDD)").fill("(11) 98888-7777");
   await page.getByRole("button", { name: "Continuar" }).click();
 }
+
+test("link antigo da sacola leva para /cart", async ({ page }) => {
+  await page.goto("/pizzaria-demo/sacola");
+  await expect(page).toHaveURL(/\/pizzaria-demo\/cart$/);
+});
 
 test("pizza meio a meio com borda + bebida, delivery em dinheiro, até o acompanhamento", async ({ page }) => {
   await page.goto("/pizzaria-demo");
@@ -191,7 +196,7 @@ test("item que saiu do cardápio fica marcado na sacola e bloqueia o avanço", a
   await toggle.click();
   await expect(toggle).not.toBeChecked();
   try {
-    await page.goto("/pizzaria-demo/sacola");
+    await page.goto("/pizzaria-demo/cart");
     await expect(page.getByTestId("cart-line-problem")).toContainText("não está mais disponível");
     await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
     await page.getByRole("button", { name: "Remover Coca-Cola 2L" }).click();
