@@ -163,6 +163,14 @@ test("retirada não pergunta forma de pagamento; voltar para delivery pergunta d
   await page.goBack();
   await page.goBack();
   await page.getByRole("radio", { name: "Delivery" }).check();
+  await page.getByLabel("Rua").fill("Rua das Acácias");
+  await page.getByLabel("Número").fill("45");
+  await page.getByLabel("Bairro").fill("Centro");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByLabel("Seu nome")).toHaveValue("Maria Silva");
+  await expect(page.getByLabel("WhatsApp (com DDD)")).toHaveValue("(11) 98888-7777");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("radio", { name: "Dinheiro" })).toBeVisible();
   await expect(page.getByTestId("pay-on-pickup")).toHaveCount(0);
 });
 
