@@ -124,7 +124,7 @@ export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, 
       <FieldSeparator />
 
       <FieldSet>
-        <FieldLegend variant="label">Pagamento na entrega/retirada</FieldLegend>
+        <FieldLegend variant="label">Pagamento na entrega e no local</FieldLegend>
         <FieldGroup className="gap-3">
           <Check name="cash" label="Dinheiro" defaultChecked={paymentMethods.cash} />
           <Check name="cardOnDelivery" label="Cartão na entrega" defaultChecked={paymentMethods.cardOnDelivery} />
