@@ -4,7 +4,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const FULFILLMENTS = ["delivery", "pickup", "dine_in"] as const;
 export type Fulfillment = (typeof FULFILLMENTS)[number];
 
-export const PAYMENT_METHODS = ["cash", "card_on_delivery", "pix"] as const;
+export const PAYMENT_METHODS = ["cash", "card_on_delivery", "pix", "on_pickup"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const ORDER_CHANNELS = ["web", "whatsapp"] as const;

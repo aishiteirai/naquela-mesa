@@ -39,7 +39,7 @@ async function place(slug: string, coca: string, name: string, phone: string, cr
     customer: { name, phone },
     address: null,
     tableLabel: null,
-    payment: { method: "cash", changeForCents: null },
+    payment: { method: "on_pickup", changeForCents: null },
     notes: null,
     expectedTotalCents: 1400,
   });

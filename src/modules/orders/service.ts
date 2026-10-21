@@ -95,10 +95,15 @@ function assertOperation(store: Store, input: ParsedCheckout, now: Date): void {
   };
   if (!fulfillmentEnabled[input.fulfillment]) throw new DomainError("FULFILLMENT_DISABLED", { fulfillment: input.fulfillment });
 
+  // Retirada paga no balcão: o cliente não escolhe forma de pagamento.
+  if ((input.fulfillment === "pickup") !== (input.payment.method === "on_pickup")) {
+    throw new DomainError("PAYMENT_DISABLED", { method: input.payment.method });
+  }
   const paymentEnabled: Record<PaymentMethod, boolean> = {
     cash: store.paymentMethods.cash,
     card_on_delivery: store.paymentMethods.cardOnDelivery,
     pix: store.paymentMethods.pixKey !== null,
+    on_pickup: true,
   };
   if (!paymentEnabled[input.payment.method]) throw new DomainError("PAYMENT_DISABLED", { method: input.payment.method });
 

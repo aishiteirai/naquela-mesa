@@ -93,6 +93,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
 
   const [fulfillment, setFulfillment] = useState<Fulfillment>(fulfillments[0]?.[0] ?? "pickup");
   const [payment, setPayment] = useState<PaymentMethod>(enabledPayments[0] ?? "cash");
+  const effectivePayment: PaymentMethod = fulfillment === "pickup" ? "on_pickup" : payment;
   const payments = enabledPayments.map((value) => [value, paymentLabel(value, fulfillment)] as const);
   const [idempotencyKey] = useState(() => uuid());
   const [quote, setQuote] = useState<OrderQuote | null>(null);
@@ -141,7 +142,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   function buildPayload(expectedTotalCents: number | null): { payload: Record<string, unknown> } | { error: CheckoutError } {
     const form = new FormData(formRef.current!);
     const text = (key: string) => String(form.get(key) ?? "").trim();
-    const changeRaw = payment === "cash" ? text("changeFor") : "";
+    const changeRaw = effectivePayment === "cash" ? text("changeFor") : "";
     const changeForCents = changeRaw ? parseBRLToCents(changeRaw) : null;
     if (changeRaw && changeForCents === null) {
       return { error: { code: "VALIDATION", message: "Confira os campos destacados.", fieldErrors: { "payment.changeForCents": "valor inválido (use 100,00)" } } };
@@ -165,7 +166,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
               }
             : null,
         tableLabel: fulfillment === "dine_in" ? text("tableLabel") || null : null,
-        payment: { method: payment, changeForCents },
+        payment: { method: effectivePayment, changeForCents },
         notes: text("notes") || null,
         expectedTotalCents,
         website: text("website"),

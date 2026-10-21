@@ -34,10 +34,18 @@ export function PaymentStep({
   return (
     <fieldset ref={ref} hidden={hidden} className="flex flex-col gap-4">
       <legend className="mb-2 font-semibold">Forma de pagamento</legend>
-      <ChoiceCards label="Forma de pagamento" value={payment} options={payments} onChange={onPaymentChange} />
-      {payment === "pix" && pixKey && <p className="rounded-xl border bg-card p-4 text-sm">Chave Pix: {pixKey}</p>}
-      {payment === "cash" && (
-        <TextField label="Troco para (deixe vazio se não precisa)" name="changeFor" inputMode="decimal" error={fieldError("payment.changeForCents")} />
+      {fulfillment === "pickup" ? (
+        <p data-testid="pay-on-pickup" className="rounded-xl border bg-card p-4 text-sm">
+          Pagamento na retirada, direto no balcão.
+        </p>
+      ) : (
+        <>
+          <ChoiceCards label="Forma de pagamento" value={payment} options={payments} onChange={onPaymentChange} />
+          {payment === "pix" && pixKey && <p className="rounded-xl border bg-card p-4 text-sm">Chave Pix: {pixKey}</p>}
+          {payment === "cash" && (
+            <TextField label="Troco para (deixe vazio se não precisa)" name="changeFor" inputMode="decimal" error={fieldError("payment.changeForCents")} />
+          )}
+        </>
       )}
       <div className="flex flex-col gap-2">
         <Label htmlFor={notesId}>Observações do pedido</Label>

@@ -22,6 +22,7 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cash: "Dinheiro",
   card_on_delivery: "Cartão na entrega",
   pix: "Pix",
+  on_pickup: "Pagar na retirada",
 };
 
 /** "Cartão na entrega" só faz sentido no delivery; na retirada e na mesa é a maquininha da loja. */

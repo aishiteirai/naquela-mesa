@@ -28,6 +28,8 @@ describe("labels", () => {
 
   it("formas de pagamento e tipos", () => {
     expect(PAYMENT_LABELS.card_on_delivery).toBe("Cartão na entrega");
+    expect(PAYMENT_LABELS.on_pickup).toBe("Pagar na retirada");
+    expect(paymentLabel("on_pickup", "pickup")).toBe("Pagar na retirada");
     expect(FULFILLMENT_LABELS.dine_in).toBe("Consumo no local");
   });
 });

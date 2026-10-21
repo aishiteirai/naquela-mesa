@@ -34,7 +34,7 @@ async function placeOrder(slug: string, coca: string, fulfillment: "delivery" | 
         ? { street: "Rua A", number: "10", complement: null, neighborhood: "Centro", city: null, zipCode: null, reference: null }
         : null,
     tableLabel: null,
-    payment: { method: "cash", changeForCents: null },
+    payment: { method: fulfillment === "pickup" ? "on_pickup" : "cash", changeForCents: null },
     notes: null,
     expectedTotalCents: fulfillment === "delivery" ? 3400 : 2800,
   });
