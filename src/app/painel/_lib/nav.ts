@@ -15,6 +15,7 @@ export function isNavItemActive(pathname: string, href: string): boolean {
 
 const TRAILS: { href: string; trail: string[] }[] = [
   { href: "/painel/loja", trail: ["Loja", "Configurações"] },
+  { href: "/painel/cardapio/adicionais", trail: ["Cardápio", "Adicionais"] },
   { href: "/painel/cardapio", trail: ["Cardápio"] },
   { href: "/painel/pedidos", trail: ["Operação", "Histórico"] },
   { href: "/painel/metricas", trail: ["Operação", "Métricas"] },

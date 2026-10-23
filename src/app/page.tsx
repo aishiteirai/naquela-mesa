@@ -18,9 +18,15 @@ import {
 // "Entrar em contato" ainda não tem destino definido (CONTACT_HREF).
 
 export const metadata: Metadata = {
-  title: "Naquela Mesa — cardápio digital e pedidos para restaurantes",
+  title: "Naquela Mesa",
   description:
     "Cardápio digital, sacola, painel de pedidos e comanda impressa num só lugar. O cliente pede pelo link da sua loja, sem baixar app; sua equipe recebe, prepara e avisa pelo WhatsApp.",
+  openGraph: {
+    title: "Naquela Mesa",
+    description:
+      "Cardápio digital, sacola, painel de pedidos e comanda impressa num só lugar. O cliente pede pelo link da sua loja, sem baixar app; sua equipe recebe, prepara e avisa pelo WhatsApp.",
+    type: "website",
+  },
 };
 
 const CONTACT_HREF = "#contato";

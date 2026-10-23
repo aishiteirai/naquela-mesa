@@ -2,6 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ export function ZonesEditor({ initialZones }: { initialZones: DeliveryZone[] }) 
   const [rows, setRows] = useState<Row[]>(() =>
     initialZones.map((zone) => ({ key: zone.id, neighborhood: zone.neighborhood, fee: formatCentsForInput(zone.feeCents) })),
   );
-  const [state, formAction] = useActionState(saveZonesAction, idleState);
+  const [state, formAction, pending] = useActionState(saveZonesAction, idleState);
 
   function update(key: string, patch: Partial<Row>) {
     setRows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -27,7 +28,7 @@ export function ZonesEditor({ initialZones }: { initialZones: DeliveryZone[] }) 
   const payload = rows.map((row) => ({ neighborhood: row.neighborhood, fee: row.fee }));
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <ActionForm action={formAction} pending={pending} className="flex flex-col gap-4">
       <input type="hidden" name="zones" value={JSON.stringify(payload)} />
       <FieldDescription>Usado quando a taxa de entrega é &quot;Taxa por bairro&quot;.</FieldDescription>
       {rows.length > 0 && (
@@ -76,6 +77,6 @@ export function ZonesEditor({ initialZones }: { initialZones: DeliveryZone[] }) 
         </ul>
       )}
       <FormMessage state={state} />
-    </form>
+    </ActionForm>
   );
 }

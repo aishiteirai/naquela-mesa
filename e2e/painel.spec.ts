@@ -32,13 +32,18 @@ test("editar preço de um tamanho no painel lateral aparece no cardápio", async
   await expect(await publicCard(page, "Calabresa")).toContainText(/a partir de R\$\s39,90/);
 });
 
-test("preço digitado errado mostra erro no painel e não salva", async ({ page }) => {
+test("preço digitado errado mostra erro, mantém o que foi digitado e não salva", async ({ page }) => {
   await page.getByRole("button", { name: "Editar Mussarela" }).click();
   const sheet = page.getByRole("dialog", { name: "Editar produto" });
+  await sheet.getByLabel("Nome", { exact: true }).fill("Mussarela Especial");
+  await sheet.getByLabel("Descrição").fill("Com orégano fresco");
   await sheet.getByLabel("Preço Broto").fill("12.50");
   await sheet.getByRole("button", { name: "Salvar produto" }).click();
 
   await expect(sheet.getByText("preço inválido (use 34,90)")).toBeVisible();
+  await expect(sheet.getByLabel("Nome", { exact: true })).toHaveValue("Mussarela Especial");
+  await expect(sheet.getByLabel("Descrição")).toHaveValue("Com orégano fresco");
+  await expect(sheet.getByLabel("Preço Broto")).toHaveValue("12.50");
   await expect(page).toHaveURL(/\?produto=/);
   await expect(await publicCard(page, "Mussarela")).toContainText(/a partir de R\$\s32,90/);
 });
@@ -161,6 +166,20 @@ test("prévia muda ao trocar a cor; cor, fonte e logo aparecem no cardápio", as
   await expect(page.locator('[style*="--heading-font:var(--font-lora)"]')).toHaveCount(1);
 });
 
+test("whatsapp da loja aceita número com máscara", async ({ page }) => {
+  await page.goto("/painel/loja");
+  const appearance = page.getByRole("tabpanel", { name: "Aparência" });
+  await appearance.getByLabel("WhatsApp").fill("(11) 97777-6666");
+  await appearance.getByRole("button", { name: "Salvar aparência" }).click();
+  await expect(appearance.getByRole("status")).toHaveText("Aparência salva.");
+  await page.reload();
+  await expect(appearance.getByLabel("WhatsApp")).toHaveValue("+5511977776666");
+  // restaura o número do seed (scripts/demo/pizzaria-demo.ts)
+  await appearance.getByLabel("WhatsApp").fill("+5511999999999");
+  await appearance.getByRole("button", { name: "Salvar aparência" }).click();
+  await expect(appearance.getByRole("status")).toHaveText("Aparência salva.");
+});
+
 test("abas das configurações seguem ?aba=", async ({ page }) => {
   await page.goto("/painel/loja");
   await page.getByRole("tab", { name: "Pedidos e pagamento" }).click();
@@ -195,4 +214,10 @@ test.describe("celular", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Métricas" })).toBeVisible();
     await expect(nav).toBeHidden();
   });
+});
+
+test("cardápio tem link para os adicionais", async ({ page }) => {
+  await expect(page).toHaveTitle("Pizzaria Demo - Painel");
+  await page.getByRole("link", { name: "Adicionais" }).click();
+  await expect(page).toHaveURL(/\/painel\/cardapio\/adicionais$/);
 });

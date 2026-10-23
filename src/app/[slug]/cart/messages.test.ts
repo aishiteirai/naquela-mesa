@@ -7,7 +7,7 @@ const NBSP = " ";
 describe("toCheckoutError", () => {
   it.each([
     [new DomainError("STORE_CLOSED", { message: "Abre hoje às 18:00" }), "A loja está fechada agora. Abre hoje às 18:00"],
-    [new DomainError("ITEM_UNAVAILABLE", { itemIndex: 0, name: "Calabresa" }), "Calabresa não está disponível. Remova da sacola e tente de novo."],
+    [new DomainError("ITEM_UNAVAILABLE", { itemIndex: 0, name: "Calabresa" }), "O item 1 da sacola não está mais disponível (Calabresa). Volte à sacola para remover."],
     [new DomainError("INVALID_OPTIONS", { itemIndex: 1, reason: "escolha ao menos 1 em Molho" }), "Revise o item 2 da sacola: escolha ao menos 1 em Molho."],
     [new DomainError("BELOW_MIN_ORDER", { minOrderCents: 3000 }), `Pedido mínimo de R$${NBSP}30,00 (sem a entrega).`],
     [new DomainError("ZONE_NOT_SERVED"), "Ainda não entregamos nesse bairro. Que tal retirar no balcão?"],

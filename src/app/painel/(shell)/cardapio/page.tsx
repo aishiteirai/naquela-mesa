@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { ListPlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getCatalogForEditing } from "@/modules/catalog";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
 import { MenuEditor } from "./_components/menu-editor";
@@ -12,9 +15,17 @@ async function CatalogEditor() {
 export default function CardapioPage() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Cardápio</h1>
-        <p className="text-sm text-muted-foreground">Clique num produto para editar. A chave marca o que acabou: o cardápio atualiza na hora.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">Cardápio</h1>
+          <p className="text-sm text-muted-foreground">Clique num produto para editar. A chave marca o que acabou: o cardápio atualiza na hora.</p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/painel/cardapio/adicionais">
+            <ListPlusIcon />
+            Adicionais
+          </Link>
+        </Button>
       </div>
       <Suspense fallback={<p className="text-muted-foreground">Carregando cardápio...</p>}>
         <CatalogEditor />

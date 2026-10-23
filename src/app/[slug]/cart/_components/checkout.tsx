@@ -1,22 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
-import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { OrderQuote } from "@/modules/orders";
-import type { Fulfillment, PaymentMethod } from "@/modules/orders/client";
+import { paymentLabel, type Fulfillment, type PaymentMethod, type PricingContext } from "@/modules/orders/client";
 import { formatBRL, parseBRLToCents } from "@/shared/money";
 import { uuid } from "@/shared/uuid";
 import { useCart } from "@/app/[slug]/_components/cart-context";
+import { repriceCart } from "@/app/[slug]/_lib/reprice-cart";
+import { closedNotice } from "@/app/[slug]/_lib/closed-notice";
 import { CHECKOUT_STEPS, deliveryStepErrors, firstErrorStep, parseStepParam, type CheckoutStep } from "@/app/[slug]/_lib/checkout-steps";
-import type { CheckoutError } from "@/app/[slug]/sacola/messages";
-import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/sacola/actions";
+import type { CheckoutError } from "@/app/[slug]/cart/messages";
+import { placeOrderAction, quoteOrderAction } from "@/app/[slug]/cart/actions";
 import { CartStep } from "./cart-step";
 import { CustomerStep } from "./customer-step";
 import { DeliveryStep } from "./delivery-step";
@@ -31,6 +33,8 @@ export type CheckoutStore = {
   deliveryFee: { strategy: "fixed"; fixedCents: number } | { strategy: "by_neighborhood" };
   minOrderCents: number;
   zones: { neighborhood: string; feeCents: number }[];
+  pricing: PricingContext;
+  closedMessage: string | null;
 };
 
 // Só os campos da etapa atual precisam estar válidos para avançar; o servidor revalida tudo.
@@ -44,13 +48,29 @@ function validFieldset(fieldset: HTMLFieldSetElement | null): boolean {
 
 export function Checkout({ store }: { store: CheckoutStore }) {
   const cart = useCart();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const step = parseStepParam(searchParams.get("etapa"));
   const stepRef = useRef<CheckoutStep>(step);
   useEffect(() => {
     stepRef.current = step;
   }, [step]);
+  const closed = store.closedMessage !== null;
+  // O status da loja é calculado por requisição: enquanto fechada, reconsulta para liberar na hora de abrir.
+  useEffect(() => {
+    if (!closed) return;
+    const timer = window.setInterval(() => router.refresh(), 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [closed, router]);
   const fieldsets = useRef<(HTMLFieldSetElement | null)[]>([]);
+  const repriced = useMemo(() => repriceCart(store.pricing, cart.lines), [store.pricing, cart.lines]);
 
   const fulfillments = (
     [
@@ -61,18 +81,20 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   )
     .filter(([, , enabled]) => enabled)
     .map(([value, label]) => [value, label] as const);
-  const payments = (
+  const enabledPayments = (
     [
-      ["cash", "Dinheiro", store.paymentMethods.cash],
-      ["card_on_delivery", "Cartão na entrega", store.paymentMethods.cardOnDelivery],
-      ["pix", "Pix", store.paymentMethods.pixKey !== null],
+      ["cash", store.paymentMethods.cash],
+      ["card_on_delivery", store.paymentMethods.cardOnDelivery],
+      ["pix", store.paymentMethods.pixKey !== null],
     ] as const
   )
-    .filter(([, , enabled]) => enabled)
-    .map(([value, label]) => [value, label] as const);
+    .filter(([, enabled]) => enabled)
+    .map(([value]) => value);
 
   const [fulfillment, setFulfillment] = useState<Fulfillment>(fulfillments[0]?.[0] ?? "pickup");
-  const [payment, setPayment] = useState<PaymentMethod>(payments[0]?.[0] ?? "cash");
+  const [payment, setPayment] = useState<PaymentMethod>(enabledPayments[0] ?? "cash");
+  const effectivePayment: PaymentMethod = fulfillment === "pickup" ? "on_pickup" : payment;
+  const payments = enabledPayments.map((value) => [value, paymentLabel(value, fulfillment)] as const);
   const [idempotencyKey] = useState(() => uuid());
   const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [error, setError] = useState<CheckoutError | null>(null);
@@ -120,7 +142,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
   function buildPayload(expectedTotalCents: number | null): { payload: Record<string, unknown> } | { error: CheckoutError } {
     const form = new FormData(formRef.current!);
     const text = (key: string) => String(form.get(key) ?? "").trim();
-    const changeRaw = payment === "cash" ? text("changeFor") : "";
+    const changeRaw = effectivePayment === "cash" ? text("changeFor") : "";
     const changeForCents = changeRaw ? parseBRLToCents(changeRaw) : null;
     if (changeRaw && changeForCents === null) {
       return { error: { code: "VALIDATION", message: "Confira os campos destacados.", fieldErrors: { "payment.changeForCents": "valor inválido (use 100,00)" } } };
@@ -144,7 +166,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
               }
             : null,
         tableLabel: fulfillment === "dine_in" ? text("tableLabel") || null : null,
-        payment: { method: payment, changeForCents },
+        payment: { method: effectivePayment, changeForCents },
         notes: text("notes") || null,
         expectedTotalCents,
         website: text("website"),
@@ -218,8 +240,8 @@ export function Checkout({ store }: { store: CheckoutStore }) {
     );
   }
 
-  // Estimativa no cliente para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
-  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - cart.estimatedSubtotalCents) : 0;
+  // Recálculo no cliente com o cardápio atual para avisar já na sacola; o servidor confere o mínimo de novo ao revisar.
+  const missingForMinCents = cart.ready ? Math.max(0, store.minOrderCents - repriced.subtotalCents) : 0;
   const fieldError = (path: string) => error?.fieldErrors[path];
   const invalidateQuote = () => setQuote(null);
 
@@ -258,7 +280,12 @@ export function Checkout({ store }: { store: CheckoutStore }) {
       </header>
 
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
-        <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} onCartChange={invalidateQuote} />
+        {store.closedMessage !== null && (
+          <Alert data-testid="store-closed">
+            <AlertDescription>{closedNotice(store.closedMessage)}</AlertDescription>
+          </Alert>
+        )}
+        <CartStep ref={(element) => { fieldsets.current[0] = element; }} hidden={step !== 1} slug={store.slug} lines={repriced.lines} onCartChange={invalidateQuote} />
         {step === 1 && missingForMinCents > 0 && (
           <Alert data-testid="min-order-notice">
             <AlertDescription>
@@ -284,6 +311,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           hidden={step !== 4}
           payments={payments}
           payment={payment}
+          fulfillment={fulfillment}
           onPaymentChange={setPayment}
           pixKey={store.paymentMethods.pixKey}
           quote={quote}
@@ -302,7 +330,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           <Alert variant="destructive" data-testid="checkout-error">
             <AlertDescription className="flex flex-col gap-2">
               {error.message}
-              {error.code === "BELOW_MIN_ORDER" && (
+              {["BELOW_MIN_ORDER", "ITEM_UNAVAILABLE", "INVALID_OPTIONS"].includes(error.code) && (
                 <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => goTo(1)}>
                   Voltar à sacola
                 </Button>
@@ -317,11 +345,11 @@ export function Checkout({ store }: { store: CheckoutStore }) {
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">{step === 4 && quote ? "Total" : "Subtotal"}</span>
             <span data-testid={step === 4 && quote ? "quote-total" : undefined} className="font-semibold">
-              {formatBRL(step === 4 && quote ? quote.totalCents : cart.estimatedSubtotalCents)}
+              {formatBRL(step === 4 && quote ? quote.totalCents : repriced.subtotalCents)}
             </span>
           </div>
           {step < 4 ? (
-            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || (step === 1 && missingForMinCents > 0)}>
+            <Button type="button" size="lg" className="flex-1" onClick={next} disabled={!cart.ready || cart.lines.length === 0 || store.closedMessage !== null || (step === 1 && (missingForMinCents > 0 || repriced.hasProblems))}>
               Continuar
             </Button>
           ) : quote ? (
@@ -329,7 +357,7 @@ export function Checkout({ store }: { store: CheckoutStore }) {
               Confirmar pedido
             </Button>
           ) : (
-            <Button type="button" size="lg" className="flex-1" onClick={review} disabled={pending || !cart.ready}>
+            <Button type="button" size="lg" className="flex-1" onClick={review} disabled={pending || !cart.ready || store.closedMessage !== null}>
               {pending ? "Calculando..." : "Revisar pedido"}
             </Button>
           )}

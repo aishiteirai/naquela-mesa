@@ -35,7 +35,7 @@ export async function placePickupOrder(page: Page): Promise<{ orderLabel: string
   await page.getByLabel("Seu nome").fill("Maria Silva");
   await page.getByLabel("WhatsApp (com DDD)").fill("(11) 98888-7777");
   await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("radio", { name: "Pix" }).check();
+  await expect(page.getByTestId("pay-on-pickup")).toBeVisible();
   await expect(page.getByTestId("quote-total")).toBeVisible();
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
   const heading = page.getByRole("heading", { name: /^Pedido #\d+ recebido!$/ });

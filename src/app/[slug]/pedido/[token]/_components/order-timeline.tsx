@@ -3,7 +3,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { statusLabel, timelineFor, type Fulfillment, type OrderStatus } from "@/modules/orders";
 
-export function OrderTimeline({ fulfillment, status }: { fulfillment: Fulfillment; status: OrderStatus }) {
+export function OrderTimeline({
+  fulfillment,
+  status,
+  cancelReason,
+}: {
+  fulfillment: Fulfillment;
+  status: OrderStatus;
+  cancelReason?: string | null;
+}) {
   const steps = timelineFor(fulfillment, status);
 
   if (!steps) {
@@ -11,7 +19,9 @@ export function OrderTimeline({ fulfillment, status }: { fulfillment: Fulfillmen
       <Alert variant="destructive">
         <XCircleIcon />
         <AlertTitle>Pedido cancelado</AlertTitle>
-        <AlertDescription>Fale com a loja pelo WhatsApp se tiver dúvidas.</AlertDescription>
+        <AlertDescription>
+          {cancelReason ? `Motivo: ${cancelReason.replace(/[.!?]+$/, "")}. ` : ""}Fale com a loja pelo WhatsApp se tiver dúvidas.
+        </AlertDescription>
       </Alert>
     );
   }

@@ -1,4 +1,4 @@
-import { dropExpectedErrors } from "@/shared/sentry-filter";
+import { beforeSend } from "@/shared/sentry-filter";
 
 type CaptureRequestError = typeof import("@sentry/nextjs").captureRequestError;
 
@@ -9,7 +9,7 @@ export async function register() {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
     tracesSampleRate: 0,
-    beforeSend: dropExpectedErrors,
+    beforeSend: beforeSend,
   });
 }
 

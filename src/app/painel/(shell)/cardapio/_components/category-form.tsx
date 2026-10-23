@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useId } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { idleState } from "@/app/_lib/action-state";
@@ -15,7 +16,7 @@ export function CategoryForm({
   category: { id: string; name: string; active: boolean } | null;
   onDone: () => void;
 }) {
-  const [state, formAction] = useActionState(category ? updateCategoryAction : createCategoryAction, idleState);
+  const [state, formAction, pending] = useActionState(category ? updateCategoryAction : createCategoryAction, idleState);
   const activeId = useId();
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export function CategoryForm({
   }, [state, onDone]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <ActionForm action={formAction} pending={pending} className="flex flex-col gap-6">
       {category && <input type="hidden" name="categoryId" value={category.id} />}
       <FieldGroup>
         <TextField
@@ -46,6 +47,6 @@ export function CategoryForm({
         <SubmitButton>{category ? "Salvar categoria" : "Adicionar categoria"}</SubmitButton>
         {state.status === "error" && <FormMessage state={state} />}
       </div>
-    </form>
+    </ActionForm>
   );
 }

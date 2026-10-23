@@ -97,6 +97,18 @@ describe("orders service", () => {
     expect(quote.lines[0]).toMatchObject({ sizeName: "Grande", flavors: ["Calabresa", "Mussarela"], unitPriceCents: 6490, notes: "sem cebola" });
   });
 
+  it("retirada assume pagamento na retirada e o servidor amarra os dois", async () => {
+    const ids = await setupStore();
+    const pickup = { fulfillment: "pickup", address: null, payment: { method: "on_pickup", changeForCents: null } };
+    await expect(quoteOrder(SLUG, checkout(ids, pickup))).resolves.toMatchObject({ deliveryFeeCents: 0 });
+    await expect(
+      quoteOrder(SLUG, checkout(ids, { ...pickup, payment: { method: "cash", changeForCents: null } })),
+    ).rejects.toMatchObject({ code: "PAYMENT_DISABLED" });
+    await expect(
+      quoteOrder(SLUG, checkout(ids, { payment: { method: "on_pickup", changeForCents: null } })),
+    ).rejects.toMatchObject({ code: "PAYMENT_DISABLED" });
+  });
+
   it("cria pedido #1 com snapshot e acompanhamento sem dados pessoais", async () => {
     const ids = await setupStore();
     const placed = await createOrder(SLUG, checkout(ids, { expectedTotalCents: 8490 }));
@@ -151,6 +163,14 @@ describe("orders service", () => {
     await expect(createOrder(SLUG, checkout(ids))).rejects.toMatchObject({ code: "VALIDATION" });
   });
 
+  it("revisão já recusa telefone inválido", async () => {
+    const ids = await setupStore();
+    await expect(quoteOrder(SLUG, checkout(ids, { customer: { name: "Maria", phone: "123" } }))).rejects.toMatchObject({
+      code: "VALIDATION",
+      details: { issues: [{ path: "customer.phone" }] },
+    });
+  });
+
   it("produto de outra loja ou esgotado → ITEM_UNAVAILABLE", async () => {
     const ids = await setupStore();
     const other = await setupStore("pedido-outra");
@@ -194,7 +214,7 @@ describe("orders service", () => {
     const address = { street: "Rua A", number: "10", complement: null, neighborhood: "  centro ", city: null, zipCode: null, reference: null };
     expect((await quoteOrder(SLUG, checkout(ids, { address }))).deliveryFeeCents).toBe(500);
     await expect(quoteOrder(SLUG, checkout(ids, { address: { ...address, neighborhood: "Vila Nova" } }))).rejects.toMatchObject({ code: "ZONE_NOT_SERVED" });
-    expect((await quoteOrder(SLUG, checkout(ids, { fulfillment: "pickup", address: null }))).deliveryFeeCents).toBe(0);
+    expect((await quoteOrder(SLUG, checkout(ids, { fulfillment: "pickup", address: null, payment: { method: "on_pickup", changeForCents: null } }))).deliveryFeeCents).toBe(0);
   });
 
   it("mesma chave em paralelo grava um pedido e não consome número", async () => {

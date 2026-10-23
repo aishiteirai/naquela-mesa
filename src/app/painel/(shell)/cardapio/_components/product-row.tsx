@@ -12,6 +12,7 @@ import type { EditorProduct } from "@/modules/catalog";
 import { priceLabel } from "@/app/[slug]/_lib/price-label";
 import { moveProductAction } from "@/app/painel/(shell)/cardapio/actions";
 import { toggleProductAvailabilityAction } from "@/app/painel/(shell)/cardapio/availability-actions";
+import { runPanelAction } from "@/app/painel/_components/run-panel-action";
 import { openProduct } from "./menu-url";
 
 function formWith(fields: Record<string, string>): FormData {
@@ -39,7 +40,7 @@ export function ProductRow({ product, isFirst, isLast }: { product: EditorProduc
 
   function move(direction: "up" | "down") {
     startTransition(async () => {
-      await moveProductAction(formWith({ productId: product.id, direction }));
+      await runPanelAction(() => moveProductAction(formWith({ productId: product.id, direction })));
     });
   }
 

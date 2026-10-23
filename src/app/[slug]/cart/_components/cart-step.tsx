@@ -5,20 +5,26 @@ import type { Ref } from "react";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/shared/money";
 import { useCart } from "@/app/[slug]/_components/cart-context";
+import type { RepricedLine } from "@/app/[slug]/_lib/reprice-cart";
 
-export function CartStep({ hidden, slug, onCartChange, ref }: { hidden: boolean; slug: string; onCartChange: () => void; ref: Ref<HTMLFieldSetElement> }) {
+export function CartStep({ hidden, slug, lines, onCartChange, ref }: { hidden: boolean; slug: string; lines: RepricedLine[]; onCartChange: () => void; ref: Ref<HTMLFieldSetElement> }) {
   const cart = useCart();
 
   return (
     <fieldset ref={ref} hidden={hidden} className="flex flex-col gap-3">
       <legend className="sr-only">Itens da sacola</legend>
       <ul className="flex flex-col divide-y rounded-xl border bg-card">
-        {cart.lines.map((line) => (
+        {lines.map(({ line, totalCents, problem }) => (
           <li key={line.key} className="flex flex-col gap-2 p-3">
             <div className="flex justify-between gap-3">
               <span className="font-medium">{line.label}</span>
-              <span className="font-semibold whitespace-nowrap">{formatBRL(line.unitPriceCents * line.input.quantity)}</span>
+              <span className="font-semibold whitespace-nowrap">{totalCents === null ? "—" : formatBRL(totalCents)}</span>
             </div>
+            {problem && (
+              <p data-testid="cart-line-problem" className="text-sm text-destructive">
+                Este item {problem}. Remova para continuar.
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <Button
                 type="button"

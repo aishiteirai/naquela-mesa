@@ -14,7 +14,10 @@ export function toCheckoutError(error: DomainError): CheckoutError {
     case "STORE_CLOSED":
       return plain(error.code, `A loja está fechada agora. ${String(details.message ?? "")}`.trim());
     case "ITEM_UNAVAILABLE":
-      return plain(error.code, `${String(details.name ?? "Um item")} não está disponível. Remova da sacola e tente de novo.`);
+      return plain(
+        error.code,
+        `O item ${Number(details.itemIndex ?? 0) + 1} da sacola não está mais disponível (${String(details.name ?? "item")}). Volte à sacola para remover.`,
+      );
     case "INVALID_OPTIONS":
       return plain(error.code, `Revise o item ${Number(details.itemIndex ?? 0) + 1} da sacola: ${String(details.reason ?? "opções inválidas")}.`);
     case "BELOW_MIN_ORDER":

@@ -7,7 +7,7 @@ import { ensureUser } from "@/modules/auth";
 import { db, pool } from "@/shared/db/client";
 import { getQueueVersion, getStoreOrder, listQueue, transitionOrder } from "./queue";
 import { orderStatusEvents } from "./schema";
-import { createOrder } from "./service";
+import { createOrder, getOrderTracking } from "./service";
 
 async function setupStore(slug: string, features: { dineIn?: boolean } = {}) {
   const { id: storeId } = await createStore({
@@ -34,7 +34,7 @@ async function placeOrder(slug: string, coca: string, fulfillment: "delivery" | 
         ? { street: "Rua A", number: "10", complement: null, neighborhood: "Centro", city: null, zipCode: null, reference: null }
         : null,
     tableLabel: null,
-    payment: { method: "cash", changeForCents: null },
+    payment: { method: fulfillment === "pickup" ? "on_pickup" : "cash", changeForCents: null },
     notes: null,
     expectedTotalCents: fulfillment === "delivery" ? 3400 : 2800,
   });
@@ -107,7 +107,7 @@ describe("fila de pedidos", () => {
 
   it("cancelar exige motivo", async () => {
     const a = await setupStore("fila-a");
-    const { orderId } = await placeOrder("fila-a", a.coca);
+    const { orderId, publicToken } = await placeOrder("fila-a", a.coca);
     for (const reason of [undefined, null, "  ", "ab"]) {
       await expect(transitionOrder(a.storeId, orderId, "cancelled", { ...actor, cancelReason: reason })).rejects.toMatchObject({
         code: "VALIDATION",
@@ -116,6 +116,7 @@ describe("fila de pedidos", () => {
     }
     await transitionOrder(a.storeId, orderId, "cancelled", { ...actor, cancelReason: "  acabou a massa  " });
     expect(await getStoreOrder(a.storeId, orderId)).toMatchObject({ status: "cancelled", cancelReason: "acabou a massa" });
+    expect((await getOrderTracking(publicToken))?.cancelReason).toBe("acabou a massa");
   });
 
   it("dois aparelhos aceitando ao mesmo tempo: só um vence", async () => {

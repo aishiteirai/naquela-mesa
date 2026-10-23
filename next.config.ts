@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
       },
       { source: "/painel/cardapio/produtos/novo", destination: "/painel/cardapio", permanent: false },
       { source: "/painel/cardapio/produtos/:id", destination: "/painel/cardapio?produto=:id", permanent: false },
+      // A sacola mudou de /sacola para /cart (links e favoritos antigos).
+      { source: "/:slug/sacola", destination: "/:slug/cart", permanent: false },
     ];
   },
   async headers() {

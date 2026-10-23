@@ -2,6 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useId } from "react";
 import { useFormStatus } from "react-dom";
+import { useActionFormPending } from "@/app/_components/action-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError as UiFieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,9 @@ export function SubmitButton({
   pendingText = "Salvando...",
   ...props
 }: { children: ReactNode; pendingText?: string } & Omit<ComponentProps<typeof Button>, "type">) {
-  const { pending } = useFormStatus();
+  const { pending: formPending } = useFormStatus();
+  const actionPending = useActionFormPending();
+  const pending = formPending || actionPending;
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingText : children}

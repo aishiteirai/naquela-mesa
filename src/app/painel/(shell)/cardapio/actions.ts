@@ -19,6 +19,7 @@ import { storeMenuTag } from "@/modules/stores";
 import { parseBRLToCents } from "@/shared/money";
 import { actionError, fieldError, success, type ActionState } from "@/app/_lib/action-state";
 import { requireStoreAccess } from "@/app/painel/_lib/access";
+import { mapSizePriceErrors } from "./_lib/size-price-errors";
 
 function text(form: FormData, key: string): string {
   return String(form.get(key) ?? "").trim();
@@ -55,8 +56,8 @@ export async function updateCategoryAction(_prev: ActionState, form: FormData): 
   );
 }
 
-export async function moveCategoryAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveCategory(storeId, text(form, "categoryId"), direction(form)), "");
+export async function moveCategoryAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveCategory(storeId, text(form, "categoryId"), direction(form)), "Ordem salva.");
 }
 
 export async function createSizeAction(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -73,16 +74,16 @@ export async function updateSizeAction(_prev: ActionState, form: FormData): Prom
   );
 }
 
-export async function moveSizeAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveSize(storeId, text(form, "sizeId"), direction(form)), "");
+export async function moveSizeAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveSize(storeId, text(form, "sizeId"), direction(form)), "Ordem salva.");
 }
 
-export async function deleteSizeAction(form: FormData): Promise<void> {
-  await mutate((storeId) => deleteSize(storeId, text(form, "sizeId")), "");
+export async function deleteSizeAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => deleteSize(storeId, text(form, "sizeId")), "Tamanho removido.");
 }
 
-export async function moveProductAction(form: FormData): Promise<void> {
-  await mutate((storeId) => moveProduct(storeId, text(form, "productId"), direction(form)), "");
+export async function moveProductAction(form: FormData): Promise<ActionState> {
+  return mutate((storeId) => moveProduct(storeId, text(form, "productId"), direction(form)), "Ordem salva.");
 }
 
 const PRICE_PREFIX = "price:";
@@ -125,8 +126,11 @@ export async function saveProductAction(_prev: ActionState, form: FormData): Pro
 
   // Sem redirect: o painel lateral fecha sozinho ao receber o sucesso.
   const productId = text(form, "productId");
-  return mutate(
-    (storeId) => (productId ? updateProduct(storeId, productId, parsed.input) : createProduct(storeId, parsed.input)),
-    "Produto salvo.",
+  return mapSizePriceErrors(
+    await mutate(
+      (storeId) => (productId ? updateProduct(storeId, productId, parsed.input) : createProduct(storeId, parsed.input)),
+      "Produto salvo.",
+    ),
+    parsed.input.sizePrices,
   );
 }

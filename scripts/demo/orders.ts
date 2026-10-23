@@ -106,7 +106,8 @@ export function buildDemoHistory(options: DemoHistoryOptions): HistoricalOrder[]
       const deliveryFeeCents = fulfillment === "delivery" ? options.deliveryFeeCents : 0;
       const totalCents = lines.reduce((sum, line) => sum + line.totalCents, 0) + deliveryFeeCents;
       const paymentRoll = random();
-      const paymentMethod: PaymentMethod = paymentRoll < 0.3 ? "cash" : paymentRoll < 0.7 ? "card_on_delivery" : "pix";
+      const paymentMethod: PaymentMethod =
+        fulfillment === "pickup" ? "on_pickup" : paymentRoll < 0.3 ? "cash" : paymentRoll < 0.7 ? "card_on_delivery" : "pix";
       const cancelled = random() < 0.07;
 
       history.push({

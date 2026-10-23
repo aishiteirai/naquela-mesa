@@ -61,6 +61,7 @@ export type OrderTracking = {
   deliveryFeeCents: number;
   totalCents: number;
   paymentMethod: PaymentMethod;
+  cancelReason: string | null;
   store: StoreRef & { timezone: string; logoUrl: string | null; theme: Store["theme"] };
 };
 
@@ -94,10 +95,15 @@ function assertOperation(store: Store, input: ParsedCheckout, now: Date): void {
   };
   if (!fulfillmentEnabled[input.fulfillment]) throw new DomainError("FULFILLMENT_DISABLED", { fulfillment: input.fulfillment });
 
+  // Retirada paga no balcão: o cliente não escolhe forma de pagamento.
+  if ((input.fulfillment === "pickup") !== (input.payment.method === "on_pickup")) {
+    throw new DomainError("PAYMENT_DISABLED", { method: input.payment.method });
+  }
   const paymentEnabled: Record<PaymentMethod, boolean> = {
     cash: store.paymentMethods.cash,
     card_on_delivery: store.paymentMethods.cardOnDelivery,
     pix: store.paymentMethods.pixKey !== null,
+    on_pickup: true,
   };
   if (!paymentEnabled[input.payment.method]) throw new DomainError("PAYMENT_DISABLED", { method: input.payment.method });
 
@@ -145,8 +151,15 @@ async function quoteFor(store: Store, input: ParsedCheckout, now: Date): Promise
   return computeQuote(store, menu, zones, input, now);
 }
 
+function assertPhone(input: ParsedCheckout): string {
+  const phone = normalizeBrazilPhone(input.customer.phone);
+  if (!phone) throw validation("customer.phone", "telefone inválido (use DDD + número)");
+  return phone;
+}
+
 export async function quoteOrder(slug: string, rawInput: unknown, now: Date = new Date()): Promise<OrderQuote> {
   const input = parseCheckout(rawInput);
+  assertPhone(input);
   const store = await loadStore(slug);
   return quoteFor(store, input, now);
 }
@@ -253,8 +266,7 @@ export async function createOrder(
 ): Promise<PlacedOrder> {
   const input = parseCheckout(rawInput);
   if (input.expectedTotalCents === null) throw validation("expectedTotalCents", "revise o pedido antes de confirmar");
-  const phone = normalizeBrazilPhone(input.customer.phone);
-  if (!phone) throw validation("customer.phone", "telefone inválido (use DDD + número)");
+  const phone = assertPhone(input);
 
   const store = await loadStore(slug);
   // Repetição com a mesma chave devolve o pedido original, mesmo que a loja tenha fechado ou o carrinho mudado.
@@ -335,6 +347,7 @@ export async function getOrderTracking(publicToken: string): Promise<OrderTracki
     deliveryFeeCents: order.deliveryFeeCents,
     totalCents: order.totalCents,
     paymentMethod: order.paymentMethod,
+    cancelReason: order.cancelReason,
     store: { slug: store.slug, name: store.name, whatsappPhone: store.whatsappPhone, timezone: store.timezone, logoUrl: store.logoUrl, theme: store.theme },
   };
 }

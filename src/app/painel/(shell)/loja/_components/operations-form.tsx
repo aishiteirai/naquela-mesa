@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId } from "react";
+import { ActionForm } from "@/app/_components/action-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -37,16 +38,16 @@ function Toggle({ name, label, defaultChecked }: { name: string; label: string; 
 }
 
 export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, "features" | "rules" | "paymentMethods">) {
-  const [state, formAction] = useActionState(saveOperationsAction, idleState);
+  const [state, formAction, pending] = useActionState(saveOperationsAction, idleState);
   const halfRuleId = useId();
   const feeId = useId();
   const fixedCents = rules.deliveryFee.strategy === "fixed" ? rules.deliveryFee.fixedCents : 0;
 
-  // React reseta o <form> após a action e os controles Radix voltam ao valor do mount: a key remonta com o valor salvo.
+  // Depois de salvar, a key remonta o form com o valor salvo (os controles Radix guardam o valor do mount).
   const savedKey = JSON.stringify({ features, rules, paymentMethods });
 
   return (
-    <form key={savedKey} action={formAction} className="flex max-w-xl flex-col gap-6">
+    <ActionForm key={savedKey} action={formAction} pending={pending} className="flex max-w-xl flex-col gap-6">
       <FieldSet>
         <FieldLegend variant="label">Tipos de pedido</FieldLegend>
         <FieldGroup className="gap-3">
@@ -123,7 +124,7 @@ export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, 
       <FieldSeparator />
 
       <FieldSet>
-        <FieldLegend variant="label">Pagamento na entrega/retirada</FieldLegend>
+        <FieldLegend variant="label">Pagamento na entrega e no local</FieldLegend>
         <FieldGroup className="gap-3">
           <Check name="cash" label="Dinheiro" defaultChecked={paymentMethods.cash} />
           <Check name="cardOnDelivery" label="Cartão na entrega" defaultChecked={paymentMethods.cardOnDelivery} />
@@ -135,6 +136,6 @@ export function OperationsForm({ features, rules, paymentMethods }: Pick<Store, 
         <SubmitButton className="self-start">Salvar operação</SubmitButton>
         <FormMessage state={state} />
       </div>
-    </form>
+    </ActionForm>
   );
 }

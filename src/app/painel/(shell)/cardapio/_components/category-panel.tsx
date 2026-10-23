@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { EditorCategory } from "@/modules/catalog";
 import { moveCategoryAction } from "@/app/painel/(shell)/cardapio/actions";
+import { runPanelAction } from "@/app/painel/_components/run-panel-action";
 import { CategoryForm } from "./category-form";
 import { openNewProduct } from "./menu-url";
 import { ProductRow } from "./product-row";
@@ -26,7 +27,7 @@ export function CategoryPanel({ category, isFirst, isLast }: Props) {
     form.set("categoryId", category.id);
     form.set("direction", direction);
     startTransition(async () => {
-      await moveCategoryAction(form);
+      await runPanelAction(() => moveCategoryAction(form));
     });
   }
 

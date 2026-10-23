@@ -38,6 +38,32 @@ test("pedido novo aparece sozinho e muda o título da aba", async ({ browser }) 
   await expect(owner).toHaveTitle(/^\(\d+\) Novo pedido/);
 });
 
+test("atendimento continua depois de recarregar e alerta fora da página de pedidos", async ({ browser }) => {
+  const owner = await ownerPage(browser);
+  await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
+  await owner.reload();
+  await expect(owner.getByTestId("sound-locked")).toHaveText("Toque na tela para reativar o som de novos pedidos.");
+  await expect(owner.getByText("Atendimento ativo: toque na tela para reativar o som")).toBeVisible();
+  await owner.getByRole("heading", { name: "Pedidos" }).click();
+  await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+  await expect(owner.getByTestId("sound-locked")).toBeHidden();
+
+  await owner.getByRole("link", { name: "Cardápio" }).first().click();
+  await expect(owner).toHaveURL(/\/painel\/cardapio$/);
+  await customerOrder(browser);
+
+  const alert = owner.getByTestId("new-order-alert");
+  await expect(alert).toBeVisible({ timeout: 15_000 });
+  await expect(owner).toHaveTitle(/^\(\d+\) Novo pedido/);
+  await alert.getByRole("button", { name: "Silenciar" }).click();
+  await expect(alert).toBeHidden();
+
+  await customerOrder(browser);
+  await expect(owner.getByTestId("new-order-alert")).toBeVisible({ timeout: 15_000 });
+  await owner.getByTestId("new-order-alert").getByRole("link", { name: "Ver pedidos" }).click();
+  await expect(owner).toHaveURL(/\/painel$/);
+});
+
 test("aceitar, pronto e concluir aparecem no acompanhamento; avisar e comanda", async ({ browser }) => {
   const { page: customer, orderLabel, trackingPath } = await customerOrder(browser);
   const owner = await ownerPage(browser);
@@ -75,19 +101,26 @@ test("cancelar exige motivo e aparece para o cliente", async ({ browser }) => {
   const { page: customer, orderLabel, trackingPath } = await customerOrder(browser);
   const owner = await ownerPage(browser);
 
-  await owner.getByRole("button", { name: `Cancelar pedido ${orderLabel}` }).click();
-  const novos = card(owner, "Novos", orderLabel);
-  await novos.getByRole("button", { name: "Confirmar cancelamento" }).click();
-  await expect(novos.getByText("informe o motivo do cancelamento")).toBeVisible();
+  await card(owner, "Novos", orderLabel).getByRole("button", { name: `Mais ações do pedido ${orderLabel}` }).click();
+  await owner.getByRole("menuitem", { name: "Cancelar pedido" }).click();
+  const dialog = owner.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await expect(dialog.getByText("informe o motivo do cancelamento")).toBeVisible();
 
-  await novos.getByLabel("Motivo do cancelamento").fill("acabou a massa");
-  await novos.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await dialog.getByLabel("Motivo do cancelamento").fill("ab");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
+  await expect(dialog.getByText("informe o motivo do cancelamento")).toBeVisible();
+  await expect(dialog.getByLabel("Motivo do cancelamento")).toHaveValue("ab");
+
+  await dialog.getByLabel("Motivo do cancelamento").fill("acabou a massa");
+  await dialog.getByRole("button", { name: "Confirmar cancelamento" }).click();
   const finalizado = card(owner, "Finalizados (24 h)", orderLabel);
   await expect(finalizado).toContainText("Cancelado");
   await expect(finalizado).toContainText("Motivo: acabou a massa");
 
   await customer.goto(trackingPath);
   await expect(customer.getByTestId("order-status")).toHaveText("Cancelado");
+  await expect(customer.getByText("Motivo: acabou a massa")).toBeVisible();
 });
 
 test("dois aparelhos: só o primeiro aceite vale", async ({ browser }) => {
@@ -104,4 +137,17 @@ test("dois aparelhos: só o primeiro aceite vale", async ({ browser }) => {
   await deviceB.getByRole("button", { name: `Aceitar ${orderLabel}` }).click();
   await expect(deviceB.getByTestId("queue-notice")).toHaveText("Este pedido já foi atualizado em outro aparelho.");
   await expect(card(deviceB, "Em preparo", orderLabel)).toBeVisible();
+});
+
+test("pedido que já esperava volta a alertar depois de recarregar", async ({ browser }) => {
+  await customerOrder(browser);
+  const owner = await ownerPage(browser);
+  await owner.getByRole("button", { name: "Iniciar atendimento" }).click();
+  await owner.reload();
+  await expect(owner.getByTestId("sound-locked")).toHaveText("Toque na tela para reativar o som de novos pedidos.");
+  await expect(owner.getByText("Atendimento ativo: toque na tela para reativar o som")).toBeVisible();
+  await owner.getByRole("heading", { name: "Pedidos" }).click();
+  await expect(owner.getByText("Atendimento ativo: alerta sonoro ligado")).toBeVisible();
+  await expect(owner.getByTestId("sound-locked")).toBeHidden();
+  await expect(owner.getByTestId("new-order-alert")).toBeVisible();
 });
