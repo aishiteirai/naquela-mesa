@@ -24,6 +24,23 @@ O script `vercel-build` roda `drizzle-kit migrate` **somente** quando `VERCEL_EN
 - **(a)** Dê ao Preview seu próprio branch/banco no Neon (`DATABASE_URL` e `DATABASE_URL_UNPOOLED` com escopo Preview) e defina `MIGRATE_ON_BUILD=1` no Preview: as migrações rodam contra o banco de preview.
 - **(b)** Deixe o Preview sem migrações (sem `MIGRATE_ON_BUILD`): ele roda contra o esquema que o banco dele já tiver.
 
+## Branches e ambientes
+
+| Branch | Onde roda | Ambiente Vercel |
+|---|---|---|
+| `main` | produção | Production |
+| `dev` | preview estável | Preview (URL fixa da branch: `<projeto>-git-dev-<time>.vercel.app`) |
+| qualquer outra (`fix-*`, `feat-*`…) | só local | nenhum: o `vercel.json` desliga o deploy (`git.deploymentEnabled`) |
+
+Fluxo:
+
+1. Crie a branch de trabalho a partir da `dev` (`git switch dev && git switch -c fix-algo`) e mantenha-a local.
+2. Terminado o ajuste, faça merge na `dev` e dê push: a Vercel publica o preview.
+3. Validado no preview, abra PR `dev` → `main`: o merge publica em produção.
+4. Apague a branch local de trabalho.
+
+As variáveis de Preview podem ter escopo só na branch `dev` (*Environment Variables → Preview → Select a Git branch*). Como a URL da `dev` é fixa, use-a em `BETTER_AUTH_URL` e `BETTER_AUTH_TRUSTED_ORIGINS` do Preview.
+
 ## 3. Variáveis de ambiente
 
 | Variável | Ambiente | Origem |
