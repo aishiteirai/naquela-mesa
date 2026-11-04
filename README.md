@@ -18,15 +18,6 @@ A loja recebe, prepara e acompanha tudo em um painel que se atualiza sozinho.
 <img alt="Vercel" src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white">
 </p>
 
-<p>
-<a href="#funcionalidades">Funcionalidades</a> ·
-<a href="#como-funciona">Como funciona</a> ·
-<a href="#stack">Stack</a> ·
-<a href="#rodando-localmente">Rodando localmente</a> ·
-<a href="#arquitetura">Arquitetura</a> ·
-<a href="#deploy">Deploy</a>
-</p>
-
 <br>
 
 <img src="docs/images/painel-pedidos.png" alt="Fila de pedidos do painel da loja, com colunas Novos, Em preparo, Prontos e Finalizados" width="900">
